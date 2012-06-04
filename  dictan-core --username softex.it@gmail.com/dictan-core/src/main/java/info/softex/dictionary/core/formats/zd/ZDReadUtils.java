@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2011  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2011 - 2012  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -20,7 +20,6 @@
 package info.softex.dictionary.core.formats.zd;
 
 import static info.softex.dictionary.core.formats.zd.ZDConstants.UNCOMPRESSED_BUFFER_SIZE;
-import info.softex.dictionary.core.attributes.ProgressInfo;
 import info.softex.dictionary.core.formats.zd.io.LittleEndianRandomAccessFile;
 
 import java.io.EOFException;
@@ -74,7 +73,6 @@ public class ZDReadUtils {
 	public static int[] buildWordBlockIndices(
 			final InflaterInputStream iis, 
 			final int wordsNumber, final int wordsSize,
-			final ProgressInfo progressInfo,
 			final int blockSize) throws DataFormatException, IOException {
 		
 		//log.info("Build Words Indices | Count: " + wordsNumber + ", Compressed Size: " + dictInfo.words_zsize + ", Uncompressed Size: " + dictInfo.words_size);
@@ -82,8 +80,8 @@ public class ZDReadUtils {
 		final int numberOfBlocks = (int)Math.ceil((double)wordsNumber / blockSize);
 		final int[] indices = new int[numberOfBlocks];
 		
-		progressInfo.setMessage("Unpacking words...");
-		progressInfo.setTotal(wordsNumber);
+		//progressInfo.setMessage("Unpacking words...");
+		//progressInfo.setTotal(wordsNumber);
 		
 		byte[] uncompressedData = null;
 		if (wordsSize < UNCOMPRESSED_BUFFER_SIZE) {
@@ -94,7 +92,7 @@ public class ZDReadUtils {
 			    
 		log.info("Build Words Indices | Uncompressed Data Buffer Size: " + uncompressedData.length);
 		
-		progressInfo.setCurrent(0);
+		//progressInfo.setCurrent(0);
 
 		int readGLB = 0;
 		int curBlockNumber = 0;
@@ -117,7 +115,7 @@ public class ZDReadUtils {
 			for (int i = 0; i < curUncompLength; i++) {
 				if (uncompressedData[i] == 0) {
 
-					progressInfo.step(1);
+					//progressInfo.step(1);
 					
 					if (curBlockIndex < blockSize-1) {
 						curBlockIndex++;
@@ -157,7 +155,7 @@ public class ZDReadUtils {
 	}
 	
 	public static int[][] buildWordsIndices(
-			final InflaterInputStream iis, final ZDHeader dictInfo, final ProgressInfo progressInfo, 
+			final InflaterInputStream iis, final ZDHeader dictInfo, 
 			final String csName, final int blockSize) throws DataFormatException, IOException {
 		
 		log.info("Build Words Indices | Count: " + dictInfo.getWordsNumber() + ", Compressed Size: " + dictInfo.getWordsZSize() + ", Uncompressed Size: " + dictInfo.getWordsSize());
@@ -166,8 +164,8 @@ public class ZDReadUtils {
 		
 		final int[][] indices = new int[numberOfBlocks][blockSize];
 		
-		progressInfo.setMessage("Unpacking words...");
-		progressInfo.setTotal(dictInfo.getWordsNumber());
+		//progressInfo.setMessage("Unpacking words...");
+		//progressInfo.setTotal(dictInfo.getWordsNumber());
 		
 		byte[] uncompressedData = null;
 		if (dictInfo.getWordsSize() < UNCOMPRESSED_BUFFER_SIZE) {
@@ -178,7 +176,7 @@ public class ZDReadUtils {
 			    
 		log.info("Build Words Indices | Uncompressed Data Buffer Size: " + uncompressedData.length);
 		
-		progressInfo.setCurrent(0);
+		//progressInfo.setCurrent(0);
 
 		int readGLB = 0;
 		int curBlockNumber = 0;
@@ -202,7 +200,7 @@ public class ZDReadUtils {
 				if (uncompressedData[i] == 0) {
 					
 					indices[curBlockNumber][curBlockIndex] = curBlockOffset + i;
-					progressInfo.step(1);
+					//progressInfo.step(1);
 					
 					if (curBlockIndex < blockSize-1) {
 						curBlockIndex++;
@@ -240,12 +238,12 @@ public class ZDReadUtils {
 	}
 		
 	
-	public static List<String> loadWords(InflaterInputStream iis, String csName, ZDHeader dictInfo, ProgressInfo progressInfoLoc) throws DataFormatException, IOException {
+	public static List<String> loadWords(InflaterInputStream iis, String csName, ZDHeader dictInfo) throws DataFormatException, IOException {
 		
 		log.info("Loading Words | Count: " + dictInfo.getWordsNumber() + ", Compressed Size: " + dictInfo.getWordsZSize() + ", Uncompressed Size: " + dictInfo.getWordsSize());
 
-		progressInfoLoc.setMessage("Unpacking words...");
-		progressInfoLoc.setTotal(dictInfo.getWordsNumber());
+		//progressInfoLoc.setMessage("Unpacking words...");
+		//progressInfoLoc.setTotal(dictInfo.getWordsNumber());
 		
 		byte[] uncompressedData = null;
 		if (dictInfo.getWordsSize() < UNCOMPRESSED_BUFFER_SIZE) {
@@ -259,7 +257,7 @@ public class ZDReadUtils {
 		ArrayList<String> list = new ArrayList<String>(dictInfo.getWordsNumber());
 		int readGLB = 0;
 		byte[] uncompressedDataRest = null;
-		progressInfoLoc.setCurrent(0);
+		//progressInfoLoc.setCurrent(0);
 		
 		readCycle: while (readGLB < dictInfo.getWordsSize()) {
 			
@@ -298,7 +296,7 @@ public class ZDReadUtils {
 				if (uncompressedData[i] == 0) {
 					String word = new String(uncompressedData, startIdx, i - startIdx, csName);
 					list.add(word);
-					progressInfoLoc.step(1);
+					//progressInfoLoc.step(1);
 					startIdx = i + 1;
 				}
 			}
@@ -329,7 +327,7 @@ public class ZDReadUtils {
 	}
 
 	
-	public static Map<String, String> loadAbbreviations(InflaterInputStream iis, ZDHeader dictInfo, ProgressInfo progressInfo) throws IOException, DataFormatException, DataFormatException {
+	public static Map<String, String> loadAbbreviations(InflaterInputStream iis, ZDHeader dictInfo) throws IOException, DataFormatException, DataFormatException {
 		
 		log.info("Load Abbreviations | Number: {}, Compressed Size: {}, Uncompressed Size: " + dictInfo.getAbbreviationsSize(), dictInfo.getAbbreviationsNumber(), dictInfo.getAbbreviationsZSize());	
 				

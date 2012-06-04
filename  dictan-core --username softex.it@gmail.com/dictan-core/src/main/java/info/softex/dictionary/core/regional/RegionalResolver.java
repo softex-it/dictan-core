@@ -17,27 +17,24 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.database;
+package info.softex.dictionary.core.regional;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Map;
+import java.nio.charset.Charset;
+import java.util.Locale;
 
 /**
  * 
- * @since version 2.6, 09/07/2011
+ * @since version 2.5, 08/02/2011
  * 
  * @author Dmitry Viktorov
- * 
+ *
  */
-public interface DatabaseConnectionFactory {
+public interface RegionalResolver {
 	
-	public static final String DB_NO_LOCALIZED_COLLATORS = "NO_LOCALIZED_COLLATORS";
-	public static final String DB_CREATE_IF_NECESSARY = "CREATE_IF_NECESSARY";
-	public static final String DB_OPEN_READ_ONLY = "OPEN_READONLY";
+	public Locale getLanguageLocale(int langId);
 	
-	public static final String PROP_JDBC_DRIVER = "PROP_JDBC_DRIVER";
+	public String toCharsetName(int codepage);
+	
+	public Charset toCharset(int codepage);
 
-	public Connection createConnection(String url, Map<String, String> params) throws SQLException;
-	
 }

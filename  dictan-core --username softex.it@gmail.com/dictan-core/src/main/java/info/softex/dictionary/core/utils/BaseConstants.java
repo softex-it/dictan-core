@@ -17,27 +17,28 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.database;
-
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.util.Map;
+package info.softex.dictionary.core.utils;
 
 /**
  * 
- * @since version 2.6, 09/07/2011
+ * @since version 2.5, 08/06/2011
  * 
+ * @modified version 3.0, 11/27/2011
+ * @modified version 3.1, 05/22/2012
+ *  
  * @author Dmitry Viktorov
  * 
  */
-public interface DatabaseConnectionFactory {
+public class BaseConstants {
 	
-	public static final String DB_NO_LOCALIZED_COLLATORS = "NO_LOCALIZED_COLLATORS";
-	public static final String DB_CREATE_IF_NECESSARY = "CREATE_IF_NECESSARY";
-	public static final String DB_OPEN_READ_ONLY = "OPEN_READONLY";
+	public static final String URLSEG_ABBREVS = "abbrevs";
+	public static final String URLSEG_IMAGES = "images";
+	public static final String URLSEG_EXTERNAL = "external";
+	public static final String URLSEG_INTERNAL = "internal";
+	public static final String URLSEG_TRANS_WORD = "trans-word";
+	public static final String URLSEG_TRANS_INDEX = "trans-index";
+	public static final String URLSEG_SOUNDS = "sounds";
 	
-	public static final String PROP_JDBC_DRIVER = "PROP_JDBC_DRIVER";
-
-	public Connection createConnection(String url, Map<String, String> params) throws SQLException;
+	public static final String RESOURCE_INT_IMG_SOUND = "sound_32";
 	
 }

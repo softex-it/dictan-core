@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2011  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2011 - 2012  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -44,8 +44,6 @@ import org.slf4j.LoggerFactory;
 public abstract class AbstractDynamicListSet<T> extends AbstractList<T> implements RandomAccess, Set<T> {
 
 	private final Logger log = LoggerFactory.getLogger(AbstractDynamicListSet.class.getSimpleName());
-	
-	private static final long serialVersionUID = -1606796660703369518L;
 
 	protected final int maxSize;
 	protected final int blockSize;

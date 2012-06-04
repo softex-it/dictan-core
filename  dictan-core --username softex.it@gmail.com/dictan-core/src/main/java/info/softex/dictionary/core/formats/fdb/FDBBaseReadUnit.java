@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2011  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2011 - 2012  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -103,6 +103,7 @@ public class FDBBaseReadUnit {
 		baseInfo.setMediaBaseSeparate(false);
 		
 		try {
+			
 			Statement statement = connection.createStatement();
 			
 			ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_BASE_PROPERTIES);

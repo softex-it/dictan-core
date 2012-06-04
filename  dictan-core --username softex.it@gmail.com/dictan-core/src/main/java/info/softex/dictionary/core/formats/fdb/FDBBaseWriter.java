@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2011  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2011 - 2012  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -28,6 +28,7 @@ import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
+import info.softex.dictionary.core.attributes.ProgressInfo;
 import info.softex.dictionary.core.database.DatabaseConnectionFactory;
 import info.softex.dictionary.core.io.BaseWriter;
 
@@ -38,6 +39,7 @@ import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Observer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +60,8 @@ public class FDBBaseWriter implements BaseWriter {
 
 	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(FDBBaseWriter.class);
 
+	protected final ProgressInfo progressInfo = new ProgressInfo();
+	
 	protected final ArrayList<FDBBaseWriteUnit> dbs = new ArrayList<FDBBaseWriteUnit>(1);
 	protected final FDBBaseWriteUnit mainBase;
 	protected FDBBaseWriteUnit activeBase;
@@ -80,14 +84,20 @@ public class FDBBaseWriter implements BaseWriter {
 	protected int curArticlesNumber = 0;
 	protected int curMediaResourcesNumber = 0;
 	
-	public FDBBaseWriter(String baseFilePath, DatabaseConnectionFactory conFactory, Map<String, Object> params) throws SQLException, IOException {
+	public FDBBaseWriter(String baseFilePath, DatabaseConnectionFactory conFactory, Map<String, String> params) throws SQLException, IOException {
 		if (params != null) {
-			Object baseSizeLimit = params.get(FDBConstants.PARAM_KEY_BASE_SIZE_LIMIT);
+			String baseSizeLimit = params.get(FDBConstants.PARAM_KEY_BASE_SIZE_LIMIT);
 			if (baseSizeLimit != null && "default".equalsIgnoreCase(baseSizeLimit.toString())) {
 				//minMainBaseSize = 3800000000L; // 4 294 967 295
-				minMainBaseSize = 20000000;
-				//minMainBaseSize = 1400000000L; // 1610612736L - 1.5 GB
+				//minMainBaseSize = 20000000;
+				minMainBaseSize = 1610612736L; // 1610612736L - 1.5 GB
 				//minMainBaseSize = 1073741824L; // 1 GB
+			} else if (baseSizeLimit != null) {
+				try {
+					minMainBaseSize = Long.parseLong(baseSizeLimit.toString());
+				} catch (Exception e) {
+					log.error("Error", e);
+				}
 			}
 		}
 		
@@ -102,6 +112,8 @@ public class FDBBaseWriter implements BaseWriter {
 	
 	@Override
 	public BasePropertiesInfo saveBasePropertiesInfo(BasePropertiesInfo baseInfo) throws SQLException, NoSuchAlgorithmException {
+		int total = baseInfo.getArticlesNumber() + baseInfo.getMediaResourcesNumber();
+		progressInfo.setTotal(total);
 		return mainBase.saveBasePropertiesInfo(baseInfo, FORMAT_INFO);
 	}
 	
@@ -125,6 +137,9 @@ public class FDBBaseWriter implements BaseWriter {
 		mainBase.saveWord(articleInfo.getWordInfo().getWord().trim(), wordsNumber);
 		
 		boolean isFlashed = activeBase.saveArticle(articleInfo.getArticle().trim(), wordsNumber++);
+		
+		updateProgress();
+		
 		if (isFlashed) {
 			flashArticles();
 			reviseBaseFiles();
@@ -161,6 +176,7 @@ public class FDBBaseWriter implements BaseWriter {
 		return mainBase.getLanguageDirectionsInfo();
 	}
 
+	@Override
 	public void close() throws Exception {
 		for (int i = 0; i < dbs.size(); i++) {
 			dbs.get(i).close();
@@ -170,6 +186,11 @@ public class FDBBaseWriter implements BaseWriter {
 	@Override
 	public LanguageDirectionsInfo saveLanguageDirectionsInfo(LanguageDirectionsInfo languageDirectionsInfo) throws Exception {
 		return mainBase.saveLanguageDirectionsInfo(languageDirectionsInfo);
+	}
+	
+	@Override
+	public void addObserver(Observer observer) {
+		progressInfo.addObserver(observer);
 	}
 
 	// Protected -----------------------------------------------
@@ -231,11 +252,18 @@ public class FDBBaseWriter implements BaseWriter {
 		
 	}
 	
-	// Protected -----------------------------------
 	@Override
 	public void flash() throws Exception {
 		flashArticles();
 		flashMediaResources();
+	}
+
+	// Protected -----------------------------------
+	
+	protected void updateProgress() {
+		int current = wordsNumber + mediaResourcesNumber;
+		progressInfo.setCurrent(current);
+		progressInfo.notifyObservers();
 	}
 	
 	protected void flashArticles() throws UnsupportedEncodingException, IOException, SQLException {

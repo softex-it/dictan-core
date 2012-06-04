@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2011  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2011 - 2012  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,13 +19,12 @@
 
 package info.softex.dictionary.core.formats.zd;
 
-import info.softex.dictionary.core.attributes.ProgressInfo;
 import info.softex.dictionary.core.formats.zd.collections.ZDDynamicListSet;
 import info.softex.dictionary.core.formats.zd.io.LittleEndianDataInputStream;
 import info.softex.dictionary.core.formats.zd.io.LittleEndianRandomAccessFile;
 import info.softex.dictionary.core.formats.zd.zip.TIIStream;
 import info.softex.dictionary.core.io.BaseFormatException;
-import info.softex.dictionary.core.regional.DictionaryRegionalResolver;
+import info.softex.dictionary.core.regional.RegionalResolver;
 import info.softex.dictionary.core.zip.SmartInflaterInputStream;
 
 import java.io.ByteArrayInputStream;
@@ -58,7 +57,7 @@ public class ZDDynamicArticlesReader {
 
 	private final Logger log = LoggerFactory.getLogger(ZDDynamicArticlesReader.class.getSimpleName());
 	
-	protected DictionaryRegionalResolver regionalResolver = null;
+	protected RegionalResolver regionalResolver = null;
 	
 	protected final File dictFile;
 	protected LittleEndianRandomAccessFile raf = null;
@@ -69,7 +68,7 @@ public class ZDDynamicArticlesReader {
 	protected int blockOffsets[] = null;
 	protected BlockCache lastLoadedBlock = null;
 	protected ZDHeader zdHeader = null;
-	protected final ProgressInfo progressInfo = new ProgressInfo();
+	//protected final ProgressInfo progressInfo = new ProgressInfo();
 	
 	protected boolean loaded = false;
 	
@@ -90,7 +89,7 @@ public class ZDDynamicArticlesReader {
 		public static final int SIZE = 8;
 	}
 
-	public ZDDynamicArticlesReader(DictionaryRegionalResolver regionalResolver, File file) throws IOException {
+	public ZDDynamicArticlesReader(RegionalResolver regionalResolver, File file) throws IOException {
 		
 		this.regionalResolver = regionalResolver;
 		
@@ -130,13 +129,12 @@ public class ZDDynamicArticlesReader {
 		    		this.zdHeader.getWordsNumber(),
 		    		this.zdHeader.getWordsStartPosition(), 
 		    		this.zdHeader.getWordsSize(), 
-		    		this.zdHeader.getWordsCodepageName(), 
-		    		this.progressInfo
+		    		this.zdHeader.getWordsCodepageName()
 		    	);
 		    
 		    TIIStream tiis = dynamicWords.getTIIStream().createNewZippedSetIS();
 		    
-		    this.abbreviations = ZDReadUtils.loadAbbreviations(tiis, zdHeader, progressInfo);
+		    this.abbreviations = ZDReadUtils.loadAbbreviations(tiis, zdHeader);
 	
 		    tiis.close();
 		    
@@ -243,10 +241,6 @@ public class ZDDynamicArticlesReader {
 
 	public List<String> getWords() {
 		return dynamicWords;
-	}
-
-	public ProgressInfo getProgressInfo() {
-		return progressInfo;
 	}
 
 	public String getFileName() {

@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2011  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2011 - 2012  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,7 +19,6 @@
 
 package info.softex.dictionary.core.formats.zd.collections;
 
-import info.softex.dictionary.core.attributes.ProgressInfo;
 import info.softex.dictionary.core.collections.AbstractDynamicListSet;
 import info.softex.dictionary.core.collections.BasicCacheBlock;
 import info.softex.dictionary.core.collections.CacheBlockReferenceTypes;
@@ -69,8 +68,7 @@ public class ZDDynamicListSet extends AbstractDynamicListSet<String> {
 	public ZDDynamicListSet(
 				File file, int bufferSize, int wordListBlockSize,
 				int wordsNumber, int wordsStartPosition, 
-				int wordsSize, String listCodepageName,
-				ProgressInfo progressInfo
+				int wordsSize, String listCodepageName
 			) throws IOException, BaseFormatException {
 		
 		super(wordsNumber, wordListBlockSize, CacheBlockReferenceTypes.SOFT);
@@ -96,7 +94,7 @@ public class ZDDynamicListSet extends AbstractDynamicListSet<String> {
 		try {
 			blockIndices = ZDReadUtils.buildWordBlockIndices(
 					this.tiis, this.wordsNumber, this.wordsSize, 
-					progressInfo, blockSize
+					blockSize
 				);
 		} catch (DataFormatException e) {
 			log.error("Error", e);

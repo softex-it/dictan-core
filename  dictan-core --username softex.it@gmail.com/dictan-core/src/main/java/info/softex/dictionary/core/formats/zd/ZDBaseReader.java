@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2011  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2011 - 2012  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -32,8 +32,7 @@ import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.collation.LocalizedStringComparator;
 import info.softex.dictionary.core.io.BaseFormatException;
 import info.softex.dictionary.core.io.BaseReader;
-import info.softex.dictionary.core.regional.DictionaryRegionalResolver;
-import info.softex.dictionary.core.stat.BaseConstants;
+import info.softex.dictionary.core.regional.RegionalResolver;
 import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
 
 import java.io.File;
@@ -65,6 +64,9 @@ import org.slf4j.LoggerFactory;
 @DictionaryFormat(name = "ZD", primaryExtension = ".zd", extensions = {".zd"})
 public class ZDBaseReader implements BaseReader {
 	
+	public static final String FORMAT_ZPAK_NAME = "ZPAK";
+	public static final String FORMAT_ZPAK_EXT = ".zpak";
+	
 	private final Logger log = LoggerFactory.getLogger(ZDBaseReader.class.getSimpleName());
 
 	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(ZDBaseReader.class);
@@ -72,7 +74,7 @@ public class ZDBaseReader implements BaseReader {
 	protected BasePropertiesInfo baseInfo = null;
 	protected LanguageDirectionsInfo languageDirections = null;
 	
-	protected DictionaryRegionalResolver regionalResolver = null;
+	protected RegionalResolver regionalResolver = null;
 	
 	protected Comparator<String> stringComparator = null;	
 
@@ -81,14 +83,14 @@ public class ZDBaseReader implements BaseReader {
 
 	protected Locale locale = null;
 	
-	public ZDBaseReader(File zdFile, DictionaryRegionalResolver regionalResolver) throws IOException {
+	public ZDBaseReader(File zdFile, RegionalResolver regionalResolver) throws IOException {
 		
 		this.regionalResolver = regionalResolver;
 		this.zdReader = new ZDDynamicArticlesReader(regionalResolver, zdFile);
 		
 		String zdFilePath = stripExtension(zdFile.getPath());
 		
-		File zpakFile = new File(zdFilePath + BaseConstants.FORMAT_ZPAK_EXT);
+		File zpakFile = new File(zdFilePath + FORMAT_ZPAK_EXT);
 		if (zpakFile.exists()) {
 			log.info("ZPAK file is found: {}", zpakFile);
 			this.zpakReader = new ZPAKMappedMediaReader(zpakFile);
@@ -404,7 +406,7 @@ public class ZDBaseReader implements BaseReader {
     	dictInfo.setMediaResourcesNumber(zpakHeader.getMediaResourcesNumber());
     	dictInfo.setMediaFormatVersion(String.valueOf(zpakHeader.getMediaFormatVersion()));
     	dictInfo.setMediaFileSize(zpakHeader.getMediaFileSize());
-    	dictInfo.setMediaFormatName(BaseConstants.FORMAT_ZPAK_NAME);
+    	dictInfo.setMediaFormatName(FORMAT_ZPAK_NAME);
     }
 
 }

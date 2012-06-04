@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2011  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2011 - 2012  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -115,7 +115,8 @@ public class BasePropertiesInfo implements Cloneable {
 	public enum BaseTypes {
 		UNDEFINED,
 		DICTIONARY,
-		ENCYCLOPEDIA
+		LEXICON,
+		ENCYCLOPEDIA		
 	}
 	
 	protected LinkedHashMap<String, Object> primaryParams = new LinkedHashMap<String, Object>();
