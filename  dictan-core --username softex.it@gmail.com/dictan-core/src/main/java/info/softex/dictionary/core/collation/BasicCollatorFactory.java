@@ -23,6 +23,13 @@ import java.text.Collator;
 import java.text.ParseException;
 import java.text.RuleBasedCollator;
 
+/**
+ * 
+ * @since version 2.5, 07/12/2011
+ * 
+ * @author Dmitry Viktorov
+ * 
+ */
 public class BasicCollatorFactory implements CollatorFactory {
 
 	@Override
