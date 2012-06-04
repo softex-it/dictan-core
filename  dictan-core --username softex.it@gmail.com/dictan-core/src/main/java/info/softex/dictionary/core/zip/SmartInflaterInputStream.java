@@ -53,19 +53,6 @@ public class SmartInflaterInputStream extends InflaterInputStream {
 	public SmartInflaterInputStream(InputStream is, Inflater inflater, int bufferSize) {
 		super(is, inflater, bufferSize);
 	}
-
-//	/**
-//	 * The skip() method calls read(byte[] buffer, int offset, int length) method internally. 
-//	 * This implementation guarantees that the requested number of bytes is skipped.
-//	 */
-//	@Override
-//	public long skip(long bytes) throws IOException {
-//		long skipped = super.skip(bytes);
-//		while (skipped != bytes && super.available() > 0) {
-//			skipped += super.skip(bytes - skipped);
-//		}
-//		return skipped;
-//	}
 		
 	/**
 	 * skip() and read() methods call this method, so the passed bytes 
