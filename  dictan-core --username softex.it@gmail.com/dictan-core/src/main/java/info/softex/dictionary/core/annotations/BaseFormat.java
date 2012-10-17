@@ -29,13 +29,15 @@ import java.lang.annotation.Target;
  * 
  * @since version 2.6, 09/03/2011
  * 
+ * @since modified 3.4, 07/05/2012
+ * 
  * @author Dmitry Viktorov
  * 
  */
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface DictionaryFormat {
+public @interface BaseFormat {
 	
 	String name();
 	
