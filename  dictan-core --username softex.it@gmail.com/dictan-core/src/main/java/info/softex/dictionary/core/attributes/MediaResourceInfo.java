@@ -25,23 +25,19 @@ import java.io.InputStream;
 /**
  * 
  * @since version 2.6, 09/17/2011
+ *
+ * @modified version 3.4, 07/08/2012
  * 
  * @author Dmitry Viktorov
  * 
  */
 public class MediaResourceInfo {
 	
-	private int resourceId;
-	private String resourceKey;
+	private Key key;
 	private byte[] byteArray;
 	
-	public MediaResourceInfo(int resourceId, String resourceKey, byte[] byteArray) {
-		this(resourceKey, byteArray);
-		this.resourceId = resourceId;
-	}
-	
-	public MediaResourceInfo(String resourceKey, byte[] byteArray) {
-		setResourceKey(resourceKey);
+	public MediaResourceInfo(Key key, byte[] byteArray) {
+		this.key = key;
 		this.byteArray = byteArray;
 	}
 	
@@ -53,20 +49,66 @@ public class MediaResourceInfo {
 		this.byteArray = byteArray;
 	}
 	
-	public int getResourceId() {
-		return resourceId;
-	}
-	
-	public String getResourceKey() {
-		return resourceKey;
-	}
-	
 	public InputStream getInputStream() {
 		return new ByteArrayInputStream(byteArray);
 	}
 	
-	public void setResourceKey(String resourceKey) {
-		this.resourceKey = resourceKey;
+	public Key getKey() {
+		return key;
+	}
+
+	public void setKey(Key key) {
+		this.key = key;
+	}
+
+	
+	public static class Key implements Cloneable {
+		
+		private int id = -1;
+		private String resourceKey;
+		
+		public Key(String word) {
+			setResourceKey(word);
+		}
+		
+		public Key(int id) {
+			setId(id);
+		}
+		
+		public Key(int id, String resourceKey) {
+			setId(id);
+			setResourceKey(resourceKey);
+		}
+		
+		public int getId() {
+			return id;
+		}
+		
+		public void setId(int id) {
+			this.id = id;
+		}
+		
+		public String getResourceKey() {
+			return resourceKey;
+		}
+		
+		public void setResourceKey(String resourceKey) {
+			this.resourceKey = resourceKey;
+		}
+		
+		public boolean hasIndex() {
+			return this.id >= 0;
+		}
+		
+		@Override
+		protected Key clone() {
+			try {
+				return (Key)super.clone();
+			} catch (CloneNotSupportedException e) {
+				return null;
+			}
+		}
+		
 	}
 	
 }

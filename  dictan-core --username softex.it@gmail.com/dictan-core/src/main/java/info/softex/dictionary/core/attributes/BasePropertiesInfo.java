@@ -102,8 +102,7 @@ public class BasePropertiesInfo implements Cloneable {
 	public enum ArticlesFormattingModes {
 		DISABLED, 
 		FULL,
-		BASIC,
-		MEDIA
+		BASIC
 	}
 
 	public enum AbbreviationsFormattingModes {
@@ -228,6 +227,10 @@ public class BasePropertiesInfo implements Cloneable {
 	public String getArticlesFormattingMode() {
 		Object mode = primaryParams.get(PrimaryKeys.ARTICLES_FORMATTING_MODE.getKey());
 		if (mode instanceof String) {
+			
+			if ("MEDIA".equalsIgnoreCase((String)mode)) { // Except the obsolete MEDIA formatting
+				return ArticlesFormattingModes.BASIC.name();
+			}
 			return ArticlesFormattingModes.valueOf(mode.toString()).name();
 		}
 		return ArticlesFormattingModes.FULL.name();

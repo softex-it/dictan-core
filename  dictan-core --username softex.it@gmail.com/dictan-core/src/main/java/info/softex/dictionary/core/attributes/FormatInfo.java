@@ -19,7 +19,7 @@
 
 package info.softex.dictionary.core.attributes;
 
-import info.softex.dictionary.core.annotations.DictionaryFormat;
+import info.softex.dictionary.core.annotations.BaseFormat;
 
 import java.lang.annotation.Annotation;
 import java.util.LinkedHashSet;
@@ -74,8 +74,8 @@ public class FormatInfo {
 	public static FormatInfo buildFormatInfoFromAnnotation(Class<?> clazz) {
 		Annotation[] anns = clazz.getAnnotations();
 		for (int i = 0; i < anns.length; i++) {
-			if (anns[i] instanceof DictionaryFormat) {
-				DictionaryFormat df = (DictionaryFormat)anns[i];
+			if (anns[i] instanceof BaseFormat) {
+				BaseFormat df = (BaseFormat)anns[i];
 				return new FormatInfo(df.name(), df.primaryExtension(), df.extensions());
 			}
 		}

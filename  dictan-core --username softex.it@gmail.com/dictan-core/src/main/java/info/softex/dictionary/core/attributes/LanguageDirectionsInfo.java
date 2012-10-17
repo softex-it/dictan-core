@@ -31,6 +31,8 @@ import java.util.Map;
  * 
  * @since version 2.6, 09/18/2011
  * 
+ * @modified version 3.4, 07/04/2012
+ * 
  * @author Dmitry Viktorov
  * 
  */
@@ -84,14 +86,15 @@ public class LanguageDirectionsInfo {
 	 * @return
 	 */
 	public String getCombinedCollationRules() {
-		String langApendix = "";
+		String langAppendix = "";
 		for (List<CollationProperties> valuesSet : directions.values()) {
 			for (CollationProperties langProps : valuesSet) {
-				langApendix += langProps.getBasicCollationRules() + langProps.getAdditionalCollationRules();
+				langAppendix += langProps.getBasicCollationRules() + langProps.getAdditionalCollationRules();
 			}
 		}
 		return defaultCollationProperties.getBasicCollationRules() + 
-			defaultCollationProperties.getAdditionalCollationRules() + langApendix;
+			langAppendix + 
+			defaultCollationProperties.getAdditionalCollationRules();
 	}
 	
 	public void setDefaultCollationProperties(String defaultBasicCollationRules, String defaultAdditionalCollationRules, int defaultCollationVersion) {
