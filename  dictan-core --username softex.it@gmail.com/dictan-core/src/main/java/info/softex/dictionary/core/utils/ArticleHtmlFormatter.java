@@ -32,6 +32,9 @@ import org.slf4j.LoggerFactory;
  * 
  * @since version 2.6, 08/18/2011 
  * 
+ * @modified version 3.3, 06/15/2012 
+ * @modified version 3.5, 08/01/2012 
+ * 
  * @author Dmitry Viktorov
  *
  */
@@ -71,12 +74,8 @@ public class ArticleHtmlFormatter {
 			
 			t = applyBasicReplacements(t, isMediaAvailable);
 			
-			if (articlesFormatMode.equalsIgnoreCase("MEDIA")) {
-				log.debug("Applying media replacements");
-				t = applyMediaReplacements(t, isMediaAvailable);
-			} else if (articlesFormatMode.equalsIgnoreCase("FULL")) {
-				log.debug("Applying media & advanced replacements");
-				t = applyMediaReplacements(t, isMediaAvailable);
+			if (articlesFormatMode.equalsIgnoreCase("FULL")) {
+				log.debug("Applying advanced replacements");
 				t = applyAdvancedReplacements(t, isMediaAvailable);
 			}
 			
@@ -101,7 +100,7 @@ public class ArticleHtmlFormatter {
 	
 	private static String applyAbbreviations(String t, Set<String> abbreviations, String abbrFormatMode) {
 		
-		if (abbreviations == null || abbrFormatMode.equalsIgnoreCase("DISABLED")) {
+		if (abbreviations == null || abbreviations.isEmpty() || abbrFormatMode.equalsIgnoreCase("DISABLED")) {
 			log.debug("Prepare Article | Abbreviations don't exist or formatting is disabled");
 			return t;
 		}
@@ -131,13 +130,10 @@ public class ArticleHtmlFormatter {
 	private static String applyBasicReplacements(String t, boolean isMediaAvailable) {
         t = icReplaceAll(t, "\\Q<r>\\E([^<]++)\\Q</r>\\E", "<a href=\"" + BaseConstants.URLSEG_TRANS_WORD + "/$1\">$1</a>");
         t = icReplaceAll(t, "\\Q<t>\\E([^<]+)\\Q</t>\\E", "<b>[ $1 ]</b>");
-        return t;
-	}
-	
-	private static String applyMediaReplacements(String t, boolean isMediaAvailable) {
+        
 		if (isMediaAvailable) {
 			t = icReplaceAll(t, "\\<img(.+?)src\\s*=\\s*[\"'](.+?)[\"'](.*?)/{0,1}\\>", "<img$1src=\"" + BaseConstants.URLSEG_INTERNAL + "/" + BaseConstants.URLSEG_IMAGES + "/$2\"$3/>");
-			t = icReplaceAll(t, "\\Q<wav>\\E(.+)\\Q</wav>\\E", "<br/><a href=\"" + BaseConstants.URLSEG_SOUNDS + "/$1\"><img src=\"" + BaseConstants.URLSEG_EXTERNAL + "/" + BaseConstants.URLSEG_IMAGES + "/" + BaseConstants.RESOURCE_INT_IMG_SOUND + "\" /></a><br/>");
+			t = icReplaceAll(t, "\\Q<wav>\\E(.+)\\Q</wav>\\E", "<br/><a href=\"" + BaseConstants.URLSEG_SOUNDS + "/$1\"><img src=\"" + BaseConstants.URLSEG_EXTERNAL + "/" + BaseConstants.URLSEG_IMAGES + "/" + BaseConstants.RESOURCE_INT_IMG_SOUND + "\" border=\"0\"/></a><br/>");
 		} else {
 			t = icReplaceAll(t, "\\<img.*?\\>", ""); // Cut out IMG tags
 	        t = icReplaceAll(t, "\\Q<wav>\\E(.+)\\Q</wav>\\E", ""); // Cut out sounds

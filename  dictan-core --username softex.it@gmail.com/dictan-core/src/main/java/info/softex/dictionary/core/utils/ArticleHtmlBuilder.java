@@ -52,19 +52,19 @@ public class ArticleHtmlBuilder {
 	/**
 	 * 
 	 * @param word - should never be null or empty
-	 * @param t
+	 * @param article
 	 * @return
 	 */
-	public static String postArticle(String word, String t) {
+	public static String postArticle(String word, String article) {
 		
-		if (t == null || t.trim().length() == 0) {
+		if (article == null || article.trim().length() == 0) {
 			log.info("Article is null, returning word");
 			return "<b>" + word + "</b>";
 		}
 		
-		boolean stickWordToArticle = true;
+		//boolean stickWordToArticle = true;
 		
-		t = t.trim();
+		article = article.trim();
 		
 		// If (Article.length() > 0) is not pointed, charAt causes the StringIndexOutOfBoundsException.
 		// It happens because String.indexOf() returns 0 of length=0 - Android bug
@@ -72,49 +72,54 @@ public class ArticleHtmlBuilder {
 		// Start with the converted to HTML as the probability to find it is 
 		// higher rather than the raw word. If there are no HTML symbols, than the
 		// word is same.
-		int subIndex = t.indexOf(toHTMLString(word));
+		int subIndex = article.indexOf(toHTMLString(word));
 		
 		if (subIndex < 0) {
-			subIndex = t.indexOf(toHTMLString(word));
+			subIndex = article.indexOf(word);
 		}
 		
 		if (subIndex == 0) {
 
-			t = t.substring(word.length()).trim();
+			article = article.substring(word.length()).trim();
             
-			if (t.length() > 0) {
+			if (article.length() > 0) {
 			
-				char c = t.charAt(0);
+				char c = article.charAt(0);
 				// u2010 hyphen
 				// u2011 non-breaking hyphen
 				// u201D hyphen-minus
 				// u2013 en dash
 				// u2014 em dash
 	            if(c == '\u2013' || c == '\u2014' || c == '\u2010' || c == '\u2011' || c == '\u201D') {
-	            	t = t.substring(1).trim();
+	            	article = article.substring(1).trim();
 	            }
 			} else { // Return the word back if there are no any words
 				log.info("No text is found in the Article except the word, returning word");
-				t = word;
+				article = word;
 			}
 		
-		} else if (subIndex > 0) {
-			String transStart = t.substring(0, subIndex);
-			//log.info("HTML Article Start: {}", transStart);
-			transStart = transStart.replaceAll("\\<.*?\\>", "").trim();
-			if (transStart.length() == 0) {
-				log.info("Word is found in the Article HTML");
-				stickWordToArticle = false;
-			}
-		}
+		} 		
+//		else if (subIndex > 0) {
+//			String transStart = t.substring(0, subIndex);
+//			//log.info("HTML Article Start: {}", transStart);
+//			transStart = transStart.replaceAll("\\<.*?\\>", "").trim();
+//			if (transStart.length() == 0) {
+//				log.info("Word is found in the Article HTML");
+//				stickWordToArticle = false;
+//			}
+//		}
 
-		t = removeExcessiveBRFromBeginning(t);
+		article = removeExcessiveBRFromBeginning(article);
 		
-		if (stickWordToArticle) {
-			t = "<b>" + word + "</b><br/><br/>" + t;
+		//if (stickWordToArticle) {
+		if (!article.startsWith("<p>") && !article.startsWith("<P>")) {			
+			article = "<b>" + word + "</b><br/><br/>" + article;
+		} else {
+			article = "<b>" + word + "</b><br/>" + article;
 		}
+		//}
 		
-		return t;
+		return article;
 
 	}
 	
