@@ -23,12 +23,12 @@ import info.softex.dictionary.core.collections.AbstractDynamicListSet;
 import info.softex.dictionary.core.collections.BasicCacheBlock;
 import info.softex.dictionary.core.collections.CacheBlockReferenceTypes;
 import info.softex.dictionary.core.collections.RestoreBlockException;
+import info.softex.dictionary.core.formats.commons.BaseFormatException;
 import info.softex.dictionary.core.formats.zd.ZDConstants;
 import info.softex.dictionary.core.formats.zd.ZDReadUtils;
-import info.softex.dictionary.core.formats.zd.zip.TIIStream;
-import info.softex.dictionary.core.formats.zd.zip.TIIStreamPool;
-import info.softex.dictionary.core.formats.zd.zip.TIIStreamProducer;
-import info.softex.dictionary.core.io.BaseFormatException;
+import info.softex.dictionary.core.formats.zd.io.zip.TIIStream;
+import info.softex.dictionary.core.formats.zd.io.zip.TIIStreamFactory;
+import info.softex.dictionary.core.formats.zd.io.zip.TIIStreamPool;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,7 +82,7 @@ public class ZDDynamicListSet extends AbstractDynamicListSet<String> {
 		this.listCodepageName = listCodepageName;
 
 		
-		TIIStreamProducer tiisCreator = new TIIStreamProducer(
+		TIIStreamFactory tiisCreator = new TIIStreamFactory(
 				this.dictFile, 
 				this.wordsStartPosition, 
 				this.bufferSize
@@ -124,7 +124,7 @@ public class ZDDynamicListSet extends AbstractDynamicListSet<String> {
 		//super.lastRequestedBlockNumber = -1;
 		//super.lastRestoredBlockContent = null;
 
-		log.info("DDL Constructor | Blocks Size: " + weakBlocksList.length + ", LengStart Point: " + this.wordsStartPosition);
+		log.debug("DDL Constructor | Blocks Size: " + weakBlocksList.length + ", LengStart Point: " + this.wordsStartPosition);
 		
 	}
 
@@ -139,11 +139,8 @@ public class ZDDynamicListSet extends AbstractDynamicListSet<String> {
 		
 		// This helps to see the probability of restoring the same block
 		if (abstractBlock.getBlockNumber() == lastRestoredBlockNumber) {
-			//throw new RestoreBlockException(abstractBlock.blockNumber, "Received the call to restore the block that was peviously restored");
 			log.warn("Received the call to restore the block that was peviously restored");
 		}
-		
-		//long startTime = System.currentTimeMillis();
 		
 		ZDCacheBlock<String> block = (ZDCacheBlock<String>)abstractBlock;
 		
@@ -152,7 +149,6 @@ public class ZDDynamicListSet extends AbstractDynamicListSet<String> {
 		final int bufferSize = block.endPosition - blockStartPosition;
 		
 		List<String> strongElements = null;
-		
 		try {
 		
 			// = is required as the selected block could be restored from the soft references
@@ -164,12 +160,6 @@ public class ZDDynamicListSet extends AbstractDynamicListSet<String> {
 				renewTIIStreamIfCloser(this.tiis.getTotalBytesPassed() + skipLength);
 			}
 			
-			//LOG.info("Skip Length: " + skipLength + " | Cur BN: " + block.blockNumber + ", Last BN: " + lastRestoredBlockNumber);
-			
-			//if (this.tiis.getTotalBytesPassed() != blockStartPosition) {
-			//	throw new RestoreBlockException(block.blockNumber, "Unexpected IS: " + this.tiis.getTotalBytesPassed() + ", Expected: " + blockStartPosition);
-			//}
-			
 			byte[] dataBuffer = new byte[bufferSize];
 			ZDReadUtils.readBuffer(this.tiis, dataBuffer, dataBuffer.length);
 			strongElements = new ArrayList<String>(blockSize);
@@ -178,10 +168,8 @@ public class ZDDynamicListSet extends AbstractDynamicListSet<String> {
 			for (int j = 0; j < dataBuffer.length; j++) {
 				if (dataBuffer[j] == 0) {
 					int wlen = j - bc; 
-					
 					String word = new String(dataBuffer, bc, wlen, this.listCodepageName);
 					strongElements.add(word);
-					//log.info("! " + strongElements.size() + ", " + block + ", " + word);
 					bc = j + 1;
 				}		
 			}
@@ -196,10 +184,9 @@ public class ZDDynamicListSet extends AbstractDynamicListSet<String> {
 //				case SOFT_REF: block.dynamicElementsRef = new SoftReference<List<String>>(strongElements); break;
 //				case WEAK_REF: block.dynamicElementsRef = new WeakReference<List<String>>(strongElements); break;
 //			}
-	
-			//long time = System.currentTimeMillis() - startTime;
-			//log.info("DDL | RestoreBlock | " + block.blockNumber + ", Block Start Position: " + blockStartPosition + ", Buffer Size: " + bufferSize);
-			//log.info("DDL | RestoreBlock | Size: " + strongElements.size() + ", Time: " + time + ", First Word: " + strongElements.get(0));
+//			long time = System.currentTimeMillis() - startTime;
+//			log.info("DDL | RestoreBlock | " + block.blockNumber + ", Block Start Position: " + blockStartPosition + ", Buffer Size: " + bufferSize);
+//			log.info("DDL | RestoreBlock | Size: " + strongElements.size() + ", Time: " + time + ", First Word: " + strongElements.get(0));
 			
 		} catch (Exception e) {
 			throw new RestoreBlockException(block.getBlockNumber(), "Unknown error {last restored block: " + 
@@ -213,7 +200,6 @@ public class ZDDynamicListSet extends AbstractDynamicListSet<String> {
 	private void renewTIIStream(long position) throws IOException {
 		this.tiisPool.put(this.tiis);
 		this.tiis = this.tiisPool.get(position);
-		//System.out.println("got: " + tiis);
 	}
 	
 	private void renewTIIStreamIfCloser(long position) throws IOException {
@@ -221,13 +207,8 @@ public class ZDDynamicListSet extends AbstractDynamicListSet<String> {
 		if (stream != null) {
 			this.tiisPool.put(this.tiis);
 			this.tiis = stream;
-			//LOG.info("Stream is OBTAINED from the pool 2: " + stream);
 		} 
-//		else {
-//			LOG.info("Stream is not obtained from the pool 2");
-//		}
 		this.tiis.skip(position - this.tiis.getTotalBytesPassed());
-		//LOG.info("Skipped stream: " + this.tiis);
 	}
 	
 	private int findBlockStartPosition(int curBlockNumber) {
