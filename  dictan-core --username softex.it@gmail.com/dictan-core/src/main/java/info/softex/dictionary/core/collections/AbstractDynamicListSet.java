@@ -85,7 +85,7 @@ public abstract class AbstractDynamicListSet<T> extends AbstractList<T> implemen
 		// Storage for the content of strong blocks
 		this.strongBlockList = new HashMap<Integer, List<T>>();
 		
-		log.info("ADL Constructor | Number of Blocks: " + blockNumber + " | (" + maxSize + "/" + blockSize + ")");
+		log.debug("ADL Constructor | Number of Blocks: " + blockNumber + " | (" + maxSize + "/" + blockSize + ")");
 		
 	}
 
