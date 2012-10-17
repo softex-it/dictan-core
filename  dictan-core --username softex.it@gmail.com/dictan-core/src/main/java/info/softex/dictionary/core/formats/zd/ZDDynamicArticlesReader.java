@@ -19,13 +19,13 @@
 
 package info.softex.dictionary.core.formats.zd;
 
+import info.softex.dictionary.core.formats.commons.BaseFormatException;
 import info.softex.dictionary.core.formats.zd.collections.ZDDynamicListSet;
 import info.softex.dictionary.core.formats.zd.io.LittleEndianDataInputStream;
 import info.softex.dictionary.core.formats.zd.io.LittleEndianRandomAccessFile;
-import info.softex.dictionary.core.formats.zd.zip.TIIStream;
-import info.softex.dictionary.core.io.BaseFormatException;
+import info.softex.dictionary.core.formats.zd.io.zip.TIIStream;
+import info.softex.dictionary.core.io.SmartInflaterInputStream;
 import info.softex.dictionary.core.regional.RegionalResolver;
-import info.softex.dictionary.core.zip.SmartInflaterInputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -55,7 +55,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ZDDynamicArticlesReader {
 
-	private final Logger log = LoggerFactory.getLogger(ZDDynamicArticlesReader.class.getSimpleName());
+	private final Logger log = LoggerFactory.getLogger(ZDDynamicArticlesReader.class);
 	
 	protected RegionalResolver regionalResolver = null;
 	
@@ -100,7 +100,7 @@ public class ZDDynamicArticlesReader {
 		FileInputStream fis = new FileInputStream(dictFile);
 		ledis = new LittleEndianDataInputStream(fis);
 		
-		log.info("Dictionary Size: {}", raf.length());
+		log.debug("Dictionary Size: {}", raf.length());
 	}
 
 	public void close() throws IOException {
@@ -154,7 +154,7 @@ public class ZDDynamicArticlesReader {
 
 	public ZDHeader loadHeader() throws IOException, BaseFormatException {
 
-        log.info("Loading ZD Header");
+        log.debug("Loading ZD Header");
 
         try {
 			this.zdHeader  = new ZDHeader().readExternalData(ledis, regionalResolver);
@@ -163,7 +163,7 @@ public class ZDDynamicArticlesReader {
 			throw new BaseFormatException(e.getMessage());
 		}
 
-		log.info("ZD Header: {}", this);
+		log.debug("ZD Header: {}", this);
 		
 		this.zdHeader.setDictionaryFileSize(this.dictFile.length());
 		return zdHeader;

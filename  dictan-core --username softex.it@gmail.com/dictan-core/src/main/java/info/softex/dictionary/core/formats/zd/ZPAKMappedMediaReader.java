@@ -19,7 +19,7 @@
 
 package info.softex.dictionary.core.formats.zd;
 
-import info.softex.dictionary.core.io.BaseFormatException;
+import info.softex.dictionary.core.formats.commons.BaseFormatException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -43,13 +43,14 @@ import org.slf4j.LoggerFactory;
  * @since version 2.0, 03/06/2011
  * 
  * @modified version 2.6, 09/17/2011
+ * @modified version 3.4, 07/07/2012
  * 
  * @author Dmitry Viktorov
  *
  */
 public class ZPAKMappedMediaReader {
 	
-	private final Logger log = LoggerFactory.getLogger(ZPAKMappedMediaReader.class.getSimpleName());
+	private final Logger log = LoggerFactory.getLogger(ZPAKMappedMediaReader.class);
 	
 	protected File mediaFile = null;
 	protected RandomAccessFile raf = null;
@@ -73,7 +74,7 @@ public class ZPAKMappedMediaReader {
 	    if (this.zpakHeader == null) {
 	        loadZPAKHeader();
 	    }
-		loadResourcesDescriptors();
+		loadMediaResources();
 	}
 
 	public ZPAKHeader loadZPAKHeader() throws BaseFormatException {
@@ -101,7 +102,7 @@ public class ZPAKMappedMediaReader {
 		}
 	}
 
-	private void loadResourcesDescriptors() throws BaseFormatException, UnsupportedEncodingException {
+	private void loadMediaResources() throws BaseFormatException, UnsupportedEncodingException {
 		StringBuffer sb = new StringBuffer();
 		this.resources = new HashMap<String, ZPAKResourceMetaInfo>();
 		
@@ -135,7 +136,7 @@ public class ZPAKMappedMediaReader {
 		
 	}
 
-	public byte[] loadResource(String name) {
+	public byte[] loadMediaResource(String name) {
 		name = name.toUpperCase();
 		ZPAKResourceMetaInfo offset = resources.get(name);
 		if (offset == null) {
@@ -150,12 +151,15 @@ public class ZPAKMappedMediaReader {
 			return compData;
 		}
 		
-		byte[] decompData = readBytesFromStream(
-				new InflaterInputStream(new ByteArrayInputStream(compData)), offset.itemSize
-			);
+		byte[] decompData = null;
+		
+		try {
+			decompData = readBytesFromStream(new InflaterInputStream(new ByteArrayInputStream(compData)), offset.itemSize);
+		} catch (IOException e) {
+			log.error("Error", e);
+		}
 			
 		return decompData;
-
 	}
 
 	public boolean isResourceAvailble(String itemName) {
@@ -166,35 +170,25 @@ public class ZPAKMappedMediaReader {
 		return mediaFile.getAbsolutePath();
 	}
 	
-	private byte[] readBytesFromStream(InputStream is, int bytesNumber) {
+	private byte[] readBytesFromStream(InputStream is, int bytesNumber) throws IOException {
 		byte[] readData = new byte[bytesNumber];
 		int readBytesNumber = 0;
-		try {
-			while(readBytesNumber < bytesNumber) {
-				readBytesNumber += is.read(readData, readBytesNumber, readData.length - readBytesNumber);
-			}
-			is.close();
-		} catch (IOException e) {
-			log.error("Error", e);
+		while (readBytesNumber < bytesNumber) {
+			readBytesNumber += is.read(readData, readBytesNumber, readData.length - readBytesNumber);
 		}
+		is.close();
 		return readData;
 	}
+
+	public Set<String> getResourceKeys() {
+		return this.resources.keySet();
+	}
+
 	
-	/**
-	 * 
-	 * @since version 2.0, 03/06/2011
-	 * 
-	 * @author Dmitry Viktorov
-	 *
-	 */
-	public class ZPAKResourceMetaInfo {
+	private class ZPAKResourceMetaInfo {
 		int offset;
 		int itemSize;
 		int itemZSize;
-	}
-	
-	public Set<String> getResourceKeys() {
-		return this.resources.keySet();
 	}
 	
 }

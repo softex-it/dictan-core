@@ -75,13 +75,8 @@ public class ZDReadUtils {
 			final int wordsNumber, final int wordsSize,
 			final int blockSize) throws DataFormatException, IOException {
 		
-		//log.info("Build Words Indices | Count: " + wordsNumber + ", Compressed Size: " + dictInfo.words_zsize + ", Uncompressed Size: " + dictInfo.words_size);
-				
 		final int numberOfBlocks = (int)Math.ceil((double)wordsNumber / blockSize);
 		final int[] indices = new int[numberOfBlocks];
-		
-		//progressInfo.setMessage("Unpacking words...");
-		//progressInfo.setTotal(wordsNumber);
 		
 		byte[] uncompressedData = null;
 		if (wordsSize < UNCOMPRESSED_BUFFER_SIZE) {
@@ -90,7 +85,7 @@ public class ZDReadUtils {
 			uncompressedData = new byte[UNCOMPRESSED_BUFFER_SIZE];				
 		}
 			    
-		log.info("Build Words Indices | Uncompressed Data Buffer Size: " + uncompressedData.length);
+		log.debug("Build Words Indices | Uncompressed Data Buffer Size: " + uncompressedData.length);
 		
 		//progressInfo.setCurrent(0);
 
@@ -110,7 +105,7 @@ public class ZDReadUtils {
 
 			readGLB += readBuffer(iis, uncompressedData, curUncompLength);
 
-			log.info("Build Words Indices | Load Cycle | Bytes Read: " + readGLB + ", Bytes Total: " + wordsSize);
+			log.debug("Build Words Indices | Load Cycle | Bytes Read: " + readGLB + ", Bytes Total: " + wordsSize);
 			
 			for (int i = 0; i < curUncompLength; i++) {
 				if (uncompressedData[i] == 0) {
@@ -148,7 +143,7 @@ public class ZDReadUtils {
 			throw new DataFormatException("Uncompressed words' size is invalid: should be " + wordsSize + ", got " + readGLB);
 		}
 		
-		log.info("Build Words Indices | Words Loaded: " + wordsCount + ", Expected Words Number: " + wordsNumber + ", Cycles: " + (readGLB/UNCOMPRESSED_BUFFER_SIZE + 1));
+		log.debug("Build Words Indices | Words Loaded: " + wordsCount + ", Expected Words Number: " + wordsNumber + ", Cycles: " + (readGLB/UNCOMPRESSED_BUFFER_SIZE + 1));
 
 		return indices;
 		
@@ -158,7 +153,7 @@ public class ZDReadUtils {
 			final InflaterInputStream iis, final ZDHeader dictInfo, 
 			final String csName, final int blockSize) throws DataFormatException, IOException {
 		
-		log.info("Build Words Indices | Count: " + dictInfo.getWordsNumber() + ", Compressed Size: " + dictInfo.getWordsZSize() + ", Uncompressed Size: " + dictInfo.getWordsSize());
+		log.debug("Build Words Indices | Count: " + dictInfo.getWordsNumber() + ", Compressed Size: " + dictInfo.getWordsZSize() + ", Uncompressed Size: " + dictInfo.getWordsSize());
 				
 		final int numberOfBlocks = (int)Math.ceil((double)dictInfo.getWordsNumber() / blockSize);
 		
@@ -174,7 +169,7 @@ public class ZDReadUtils {
 			uncompressedData = new byte[UNCOMPRESSED_BUFFER_SIZE];				
 		}
 			    
-		log.info("Build Words Indices | Uncompressed Data Buffer Size: " + uncompressedData.length);
+		log.debug("Build Words Indices | Uncompressed Data Buffer Size: " + uncompressedData.length);
 		
 		//progressInfo.setCurrent(0);
 
@@ -194,7 +189,7 @@ public class ZDReadUtils {
 
 			readGLB += readBuffer(iis, uncompressedData, curUncompLength);
 
-			log.info("Build Words Indices | Load Cycle | Bytes Read: " + readGLB + ", Bytes Total: " + dictInfo.getWordsSize());
+			log.debug("Build Words Indices | Load Cycle | Bytes Read: " + readGLB + ", Bytes Total: " + dictInfo.getWordsSize());
 			
 			for (int i = 0; i < curUncompLength; i++) {
 				if (uncompressedData[i] == 0) {
@@ -231,7 +226,7 @@ public class ZDReadUtils {
 			throw new DataFormatException("Uncompressed words' size is invalid: should be " + dictInfo.getWordsSize() + ", got " + readGLB);
 		}
 		
-		log.info("Build Words Indices | Words Loaded: " + wordsCount + ", Expected Words Number: " + dictInfo.getWordsNumber() + ", Cycles: " + (readGLB/UNCOMPRESSED_BUFFER_SIZE + 1));
+		log.debug("Build Words Indices | Words Loaded: " + wordsCount + ", Expected Words Number: " + dictInfo.getWordsNumber() + ", Cycles: " + (readGLB/UNCOMPRESSED_BUFFER_SIZE + 1));
 
 		return indices;
 		
@@ -240,7 +235,7 @@ public class ZDReadUtils {
 	
 	public static List<String> loadWords(InflaterInputStream iis, String csName, ZDHeader dictInfo) throws DataFormatException, IOException {
 		
-		log.info("Loading Words | Count: " + dictInfo.getWordsNumber() + ", Compressed Size: " + dictInfo.getWordsZSize() + ", Uncompressed Size: " + dictInfo.getWordsSize());
+		log.debug("Loading Words | Count: " + dictInfo.getWordsNumber() + ", Compressed Size: " + dictInfo.getWordsZSize() + ", Uncompressed Size: " + dictInfo.getWordsSize());
 
 		//progressInfoLoc.setMessage("Unpacking words...");
 		//progressInfoLoc.setTotal(dictInfo.getWordsNumber());
@@ -252,7 +247,7 @@ public class ZDReadUtils {
 			uncompressedData = new byte[UNCOMPRESSED_BUFFER_SIZE];				
 		}
 			    
-		log.info("Loading Words | Uncompressed Data Buffer Size: " + uncompressedData.length);
+		log.debug("Loading Words | Uncompressed Data Buffer Size: " + uncompressedData.length);
 		
 		ArrayList<String> list = new ArrayList<String>(dictInfo.getWordsNumber());
 		int readGLB = 0;
@@ -270,7 +265,7 @@ public class ZDReadUtils {
 			int readCNT = 0;
 			if (uncompressedDataRest != null) {
 				String lastWordPiece = new String(uncompressedDataRest, csName);
-				log.info("Loading Words | Last Word Piece: " + lastWordPiece);
+				log.debug("Loading Words | Last Word Piece: " + lastWordPiece);
 				System.arraycopy(uncompressedDataRest, 0, uncompressedData, 0, uncompressedDataRest.length);
 				readCNT = uncompressedDataRest.length;
 				uncompressedDataRest = null;
@@ -289,7 +284,7 @@ public class ZDReadUtils {
 			}
 			readGLB += readCNT;
 
-			log.info("Loading Words | Load Cycle | Bytes Read: " + readGLB + ", Bytes Total: " + dictInfo.getWordsSize());
+			log.debug("Loading Words | Load Cycle | Bytes Read: " + readGLB + ", Bytes Total: " + dictInfo.getWordsSize());
 			
 			int startIdx = 0;
 			for (int i = 0; i < curUncompLength; i++) {
@@ -321,7 +316,7 @@ public class ZDReadUtils {
 			throw new DataFormatException("Uncompressed words' size is invalid: should be " + dictInfo.getWordsSize() + ", got " + readGLB);
 		}
 		
-		log.info("Load Words | Words Loaded: " + list.size() + ", Expected Words Number: " + dictInfo.getWordsNumber() + ", Cycles: " + (readGLB/UNCOMPRESSED_BUFFER_SIZE + 1));
+		log.debug("Load Words | Words Loaded: " + list.size() + ", Expected Words Number: " + dictInfo.getWordsNumber() + ", Cycles: " + (readGLB/UNCOMPRESSED_BUFFER_SIZE + 1));
 		return Collections.unmodifiableList(list);
 		
 	}
@@ -329,7 +324,7 @@ public class ZDReadUtils {
 	
 	public static Map<String, String> loadAbbreviations(InflaterInputStream iis, ZDHeader dictInfo) throws IOException, DataFormatException, DataFormatException {
 		
-		log.info("Load Abbreviations | Number: {}, Compressed Size: {}, Uncompressed Size: " + dictInfo.getAbbreviationsSize(), dictInfo.getAbbreviationsNumber(), dictInfo.getAbbreviationsZSize());	
+		log.debug("Load Abbreviations | Number: {}, Compressed Size: {}, Uncompressed Size: " + dictInfo.getAbbreviationsSize(), dictInfo.getAbbreviationsNumber(), dictInfo.getAbbreviationsZSize());	
 				
 		HashMap<String, String> abbs = new HashMap<String, String>(dictInfo.getAbbreviationsNumber());
 		int readGLB = 0;
@@ -343,7 +338,7 @@ public class ZDReadUtils {
 				uncompressedData = new byte[UNCOMPRESSED_BUFFER_SIZE];				
 			}
 			
-			log.info("Uncompressed Data Buffer Size: {}", uncompressedData.length);
+			log.debug("Uncompressed Data Buffer Size: {}", uncompressedData.length);
 			
 			byte[] uncompressedDataRest = null;
 			
@@ -358,7 +353,7 @@ public class ZDReadUtils {
 				int readCNT = 0;
 				if (uncompressedDataRest != null) {
 					String lastWordPiece = new String(uncompressedDataRest, dictInfo.getTransCodepageName());
-					log.info("Last Abbreviation Piece: {}", lastWordPiece);
+					log.debug("Last Abbreviation Piece: {}", lastWordPiece);
 					System.arraycopy(uncompressedDataRest, 0, uncompressedData, 0, uncompressedDataRest.length);
 					readCNT = uncompressedDataRest.length;
 					uncompressedDataRest = null;
@@ -378,7 +373,7 @@ public class ZDReadUtils {
 				}
 				readGLB += readCNT;
 	
-				log.info("Load Cycle | Bytes Read: {}, Bytes Total: {}", readGLB, dictInfo.getAbbreviationsSize());
+				log.debug("Load Cycle | Bytes Read: {}, Bytes Total: {}", readGLB, dictInfo.getAbbreviationsSize());
 				
 				int startIdx = 0;
 				for (int i = 0; i < curUncompLength; i++) {
@@ -416,7 +411,7 @@ public class ZDReadUtils {
 			
 		}
 
-		log.info("Load Abbreviations | Abbreviations Loaded: " + abbs.size() + ", Expected Abbreviations Number: " + dictInfo.getAbbreviationsNumber() + ", Cycles: " + (readGLB/UNCOMPRESSED_BUFFER_SIZE + 1));
+		log.debug("Load Abbreviations | Abbreviations Loaded: " + abbs.size() + ", Expected Abbreviations Number: " + dictInfo.getAbbreviationsNumber() + ", Cycles: " + (readGLB/UNCOMPRESSED_BUFFER_SIZE + 1));
 		return Collections.unmodifiableMap(abbs);
 	}
 	
@@ -426,7 +421,7 @@ public class ZDReadUtils {
 		raf.seek(newPos);
 
 		int blockCountBytes = 4 * dictInfo.getTransBlocksNumber();
-		log.info("Block Offsests Size: " + blockCountBytes);
+		log.debug("Block Offsests Size: " + blockCountBytes);
 		
 		byte[] blockOffsetsBytes = new byte[blockCountBytes];
 		

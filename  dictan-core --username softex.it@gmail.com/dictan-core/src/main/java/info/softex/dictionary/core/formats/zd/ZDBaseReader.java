@@ -19,7 +19,7 @@
 
 package info.softex.dictionary.core.formats.zd;
 
-import info.softex.dictionary.core.annotations.DictionaryFormat;
+import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
@@ -30,8 +30,8 @@ import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.collation.LocalizedStringComparator;
-import info.softex.dictionary.core.io.BaseFormatException;
-import info.softex.dictionary.core.io.BaseReader;
+import info.softex.dictionary.core.formats.commons.BaseFormatException;
+import info.softex.dictionary.core.formats.commons.BaseReader;
 import info.softex.dictionary.core.regional.RegionalResolver;
 import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
 
@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
  * @author Dmitry Viktorov
  * 
  */
-@DictionaryFormat(name = "ZD", primaryExtension = ".zd", extensions = {".zd"})
+@BaseFormat(name = "ZD", primaryExtension = ".zd", extensions = {".zd"})
 public class ZDBaseReader implements BaseReader {
 	
 	public static final String FORMAT_ZPAK_NAME = "ZPAK";
@@ -230,12 +230,12 @@ public class ZDBaseReader implements BaseReader {
 	}
 
     @Override
-	public MediaResourceInfo getMediaResourceInfo(String resourceId) {
+	public MediaResourceInfo getMediaResourceInfo(MediaResourceInfo.Key mediaKey) {
 		if (zpakReader == null) {
-			log.info(".zpak file is not found. Cannot load resource: {}", resourceId);
+			log.info(".zpak file is not found. Cannot load resource: {}", mediaKey);
 			return null;
 		}
-		return new MediaResourceInfo(resourceId, zpakReader.loadResource(resourceId));
+		return new MediaResourceInfo(mediaKey, zpakReader.loadMediaResource(mediaKey.getResourceKey()));
 	}
 	
 	@Override
@@ -246,12 +246,6 @@ public class ZDBaseReader implements BaseReader {
 		return this.zpakReader.getResourceKeys();
 	}
 	
-//	@Override
-//	public int getWordIndex(String word) throws BaseFormatException {
-//		int index = searchWordIndex(word, false);
-//		return index >= 0 ? index : -1;
-//	}
-
 	@Override
     public int searchWordIndex(String word, boolean positive) {
         int index = searchWordIndexPE(word);
