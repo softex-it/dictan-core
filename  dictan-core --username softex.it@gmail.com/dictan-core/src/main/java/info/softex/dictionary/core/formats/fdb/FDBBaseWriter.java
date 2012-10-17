@@ -19,7 +19,7 @@
 
 package info.softex.dictionary.core.formats.fdb;
 
-import info.softex.dictionary.core.annotations.DictionaryFormat;
+import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
@@ -30,7 +30,7 @@ import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
 import info.softex.dictionary.core.attributes.ProgressInfo;
 import info.softex.dictionary.core.database.DatabaseConnectionFactory;
-import info.softex.dictionary.core.io.BaseWriter;
+import info.softex.dictionary.core.formats.commons.BaseWriter;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,11 +49,12 @@ import org.slf4j.LoggerFactory;
  * @since version 2.6, 08/21/2011
  * 
  * @modified version 2.9, 11/19/2011
+ * @modified version 3.4, 07/02/2012
  * 
  * @author Dmitry Viktorov
  * 
  */
-@DictionaryFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb"})
+@BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb"})
 public class FDBBaseWriter implements BaseWriter {
 	
 	private static final Logger log = LoggerFactory.getLogger(FDBBaseWriter.class.getSimpleName());
@@ -74,7 +75,8 @@ public class FDBBaseWriter implements BaseWriter {
 	
 	protected final int minArticleBlockMemSize = 200000;
 	protected final int minMediaResourceBlockMemSize = 200000;
-	
+
+	protected int abbreviationsNumber = 0;
 	protected int wordsNumber = 0;
 	protected int mediaResourcesNumber = 0;
 	
@@ -112,7 +114,7 @@ public class FDBBaseWriter implements BaseWriter {
 	
 	@Override
 	public BasePropertiesInfo saveBasePropertiesInfo(BasePropertiesInfo baseInfo) throws SQLException, NoSuchAlgorithmException {
-		int total = baseInfo.getArticlesNumber() + baseInfo.getMediaResourcesNumber();
+		int total = baseInfo.getAbbreviationsNumber() + baseInfo.getArticlesNumber() + baseInfo.getMediaResourcesNumber();
 		progressInfo.setTotal(total);
 		return mainBase.saveBasePropertiesInfo(baseInfo, FORMAT_INFO);
 	}
@@ -130,10 +132,6 @@ public class FDBBaseWriter implements BaseWriter {
 	@Override
 	public void saveArticleInfo(ArticleInfo articleInfo) throws Exception {
 		
-		// Don't admit white spaces at the beginning or end
-		articleInfo.getWordInfo().setWord(articleInfo.getWordInfo().getWord().trim());
-		articleInfo.setArticle(articleInfo.getArticle().trim());
-		
 		mainBase.saveWord(articleInfo.getWordInfo().getWord().trim(), wordsNumber);
 		
 		boolean isFlashed = activeBase.saveArticle(articleInfo.getArticle().trim(), wordsNumber++);
@@ -141,17 +139,20 @@ public class FDBBaseWriter implements BaseWriter {
 		updateProgress();
 		
 		if (isFlashed) {
-			flashArticles();
+			flushArticles();
 			reviseBaseFiles();
 		}
 	}
 	
 	@Override
 	public void saveMediaResourceInfo(MediaResourceInfo mediaResourceInfo) throws Exception {
-		mainBase.saveMediaResourceKey(mediaResourceInfo.getResourceKey(), mediaResourcesNumber);
+		mainBase.saveMediaResourceKey(mediaResourceInfo.getKey().getResourceKey(), mediaResourcesNumber);
 		boolean isFlashed = activeBase.saveMediaResource(mediaResourceInfo.getByteArray(), mediaResourcesNumber++);
+		
+		updateProgress();
+		
 		if (isFlashed) {
-			flashMediaResources();
+			flushMediaResources();
 			reviseBaseFiles();
 		}
 	}
@@ -164,6 +165,8 @@ public class FDBBaseWriter implements BaseWriter {
 	@Override
 	public void saveAbbreviation(AbbreviationInfo abbreviationInfo) throws Exception {
 		mainBase.saveAbbreviation(abbreviationInfo);
+		abbreviationsNumber++;
+		updateProgress();
 	}
 	
 	@Override
@@ -253,32 +256,32 @@ public class FDBBaseWriter implements BaseWriter {
 	}
 	
 	@Override
-	public void flash() throws Exception {
-		flashArticles();
-		flashMediaResources();
+	public void flush() throws Exception {
+		flushArticles();
+		flushMediaResources();
 	}
 
 	// Protected -----------------------------------
 	
 	protected void updateProgress() {
-		int current = wordsNumber + mediaResourcesNumber;
+		int current = abbreviationsNumber + wordsNumber + mediaResourcesNumber;
 		progressInfo.setCurrent(current);
 		progressInfo.notifyObservers();
 	}
 	
-	protected void flashArticles() throws UnsupportedEncodingException, IOException, SQLException {
-		mainBase.flashArticles(curArticlesNumber);
+	protected void flushArticles() throws UnsupportedEncodingException, IOException, SQLException {
+		mainBase.flushArticles(curArticlesNumber);
 		if (activeBase != mainBase) {
-			activeBase.flashArticles(curArticlesNumber);
+			activeBase.flushArticles(curArticlesNumber);
 		}
 		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.ARTICLES_NUMBER.getKey(), Integer.toString(wordsNumber));
 		curArticlesNumber = wordsNumber;
 	}
 	
-	protected void flashMediaResources() throws UnsupportedEncodingException, IOException, SQLException {
-		mainBase.flashMediaResources(curMediaResourcesNumber);
+	protected void flushMediaResources() throws UnsupportedEncodingException, IOException, SQLException {
+		mainBase.flushMediaResources(curMediaResourcesNumber);
 		if (activeBase != mainBase) {
-			activeBase.flashMediaResources(curMediaResourcesNumber);
+			activeBase.flushMediaResources(curMediaResourcesNumber);
 		}
 		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.MEDIA_RESOURCES_NUMBER.getKey(), Integer.toString(mediaResourcesNumber));
 		curMediaResourcesNumber = mediaResourcesNumber;

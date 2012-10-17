@@ -75,7 +75,7 @@ public class FDBDynamicListSet extends AbstractDynamicListSet<String> {
 		wordsRangeSt.setInt(1, startRow);
 		wordsRangeSt.setInt(2, endRow);
 		
-		log.info("Restoring block elements: start {}, end {}", startRow, endRow);
+		log.debug("Restoring block elements: start {}, end {}", startRow, endRow);
 		
 		ResultSet rs = wordsRangeSt.executeQuery();
 		
@@ -90,7 +90,7 @@ public class FDBDynamicListSet extends AbstractDynamicListSet<String> {
 		// 22 for 35100, 256
 		// 2 for 35100, 1
 		
-		log.info("Restored FDB Block {}, size: {}, time: {}", new Object[] {block, strongElements.size(), System.currentTimeMillis() - start});
+		log.debug("Restored FDB Block {}, size: {}, time: {}", new Object[] {block, strongElements.size(), System.currentTimeMillis() - start});
 		
 		return strongElements;
 	}

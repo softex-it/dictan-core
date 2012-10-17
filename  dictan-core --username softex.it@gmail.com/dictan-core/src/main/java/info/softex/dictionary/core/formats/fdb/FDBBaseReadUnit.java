@@ -24,10 +24,11 @@ import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingModes;
 import info.softex.dictionary.core.collation.CollatorFactory;
+import info.softex.dictionary.core.formats.commons.BaseFormatException;
 import info.softex.dictionary.core.formats.fdb.collections.FDBDynamicListSet;
-import info.softex.dictionary.core.io.BaseFormatException;
-import info.softex.dictionary.core.zip.SmartInflaterInputStream;
+import info.softex.dictionary.core.io.SmartInflaterInputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -41,6 +42,7 @@ import java.text.Collator;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -67,8 +69,8 @@ public class FDBBaseReadUnit {
 	protected final Connection connection;
 	
 	protected List<String> words = null;
-	
 	protected Map<String, String> abbreviations = null;
+	protected Set<String> mediaResources = null; // Initialized only when getMediaResourceKeys is called
 	
 	protected Collator collator = null; 
 	
@@ -109,7 +111,7 @@ public class FDBBaseReadUnit {
 			ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_BASE_PROPERTIES);
 			
 			while (rs.next()) {
-				log.info(rs.getString(1) + " | " + rs.getString(2) + " | " + rs.getString(3));
+				log.debug(rs.getString(1) + " | " + rs.getString(2) + " | " + rs.getString(3));
 				String key = rs.getString(2);
 				if (key != null) {
 					dictMap.put(key, rs.getString(3));
@@ -122,6 +124,11 @@ public class FDBBaseReadUnit {
 				baseInfo.setMediaFormatName(baseInfo.getFormatName());
 				baseInfo.setMediaFormatVersion(Integer.toString(baseInfo.getFormatVersion()));
 				baseInfo.setMediaFileSize(baseInfo.getBaseFileSize());
+			}
+			
+			// Set abbreviations formating to disabled if there are no abbreviations
+			if (baseInfo.getAbbreviationsNumber() == 0) {
+				baseInfo.setAbbreviationsFormattingMode(AbbreviationsFormattingModes.DISABLED);
 			}
 			
 			rs.close();
@@ -140,9 +147,17 @@ public class FDBBaseReadUnit {
 		return langDirections;
 	}
 	
-	// TODO: ADD
-	public Set<String> getMediaResourceKeys() {
-		return null;
+	public Set<String> getMediaResourceKeys() throws SQLException {
+		if (mediaResources == null) {
+			mediaResources = new HashSet<String>();
+			PreparedStatement selMediaResourceKeys = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_ID_BY_WORD);
+			ResultSet resRS = selMediaResourceKeys.executeQuery();
+			while (resRS.next()) {
+				mediaResources.add(resRS.getString(0));
+			}
+			resRS.close();
+		}
+		return mediaResources;
 	}
 	
 	public boolean isLoaded() {
@@ -252,7 +267,7 @@ public class FDBBaseReadUnit {
 
     	} catch (Exception e) {
 			log.error("Error", e);
-			throw new BaseFormatException("Couldn't load the dictionary: " + e.getMessage());
+			throw new BaseFormatException("Couldn't load dictionary: " + e.getMessage());
 		}
     	
     	loaded = true;

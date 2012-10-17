@@ -57,6 +57,9 @@ public class FDBSQLReadStatements {
 		" WHERE media_resource_block_id=(SELECT MAX(media_resource_block_id) FROM " + 
 		FDBTables.media_resource_blocks + " WHERE media_resource_block_id<=(?))";
 	
+	public static final String SELECT_ALL_MEDIA_RESOURCE_KEYS =
+		"SELECT media_resource_key FROM " + FDBTables.media_resource_keys;
+	
 	public static final String SELECT_BASE_RESOURCE_DEFAULT_COLLATION_RULES =	
 		"SELECT base_resource_id,base_resource_key,base_resource,data_1,data_2,data_3,info_1,info_2,info_3,info_4,info_5,info_6 FROM " + 
 		FDBTables.base_resources + " WHERE base_resource_key=\"collation.rules.default\"";

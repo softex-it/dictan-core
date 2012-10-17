@@ -57,6 +57,8 @@ import org.slf4j.LoggerFactory;
  * 
  * @since version 2.9, 11/19/2011
  * 
+ * @modified version 3.5, 08/07/2012
+ * 
  * @author Dmitry Viktorov
  * 
  */
@@ -79,7 +81,7 @@ public class FDBBaseWriteUnit {
 	protected int curWordsBatchSize = 0;
 	protected int curMediaResourcesBatchSize = 0;
 	
-	int basePropertiesRowsNumber = 0;
+	protected int basePropertiesRowsNumber = 0;
 	
 	protected int abbreviationsNumber = 0;
 	protected int baseResourcesNumber = 0;
@@ -157,24 +159,13 @@ public class FDBBaseWriteUnit {
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_MEDIA_RESOURCE_BLOCKS);
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_BASE_PROPERTIES);
 			
-			// Add part number to the new base
-//			int savedBasePropertiesRowsNumber = basePropertiesRowsNumber;
-//			PreparedStatement savedInsBasePropertySt = insBasePropertySt;
-//			PreparedStatement savedUpdBasePropertySt = updBasePropertySt;
-			
-			//basePropertiesRowsNumber = 0;
 			insBasePropertySt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_BASE_PROPERTY);
 			updBasePropertySt = connection.prepareStatement(FDBSQLWriteStatements.UDATE_BASE_PROPERTY);
 			
 			insArticleSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_ARTICLE);
 			insMediaResourceSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_MEDIA_RESOURCE);
 			
-			selAllBaseInfoSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_ALL_BASE_PROPERTIES);
-			
-			//basePropertiesRowsNumber = savedBasePropertiesRowsNumber;
-			//insBasePropertySt = savedInsBasePropertySt;
-			//updBasePropertySt = savedUpdBasePropertySt;
-			
+			selAllBaseInfoSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_ALL_BASE_PROPERTIES);		
 
 		}
 	}
@@ -194,8 +185,8 @@ public class FDBBaseWriteUnit {
 			if (baseInfo.getCompilationDate() == null) {
 				baseInfo.setCompilationDate(currentDate);
 			}
-			if (baseInfo.getCompilationDate() == null) {
-				baseInfo.setCompilationDate(currentDate);
+			if (baseInfo.getBaseDate() == null) {
+				baseInfo.setBaseDate(currentDate);
 			}
 			
 			// If articles number is not set, it always must have a value
@@ -328,13 +319,8 @@ public class FDBBaseWriteUnit {
 		
 		curMediaResourcesBatchSize++;
 		if (curMediaResourcesBatchSize == maxBatchSize) {
-			try {
-				insMediaResourceKeySt.executeBatch();
-			} catch (SQLException e) {
-				log.error("SQL Error", e);
-				insMediaResourceKeySt.clearBatch();
-				throw e;
-			}
+			insMediaResourceKeySt.executeBatch();
+			insMediaResourceKeySt.clearBatch();
 			curMediaResourcesBatchSize = 0;
 			return true;
 		}
@@ -360,13 +346,8 @@ public class FDBBaseWriteUnit {
 		
 		curWordsBatchSize++;
 		if (curWordsBatchSize == maxBatchSize) {
-			try {
-				insWordSt.executeBatch();
-			} catch (SQLException e) {
-				log.error("SQL Error", e);
-				insWordSt.clearBatch();
-				throw e;
-			}
+			insWordSt.executeBatch();
+			insWordSt.clearBatch();
 			curWordsBatchSize = 0;
 			return true;
 		}
@@ -395,24 +376,33 @@ public class FDBBaseWriteUnit {
 		return baseInfo;
 	}
 
-	public void flashArticles(int curArticlesNumber) throws SQLException, UnsupportedEncodingException, IOException {
-		log.info("Flashing articles");
+	public void flushArticles(int curArticlesNumber) throws SQLException, UnsupportedEncodingException, IOException {
+
+		long startTime = System.currentTimeMillis();
 		if (curWordsBatchSize != 0) {
 			insWordSt.executeBatch();
+			insWordSt.clearBatch();
 		}
 		insertBlockBatch(insArticleSt, articlesBuffer, curArticlesNumber, curArticleBlockMemSize);
 		articlesBuffer = new LinkedList<byte[]>();
 		curArticleBlockMemSize = 0;
+		
+		log.info("Articles flushed, total time: {}", System.currentTimeMillis() - startTime);
+		
 	}
 	
-	public void flashMediaResources(int curMediaResourcesNumber) throws SQLException, UnsupportedEncodingException, IOException {
-		log.info("Flashing media resources");
+	public void flushMediaResources(int curMediaResourcesNumber) throws SQLException, UnsupportedEncodingException, IOException {
+		
+		long startTime = System.currentTimeMillis();
 		if (curMediaResourcesBatchSize != 0) {
 			insMediaResourceKeySt.executeBatch();
+			insMediaResourceKeySt.clearBatch();
 		}
 		insertBlockBatch(insMediaResourceSt, mediaResourcesBuffer, curMediaResourcesNumber, curMediaResourceBlockMemSize);
 		mediaResourcesBuffer = new LinkedList<byte[]>();
 		curMediaResourceBlockMemSize = 0;
+		
+		log.info("Media resources flushed, total time: {}", System.currentTimeMillis() - startTime);
 	}
 	
 	//----------------------------------------------------
@@ -455,6 +445,8 @@ public class FDBBaseWriteUnit {
 			log.info("Block size is 0 for id {} and mem size is {}. Skipping insert.", id, curBlockMemSize);
 			return insBlockSt;
 		}
+
+		int blockSize = block.size(); // Only for logging
 		
 		int blockMemSize = curBlockMemSize + 4 * block.size() + 8;
 		
@@ -481,13 +473,18 @@ public class FDBBaseWriteUnit {
 		
 		byte[] compData = compBaos.toByteArray();
 		
-		log.info("Unc Size {}, Number {}, ID " + id + " Comp Size " + compData.length, curBlockMemSize);
 		
 		// BlockId is the same as the wordId of the first article in the block
+		
 		insBlockSt.setInt(1, id);
 		insBlockSt.setBytes(2, compData);
 		insBlockSt.execute();
 		
+		log.info(
+				"Block flushed, number: {}, uncomp size: {}, comp size: {}", 
+				new Object[] {blockSize, curBlockMemSize, compData.length}
+			);
+
 		return insBlockSt;
 	}
 	
