@@ -48,7 +48,7 @@ public class FDBase {
 			//info.setBaseName("New Britannica");
 			//info.setBaseVersion("12");
 			//info.setBaseLocale(new Locale("RU"));
-			//info.setBaseDescription("Very good dictionary");
+			//info.setBaseDescription("Test dictionary");
 			
 			//info.setArticleFormattingEnabled(false);
 			

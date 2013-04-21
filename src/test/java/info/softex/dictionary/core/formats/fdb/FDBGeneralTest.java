@@ -4,13 +4,18 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
+import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.collation.BasicCollatorFactory;
+import info.softex.dictionary.core.collation.CollationRulesFactory;
+import info.softex.dictionary.core.collation.CollationRulesFactory.SimpleCollationProperties;
 import info.softex.dictionary.core.database.BasicSQLiteConnectionFactory;
 import info.softex.dictionary.core.formats.commons.BaseWriter;
 
 import java.io.File;
+import java.text.Collator;
 import java.util.List;
+import java.util.Locale;
 
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -21,6 +26,8 @@ import org.slf4j.LoggerFactory;
  * 
  * @since version 2.6, 08/27/2011
  * 
+ * @modified version 3.2, 04/20/2013
+ * 
  * @author Dmitry Viktorov
  *
  */
@@ -30,13 +37,19 @@ public class FDBGeneralTest {
 	
 	public static final String BASE_NAME = "Best Base";
 
+	public static final String BASE_PATH = "../dicts";
+	
+	public static final String BASE_FILE = "new_dictionary.fdb";
+	
 	@Test
 	public void testFDBBase() throws ClassNotFoundException {
 		
-		//Connection connection = null;
+		// Connection connection = null;
 		try {
 			
-			File file = new File("../dicts/new_dictionary.fdb");
+			new File(BASE_PATH).mkdirs();
+			
+			File file = new File(BASE_PATH + File.pathSeparator + BASE_FILE);
 			
 			if (file.exists()) {
 				file.delete();
@@ -51,8 +64,8 @@ public class FDBGeneralTest {
 			writer.createBase();
 			
 			BasePropertiesInfo info = new BasePropertiesInfo();
-			//info.setBaseName(BASE_NAME);
-			//info.setBaseVersion("12");
+			info.setBaseFullName(BASE_NAME);
+			info.setBaseVersion(10,11);
 			//info.setBaseLocale(new Locale("RU"));
 			//info.setBaseDescription("Very good dictionary");
 			
@@ -64,16 +77,15 @@ public class FDBGeneralTest {
 			writer.saveBasePropertiesInfo(info);
 			
 			
-//			LanguageDirectionsInfo dirs = new LanguageDirectionsInfo();
-//			dirs.setDefaultCollationRules(CollationRulesFactory.getDefaultCollationProperties(10).getCollationRules());
-//			dirs.setDefaultCollationVersion(10);
-//			int ver = 0;
-//			CollationProperties props = CollationRulesFactory.getLocaleCollationProperties(new Locale("ru"), ver, false);
-//			dirs.addDirection("ru", "en", props.getCollationRules(), ver, props.isCollationIndependent());
-//			CollationProperties props2 = CollationRulesFactory.getLocaleCollationProperties(new Locale("en"), ver, false);
-//			dirs.addDirection("en", "ru", props2.getCollationRules(), ver, props2.isCollationIndependent());	
-//			
-//			writer.saveLanguageDirectionsInfo(dirs);
+			LanguageDirectionsInfo dirs = new LanguageDirectionsInfo();
+			dirs.setDefaultCollationProperties(CollationRulesFactory.createDefaultCollationProperties(10).getCollationRules(), null, 10);
+			int ver = 0;
+			SimpleCollationProperties props = CollationRulesFactory.createLocaleCollationProperties(new Locale("ru"), ver, false);
+			dirs.addDirection("ru", "en", props.getCollationRules(), "", Collator.PRIMARY, Collator.CANONICAL_DECOMPOSITION, ver, props.isCollationIndependent());
+			SimpleCollationProperties props2 = CollationRulesFactory.createLocaleCollationProperties(new Locale("en"), ver, false);
+			dirs.addDirection("en", "ru", props2.getCollationRules(), "", Collator.PRIMARY, Collator.CANONICAL_DECOMPOSITION, ver, props2.isCollationIndependent());	
+			
+			writer.saveLanguageDirectionsInfo(dirs);
 			
 
 			
@@ -159,8 +171,7 @@ public class FDBGeneralTest {
 			
 			for (int j = 0; j < packSize; j++) {
 				int num = j + offset;
-				writer.saveArticleInfo(new ArticleInfo(new WordInfo(num, "sample word " + num), "simple text string rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr" + num));
-				//trs.add(new ArticleInfo(new WordInfo(num, "sample word " + num), "simple text string rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr" + num));
+				writer.saveArticleInfo(new ArticleInfo(new WordInfo(num, "sample word " + num), "simple text string is used as an article " + num));
 			}
 			
 			log.info("Pushing MLP: {}", i);
