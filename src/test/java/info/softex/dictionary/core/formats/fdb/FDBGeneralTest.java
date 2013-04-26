@@ -49,7 +49,7 @@ public class FDBGeneralTest {
 			
 			new File(BASE_PATH).mkdirs();
 			
-			File file = new File(BASE_PATH + File.pathSeparator + BASE_FILE);
+			File file = new File(BASE_PATH, BASE_FILE);
 			
 			if (file.exists()) {
 				file.delete();
