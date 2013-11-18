@@ -22,10 +22,10 @@ package info.softex.dictionary.core.formats.fdb;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingModes;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingModes;
-import info.softex.dictionary.core.collation.CollatorFactory;
+import info.softex.dictionary.core.collation.AbstractCollatorFactory;
 import info.softex.dictionary.core.formats.commons.BaseFormatException;
 import info.softex.dictionary.core.formats.fdb.collections.FDBDynamicListSet;
 import info.softex.dictionary.core.io.SmartInflaterInputStream;
@@ -80,12 +80,12 @@ public class FDBBaseReadUnit {
 	protected PreparedStatement selMediaResourceIdByKey;
 	protected PreparedStatement selMediaResourceById; 
 	
-	protected final CollatorFactory collatorFactory;
+	protected final AbstractCollatorFactory collatorFactory;
 	
 	protected final boolean main;
 	protected boolean loaded;
 	
-	public FDBBaseReadUnit(boolean main, String baseFilePath, Connection connection, int wordListBlockSize, CollatorFactory collatorFactory) {
+	public FDBBaseReadUnit(boolean main, String baseFilePath, Connection connection, int wordListBlockSize, AbstractCollatorFactory collatorFactory) {
 		this.main = main;
 		this.baseFilePath = baseFilePath;
 		this.connection = connection;

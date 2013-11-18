@@ -21,7 +21,7 @@ package info.softex.dictionary.core.collation;
 
 import java.text.Collator;
 import java.text.ParseException;
-import java.text.RuleBasedCollator;
+import java.util.Locale;
 
 /**
  * 
@@ -32,11 +32,34 @@ import java.text.RuleBasedCollator;
  * @author Dmitry Viktorov
  * 
  */
-public class BasicCollatorFactory extends AbstractCollatorFactory {
+public abstract class AbstractCollatorFactory {
+	
+	protected abstract Collator createRuleBasedCollator(String rules) throws ParseException; 
 
-	@Override
-	protected Collator createRuleBasedCollator(String rules) throws ParseException {
-		return new RuleBasedCollator(rules);
+	public Collator createCollator(String rules, Integer strength, Integer decomposition) throws ParseException {
+		
+		strength = strength == null ? Collator.PRIMARY : strength;		
+		decomposition = decomposition == null ? Collator.CANONICAL_DECOMPOSITION : decomposition;
+		
+		Collator rbc = createRuleBasedCollator(rules);
+		rbc.setStrength(strength);
+		rbc.setDecomposition(decomposition); // used for accented languages/words
+		
+		return rbc;
+		
+	}
+
+	public Collator createCollator(Locale locale, Integer strength, Integer decomposition) throws ParseException {
+		
+		strength = strength == null ? Collator.PRIMARY : strength;		
+		decomposition = decomposition == null ? Collator.CANONICAL_DECOMPOSITION : decomposition;
+		
+		Collator collator = Collator.getInstance(locale);
+		collator.setStrength(strength);
+		collator.setDecomposition(decomposition); // used for accented languages/words
+		
+		return collator;
+		
 	}
 	
 }

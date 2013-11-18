@@ -27,7 +27,7 @@ import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
-import info.softex.dictionary.core.collation.CollatorFactory;
+import info.softex.dictionary.core.collation.AbstractCollatorFactory;
 import info.softex.dictionary.core.database.DatabaseConnectionFactory;
 import info.softex.dictionary.core.formats.commons.BaseFormatException;
 import info.softex.dictionary.core.formats.commons.BaseReader;
@@ -76,7 +76,7 @@ public class FDBBaseReader implements BaseReader {
 	
 	protected final int wordListBlockSize;
 			
-	public FDBBaseReader(File fdbFile, DatabaseConnectionFactory conFactory, Map<String, Object> params, CollatorFactory collatorFactory) throws SQLException {
+	public FDBBaseReader(File fdbFile, DatabaseConnectionFactory conFactory, Map<String, Object> params, AbstractCollatorFactory collatorFactory) throws SQLException {
 		this.dbParams = new HashMap<String, String>();
 		dbParams.put(DatabaseConnectionFactory.DB_NO_LOCALIZED_COLLATORS, "true");
 		dbParams.put(DatabaseConnectionFactory.DB_OPEN_READ_ONLY, "true");

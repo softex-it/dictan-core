@@ -28,9 +28,9 @@ package info.softex.dictionary.core.collation;
  * 
  * @author Dmitry Viktorov
  */
-final class DefaultCollationRulesV10 {
+final class DefaultCollationRules {
 	
-    final static String DEFAULTRULES = new String(
+    final static String DEFAULT_RULES = new String(
         "" // no FRENCH accent order by default, add in French Delta
         // IGNORABLES (up to first < character)
         // COMPLETELY IGNORE format characters

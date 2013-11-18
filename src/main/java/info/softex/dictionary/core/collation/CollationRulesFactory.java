@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2012  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2013  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -21,6 +21,8 @@ package info.softex.dictionary.core.collation;
 
 import java.text.Collator;
 import java.text.RuleBasedCollator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import org.slf4j.Logger;
@@ -30,57 +32,45 @@ import org.slf4j.LoggerFactory;
  * 
  * Collation Rules Versions (are the same for default and localized collations):
  * 
- *  0 - native collation rules
- *  1 - native collation rules followed by any sequence of additional rules, i.e. connected with &
- * 10 - custom collation rules version 10 
+ * version  0 - native collation rules
+ * version 10 - default custom collation rules version 10 
  * 
  * @since version 2.6, 09/29/2011
+ * 
+ * @modified version 3.7, 06/11/2013
  * 
  * @author Dmitry Viktorov
  * 
  */
 public class CollationRulesFactory {
 	
-	private static final Logger log = LoggerFactory.getLogger(CollationRulesFactory.class.getSimpleName());
+	private static final Logger log = LoggerFactory.getLogger(CollationRulesFactory.class);
 
-	private static Locale defaultLocale = new Locale("en", "US");
+	protected static final Locale DEFAULT_LOCALE = new Locale("en", "US");
 	
-	public static SimpleCollationProperties createLocaleCollationProperties(Locale locale, int version, boolean independent) throws UnsupportedCollationException {
-
-		SimpleCollationProperties props = null;
-		
-		if (version == 0) {
-			
-			props = independent ? getNativeCollationProperties(locale) : getNativeAppendixCollationProperties(locale);
-			
-		} else if (version == 10) {
-			if (independent) {
-				props = new SimpleCollationProperties(
-						DefaultCollationRulesV10.DEFAULTRULES + 
-						getNativeAppendixCollationProperties(locale).getCollationRules(), 
-						version, true
-					);
-			} else {
-				throw new UnsupportedCollationException("Collation rules version 10 cannot currently be dependent");		
-			}
-			
-			log.debug("Rules for the {} locale: {}", locale, props);
-		
-		} else {
-			throw new UnsupportedCollationException("Collation version " + version + " is not supported");
-		}
-		
-		return props;
-		
+	@SuppressWarnings("serial")
+	protected static final List<String> LANGS_CYRILLIC = new ArrayList<String>() {{
+		add("ru"); add("uk"); add("bg");
+	}};
+	
+	public static SimpleCollationProperties createLocaleAppendixCollationProperties(Locale locale) throws UnsupportedCollationException {
+		return getNativeAppendixCollationProperties(locale);		
 	}
 	
-	public static SimpleCollationProperties createDefaultCollationProperties(int version) throws UnsupportedCollationException {
+	public static SimpleCollationProperties createDefaultCollationProperties() throws UnsupportedCollationException {
+		return new SimpleCollationProperties(DefaultCollationRules.DEFAULT_RULES, 10, true);
+	}
+	
+	public static SimpleCollationProperties createPredefinedFullCollationProperties(Locale locale) {
+		
 		SimpleCollationProperties props = null;
-		if (version == 0) {
-			props = getNativeCollationProperties(defaultLocale);
-		} else if (version == 10) {
-			props = new SimpleCollationProperties(DefaultCollationRulesV10.DEFAULTRULES, 10, true);
+		
+		if (LANGS_CYRILLIC.contains(locale.getLanguage())) {
+			props = new SimpleCollationProperties(DefaultCollationRules.DEFAULT_RULES + CyrillicCollationRules.CYRILLIC_RULES, 0, true);
 		}
+		
+		log.debug("Predefined Collation Properties: {}; Language {}", props, locale.getLanguage());
+		
 		return props;
 	}
 	
@@ -88,7 +78,7 @@ public class CollationRulesFactory {
 		
 		SimpleCollationProperties props = null;
 		
-		String defRules = getNativeCollationProperties(defaultLocale).getCollationRules();
+		String defRules = getNativeCollationProperties(DEFAULT_LOCALE).getCollationRules();
 		String langRules = getNativeCollationProperties(locale).getCollationRules();
 		
 		if (langRules.startsWith(defRules)) {
@@ -119,11 +109,14 @@ public class CollationRulesFactory {
 			defRules = new SimpleCollationProperties(defRuleCollator.getRules(), 0, true);
 		}
 		if (defRules == null) {
-			throw new UnsupportedCollationException("Couldn't get the default collation rules version 0");
+			throw new UnsupportedCollationException("Couldn't get the default collation rules");
 		}
 		return defRules;
 	}
 	
+	/**
+	 * Independent - whether the props are full or appendix
+	 */
 	public static class SimpleCollationProperties {
 		final String collationRules;
 		final int version;

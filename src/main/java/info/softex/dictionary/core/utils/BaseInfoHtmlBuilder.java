@@ -23,41 +23,115 @@ import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 
 import java.text.DecimalFormat;
+import java.util.HashMap;
 
 /**
  * 
  * @since version 2.0, 03/13/2011
  * 
  * @modified version 2.6, 09/17/2011
+ * @modified version 3.7, 06/14/2013
  *  
  * @author Dmitry Viktorov
  * 
  */
 public class BaseInfoHtmlBuilder {
 	
-	public static String buildDictionaryInfoTable(BasePropertiesInfo baseInfo, LanguageDirectionsInfo directionsInfo) {
+	protected enum StringKey {
+		DICTIONARY_BASE,
+		COMP_DATE,
+		BASE_VERSION,
+		BASE_DATE,
+		BASE_SIZE,
+		BASE_PARTS_NUMBER,
+		NUMBER_OF_WORDS,
+		NUMBER_OF_ABBREVIATIONS,
+		NUMBER_OF_RESOURCES,
+		FORMAT_VERSION,
+		ARTICLES_FORMATTING,
+		ABBREV_FORMATTING,		
+		CODEPAGE,
+		CODEPAGES,
+		FILE_SIZE,
+		MEDIA_BASE
+		
+		;
+		
+		@SuppressWarnings("serial")
+		protected static HashMap<StringKey, String> enStrings = new HashMap<StringKey, String>() {{
+			put(DICTIONARY_BASE, "Dictionary Base");
+			put(MEDIA_BASE, "Media Base");
+			put(COMP_DATE, "Compilation Date");
+			put(BASE_VERSION, "Base Version");
+			put(BASE_DATE, "Base Date");
+			put(BASE_SIZE, "Base Size");
+			put(BASE_PARTS_NUMBER, "Base Parts Number");
+			put(NUMBER_OF_WORDS, "Number of Words");
+			put(NUMBER_OF_ABBREVIATIONS, "Number of Abbreviations");
+			put(NUMBER_OF_RESOURCES, "Number of Resources");
+			put(FORMAT_VERSION, "Format Version");
+			put(ARTICLES_FORMATTING, "Articles Formatting");
+			put(ABBREV_FORMATTING, "Abbrev. Formatting");	
+			put(CODEPAGE, "Codepage");
+			put(CODEPAGES, "Codepages");
 			
-		String compDate = wrapRow("Compilation Date", getShortDate(baseInfo.getCompilationDate()), true);
+		}};
 		
-		String baseVersion = wrapRow("Base Version", baseInfo.getBaseVersion(), true);
-		String baseDate = wrapRow("Base Date", getShortDate(baseInfo.getBaseDate()), true);
+		@SuppressWarnings("serial")
+		protected static HashMap<StringKey, String> ruStrings = new HashMap<StringKey, String>() {{
+			put(DICTIONARY_BASE, "Словарная База");
+			put(MEDIA_BASE, "Медиа База");
+			put(COMP_DATE, "Дата Компиляции");
+			put(BASE_VERSION, "Версия Базы");
+			put(BASE_DATE, "Дата Базы");
+			put(BASE_SIZE, "Размер Базы");
+			put(BASE_PARTS_NUMBER, "Количество Частей Базы");
+			put(NUMBER_OF_ABBREVIATIONS, "Количество Сокращений");
+			put(NUMBER_OF_WORDS, "Количество Слов");
+			put(NUMBER_OF_RESOURCES, "Количество Ресурсов");
+			put(FORMAT_VERSION, "Версия Формата");
+			put(ARTICLES_FORMATTING, "Формат Статей");
+			put(ABBREV_FORMATTING, "Формат Сокращений");
+			put(CODEPAGE, "Кодовая Страница");
+			put(CODEPAGES, "Кодовые Страницы");
+		}};
+	}
+	
+	protected static String getString(StringKey key, String lang) {
+		String res = null;
+		if (lang != null && lang.equalsIgnoreCase("ru")) {
+			res = StringKey.ruStrings.get(key);
+		}	
+		if (res == null) {
+			res = StringKey.enStrings.get(key);
+		}
+		return res;
+	}
+	
+	public static String buildDictionaryInfoTable(BasePropertiesInfo baseInfo, LanguageDirectionsInfo directionsInfo, String lang) {
 		
-		String baseSize = "Base Size: <dvl>" + getConvertedSize(baseInfo.getBaseFileSize()) + "</dvl>";
-		String basePartsNumber = wrapRow("Base Parts Number", baseInfo.getBasePartsTotalNumber(), baseInfo.getBasePartsTotalNumber() > 1);
+		String compDate = wrapRow(getString(StringKey.COMP_DATE, lang), getShortDate(baseInfo.getCompilationDate()), true);
 		
-		String wordsNumber = "Number of Words: <dvl>" + baseInfo.getArticlesNumber() + "</dvl>";
-		String formatVer = "Format Version: <dvl>" + baseInfo.getFormatVersion() + "</dvl>";
+		String baseVersion = wrapRow(getString(StringKey.BASE_VERSION, lang), baseInfo.getBaseVersion(), true);
+		String baseDate = wrapRow(getString(StringKey.BASE_DATE, lang), getShortDate(baseInfo.getBaseDate()), true);
 		
-		String artFormat = "Articles Formatting: <dvl>" + baseInfo.getArticlesFormattingMode() + "</dvl>";
-		String abbrFormat = wrapRow("Abbrev. Formatting", baseInfo.getAbbreviationsFormattingMode(), baseInfo.getAbbreviationsNumber() > 0);
+		String baseSize = getString(StringKey.BASE_SIZE, lang) + ": <dvl>" + getConvertedSize(baseInfo.getBaseFileSize()) + "</dvl>";
+		String basePartsNumber = wrapRow(getString(StringKey.BASE_PARTS_NUMBER, lang), baseInfo.getBasePartsTotalNumber(), baseInfo.getBasePartsTotalNumber() > 1);
+		
+		String wordsNumber = getString(StringKey.NUMBER_OF_WORDS, lang) + ": <dvl>" + baseInfo.getArticlesNumber() + "</dvl>";
+		String formatVer = getString(StringKey.FORMAT_VERSION, lang) + ": <dvl>" + baseInfo.getFormatVersion() + "</dvl>";
+		
+		String artFormat = getString(StringKey.ARTICLES_FORMATTING, lang) + ": <dvl>" + baseInfo.getArticlesFormattingMode() + "</dvl>";
+		String abbrFormat = wrapRow(getString(StringKey.ABBREV_FORMATTING, lang), baseInfo.getAbbreviationsFormattingMode(), baseInfo.getAbbreviationsNumber() > 0);
 		
 		String codePage = "";
 		if (baseInfo.getWordsCodepageName() != null) {
 			if (baseInfo.getWordsCodepageName().equalsIgnoreCase(baseInfo.getArticleCodepageName())) {
-				codePage = "<tr><td>Codepage: <dvl>" + formatCPString(baseInfo.getWordsCodepageName()) + 
-					"</dvl></td></tr>";
+				codePage = "<tr><td>" + getString(StringKey.CODEPAGE, lang) + ": <dvl>" + 
+					formatCPString(baseInfo.getWordsCodepageName()) + "</dvl></td></tr>";
 			} else {
-				codePage = "<tr><td>Codepages: <dvl>" + formatCPString(baseInfo.getWordsCodepageName()) + 
+				codePage = "<tr><td>" + getString(StringKey.CODEPAGE, lang) + ": <dvl>" + 
+					formatCPString(baseInfo.getWordsCodepageName()) + 
 					" / " + formatCPString(baseInfo.getArticleCodepageName()) + "</dvl></td></tr>";
 			}
 		}
@@ -68,31 +142,31 @@ public class BaseInfoHtmlBuilder {
 		String media = "";
 		if (baseInfo.isMediaBaseSeparate()) {
 			if (baseInfo.getMediaResourcesNumber() != 0) {
-				String resNumber = "Number of Resources: <dvl>" + baseInfo.getMediaResourcesNumber() + "</dvl>";
-				String mediaFormat = "Format Version: <dvl>" + baseInfo.getMediaFormatVersion() + "</dvl>";
-				String mediaFileSize = "File Size: <dvl>" + getConvertedSize(baseInfo.getBaseFileSize()) + "</dvl>";
+				String resNumber = getString(StringKey.NUMBER_OF_RESOURCES, lang) + ": <dvl>" + baseInfo.getMediaResourcesNumber() + "</dvl>";
+				String mediaFormat = getString(StringKey.FORMAT_VERSION, lang) + ": <dvl>" + baseInfo.getMediaFormatVersion() + "</dvl>";
+				String mediaFileSize = getString(StringKey.BASE_SIZE, lang) + ": <dvl>" + getConvertedSize(baseInfo.getBaseFileSize()) + "</dvl>";
 				
-				media = "<tr><th class=\"subHeader1\">Media Base: " + baseInfo.getMediaFormatName() + "</th></tr>";
+				media = "<tr><th class=\"subHeader1\">" + getString(StringKey.MEDIA_BASE, lang) + ": " + baseInfo.getMediaFormatName() + "</th></tr>";
 				media += "<tr><td>" + resNumber + "</td></tr>";
 				media += "<tr><td>" + mediaFormat + "</td></tr>";
 				media += "<tr><td>" + mediaFileSize + "</td></tr>";
 			} else {
-				media = "<tr><th class=\"subHeader1\">Media Base: Not Available</th></tr>";
+				media = "<tr><th class=\"subHeader1\">" + getString(StringKey.MEDIA_BASE, lang) + ": N/A</th></tr>";
 			}
 		}
 		
 		//"&nbsp;&nbsp;<a href=\"content://info.softex.dictan/show/dialog\">(Flags)</a>"
 		String html = "<table>" + 
-			"<tr><th class=\"subHeader1\">Dictionary Base: " + baseInfo.getFormatName() + "</th></tr>" +
+			"<tr><th class=\"subHeader1\">" + getString(StringKey.DICTIONARY_BASE, lang) + ": " + baseInfo.getFormatName() + "</th></tr>" +
 			"<tr><td>" + wordsNumber + "</td></tr>";
 		
 			if (baseInfo.getAbbreviationsNumber() > 0) {
-				String abbrevNumber = "Number of Abbreviations: <dvl>" + baseInfo.getAbbreviationsNumber() + "</dvl>";
+				String abbrevNumber = getString(StringKey.NUMBER_OF_ABBREVIATIONS, lang) + ": <dvl>" + baseInfo.getAbbreviationsNumber() + "</dvl>";
 				html += "<tr><td>" + abbrevNumber + "</td></tr>";
 			}
 			
 			if (!baseInfo.isMediaBaseSeparate() && baseInfo.getMediaResourcesNumber() > 0) {
-				String resNumber = "Number of Resources: <dvl>" + baseInfo.getMediaResourcesNumber() + "</dvl>";
+				String resNumber = getString(StringKey.NUMBER_OF_RESOURCES, lang) + ": <dvl>" + baseInfo.getMediaResourcesNumber() + "</dvl>";
 				html += "<tr><td>" + resNumber + "</td></tr>";
 			}
 			

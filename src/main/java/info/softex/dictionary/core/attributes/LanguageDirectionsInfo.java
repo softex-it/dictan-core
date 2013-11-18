@@ -98,7 +98,7 @@ public class LanguageDirectionsInfo {
 	}
 	
 	public void setDefaultCollationProperties(String defaultBasicCollationRules, String defaultAdditionalCollationRules, int defaultCollationVersion) {
-		this.defaultCollationProperties = new CollationProperties(
+		defaultCollationProperties = new CollationProperties(
 				defaultBasicCollationRules, defaultAdditionalCollationRules, -1, -1, 
 				defaultCollationVersion, true, null
 			);

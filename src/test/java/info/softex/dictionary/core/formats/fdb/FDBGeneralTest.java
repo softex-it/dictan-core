@@ -78,11 +78,11 @@ public class FDBGeneralTest {
 			
 			
 			LanguageDirectionsInfo dirs = new LanguageDirectionsInfo();
-			dirs.setDefaultCollationProperties(CollationRulesFactory.createDefaultCollationProperties(10).getCollationRules(), null, 10);
+			dirs.setDefaultCollationProperties(CollationRulesFactory.createDefaultCollationProperties().getCollationRules(), null, 10);
 			int ver = 0;
-			SimpleCollationProperties props = CollationRulesFactory.createLocaleCollationProperties(new Locale("ru"), ver, false);
+			SimpleCollationProperties props = CollationRulesFactory.createPredefinedFullCollationProperties(new Locale("ru"));
 			dirs.addDirection("ru", "en", props.getCollationRules(), "", Collator.PRIMARY, Collator.CANONICAL_DECOMPOSITION, ver, props.isCollationIndependent());
-			SimpleCollationProperties props2 = CollationRulesFactory.createLocaleCollationProperties(new Locale("en"), ver, false);
+			SimpleCollationProperties props2 = CollationRulesFactory.createPredefinedFullCollationProperties(new Locale("en"));
 			dirs.addDirection("en", "ru", props2.getCollationRules(), "", Collator.PRIMARY, Collator.CANONICAL_DECOMPOSITION, ver, props2.isCollationIndependent());	
 			
 			writer.saveLanguageDirectionsInfo(dirs);

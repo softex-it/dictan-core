@@ -23,27 +23,32 @@ import info.softex.dictionary.core.annotations.BaseFormat;
 
 import java.lang.annotation.Annotation;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 
 /**
  * 
  * @since version 2.6, 09/02/2011
  * 
+ * @modified version 3.7, 06/12/2013
+ * 
  * @author Dmitry Viktorov
  * 
  */
 public class FormatInfo {
+	
+	private static final Locale LOCALE_DEFAULT = Locale.ENGLISH;
 	
 	private final String name;
 	private final String primaryExtension;
 	private final Set<String> extensions;
 	
 	public FormatInfo(String name, String primaryExtension, String[] extensions) {
-		this.name = name.toUpperCase();
+		this.name = name.toUpperCase(LOCALE_DEFAULT);
 		this.primaryExtension = primaryExtension;
 		this.extensions = new LinkedHashSet<String>();
 		for (int i = 0; i < extensions.length; i++) {
-			this.extensions.add(extensions[i].toLowerCase());
+			this.extensions.add(extensions[i].toLowerCase(LOCALE_DEFAULT));
 		}
 	}
 	
@@ -64,7 +69,7 @@ public class FormatInfo {
 	
 	public String getSupportedExtension(String fileName) {
 		for (String curExt : this.extensions) {
-			if (fileName.toLowerCase().endsWith(curExt)) {
+			if (fileName.toLowerCase(LOCALE_DEFAULT).endsWith(curExt)) {
 				return curExt;
 			}
 		}

@@ -29,7 +29,9 @@ import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
-import info.softex.dictionary.core.collation.LocalizedStringComparator;
+import info.softex.dictionary.core.collation.AbstractCollatorFactory;
+import info.softex.dictionary.core.collation.CollationRulesFactory;
+import info.softex.dictionary.core.collation.CollationRulesFactory.SimpleCollationProperties;
 import info.softex.dictionary.core.formats.commons.BaseFormatException;
 import info.softex.dictionary.core.formats.commons.BaseReader;
 import info.softex.dictionary.core.regional.RegionalResolver;
@@ -40,7 +42,6 @@ import java.io.IOException;
 import java.text.Collator;
 import java.text.ParseException;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -57,6 +58,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 2.5, 08/02/2011
  * @modified version 2.6, 09/02/2011
  * @modified version 2.7, 10/23/2011
+ * @modified version 3.7, 06/11/2013
  *  
  * @author Dmitry Viktorov
  * 
@@ -76,17 +78,22 @@ public class ZDBaseReader implements BaseReader {
 	
 	protected RegionalResolver regionalResolver = null;
 	
-	protected Comparator<String> stringComparator = null;	
+	protected Collator collator = null;	
 
 	protected ZDDynamicArticlesReader zdReader = null;
 	protected ZPAKMappedMediaReader zpakReader = null;
 
 	protected Locale locale = null;
 	
-	public ZDBaseReader(File zdFile, RegionalResolver regionalResolver) throws IOException {
+	protected final AbstractCollatorFactory collatorFactory;
+	
+	protected static final Locale LOCALE_DEFAULT = Locale.ENGLISH;
+	
+	public ZDBaseReader(File zdFile, RegionalResolver regionalResolver, AbstractCollatorFactory collatorFactory) throws IOException {
 		
 		this.regionalResolver = regionalResolver;
 		this.zdReader = new ZDDynamicArticlesReader(regionalResolver, zdFile);
+		this.collatorFactory = collatorFactory;
 		
 		String zdFilePath = stripExtension(zdFile.getPath());
 		
@@ -208,25 +215,25 @@ public class ZDBaseReader implements BaseReader {
 		baseInfo.setMediaBaseSeparate(true);
 		
 		ZDHeader zdHeader = zdReader.loadHeader();
-		populateBasePropertiesInfoFromZDHeader(this.baseInfo, zdHeader);
+		populateBasePropertiesInfoFromZDHeader(baseInfo, zdHeader);
 		
 		// Dictionary name
 		String nameNoZD = stripExtension(zdReader.getFileName());
 		String dictName = nameNoZD.replaceAll("_", " ");
-		this.baseInfo.setBaseShortName(dictName);
-		this.baseInfo.setBaseFullName(dictName);
+		baseInfo.setBaseShortName(dictName);
+		baseInfo.setBaseFullName(dictName);
 		
-		this.locale = this.regionalResolver.getLanguageLocale(zdHeader.getCollateLocaleId());
-		this.stringComparator = new LocalizedStringComparator(this.locale);
+		locale = regionalResolver.getLanguageLocale(zdHeader.getCollateLocaleId());
+		collator = getCollator(locale);
 		
-	    if (this.zpakReader != null) {
-	        ZPAKHeader zpakHeader = this.zpakReader.loadZPAKHeader();
+	    if (zpakReader != null) {
+	        ZPAKHeader zpakHeader = zpakReader.loadZPAKHeader();
 	        if (zpakHeader != null) {
-	        	populateBasePropertiesInfoFromZPAKHeader(this.baseInfo, zpakHeader);
+	        	populateBasePropertiesInfoFromZPAKHeader(baseInfo, zpakHeader);
 	        } 
 	    } 
 	    
-		return this.baseInfo;
+		return baseInfo;
 	}
 
     @Override
@@ -303,13 +310,13 @@ public class ZDBaseReader implements BaseReader {
 	
 	// Strong Equality
 	private int searchWordIndexSE(String word) {
-		int index = Collections.binarySearch(getWords(), word, this.stringComparator);
+		int index = Collections.binarySearch(getWords(), word, collator);
 		if (index > 0) {
 			int min = index;
 			int max = index;
 			
-			for (; this.stringComparator.compare(word, getWords().get(min)) == 0; min--);
-			for (; this.stringComparator.compare(word, getWords().get(max)) == 0; max++);
+			for (; this.collator.compare(word, getWords().get(min)) == 0; min--);
+			for (; this.collator.compare(word, getWords().get(max)) == 0; max++);
 			min++;
 			max--;
 			
@@ -367,9 +374,9 @@ public class ZDBaseReader implements BaseReader {
 		return this.languageDirections;
 	}
 	
-	private String stripExtension(final String name) {
+	private String stripExtension(String name) {
 		for (String ext: FORMAT_INFO.getExtensions()) {
-			if (name.toLowerCase().endsWith(ext)) {
+			if (name.toLowerCase(LOCALE_DEFAULT).endsWith(ext)) {
 				return name.substring(0, name.length() - ext.length());
 			}
 		}
@@ -402,5 +409,36 @@ public class ZDBaseReader implements BaseReader {
     	dictInfo.setMediaFileSize(zpakHeader.getMediaFileSize());
     	dictInfo.setMediaFormatName(FORMAT_ZPAK_NAME);
     }
+    
+    /**
+     * 
+     * @since version 1.0, 09/23/2010
+     * 
+     * @modified version 2.0, 03/19/2011
+     * @modified version 3.7, 06/11/2013
+     *
+     */
+	private Collator getCollator(Locale locale) {
+
+		Collator col = null; 
+		
+		SimpleCollationProperties collationProps = CollationRulesFactory.createPredefinedFullCollationProperties(locale);
+    		
+		log.info("Predefined collation properties for locale {}: {}", locale, collationProps);
+		
+		try {
+			
+			if (collationProps != null) {
+				col = collatorFactory.createCollator(collationProps.getCollationRules(), null, null);			
+			} else {
+				col = collatorFactory.createCollator(locale, null, null);
+			}
+		
+		} catch (ParseException e) {
+			log.error("Error", e);
+		}	
+		
+		return col;
+	}
 
 }
