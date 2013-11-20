@@ -84,7 +84,7 @@ public class BaseInfoHtmlBuilder {
 			put(COMP_DATE, "Дата Компиляции");
 			put(BASE_VERSION, "Версия Базы");
 			put(BASE_DATE, "Дата Базы");
-			put(BASE_SIZE, "Размер Базы");
+			put(BASE_SIZE, "Размер");
 			put(BASE_PARTS_NUMBER, "Количество Частей Базы");
 			put(NUMBER_OF_ABBREVIATIONS, "Количество Сокращений");
 			put(NUMBER_OF_WORDS, "Количество Слов");
