@@ -240,7 +240,7 @@ public class BasicSourceBaseReader implements BaseReader {
 						StringBuffer strLine = readLineUTF(abbRAF);
 						if (strLine == null) {
 							break;
-						} else if (strLine.toString().trim().isEmpty()) {
+						} else if (strLine.toString().trim().length() == 0) {
 							continue;
 						}
 						int delimPosition = strLine.indexOf("  ");			
@@ -304,7 +304,7 @@ public class BasicSourceBaseReader implements BaseReader {
 					StringBuffer strLine = readLineUTF(artRAF);
 					if (strLine == null) {
 						break;
-					} else if (strLine.toString().trim().isEmpty()) {
+					} else if (strLine.toString().trim().length() == 0) {
 						continue;
 					}
 					int delimPosition = strLine.indexOf("  ");			
@@ -342,7 +342,11 @@ public class BasicSourceBaseReader implements BaseReader {
 						
 			int delimiter = line.indexOf("  ");	
 			if (delimiter < 0) {
-				log.warn("Couldn't split the article line, skipping: {}", line);
+				if (line.toString().length() != 0) {
+					log.warn("Couldn't split the article line #{}, skipping: {}", i, line);
+				} else {
+					log.warn("Article line #{} is empty, skipping", i);
+				}
 				continue;
 			}
 
@@ -370,16 +374,23 @@ public class BasicSourceBaseReader implements BaseReader {
 		HashMap<String, Long> keys = new HashMap<String, Long>(100);
 		if (raf != null) {
 			StringBuffer line = null;
+			int i = 0;
 			long prevPointer = raf.getFilePointer();
 			while ((line = readLineUTF(raf)) != null) {
 				int delimiter = line.indexOf("  ");	
 				if (delimiter < 0) {
-					log.warn("Couldn't split the abbreviation line, skipping: {}", line);
+					if (line.toString().length() != 0) {
+						log.warn("Couldn't split the abbreviation line #{}, skipping: {}", i, line);
+					} else {
+						log.warn("Abbreviation line #{} is empty, skipping", i);
+					}
 					continue;
 				}
 				String key = line.substring(0, delimiter).trim();
 				keys.put(key, prevPointer);
 				prevPointer = raf.getFilePointer();	
+				
+				i++;
 				
 			}
 		}
