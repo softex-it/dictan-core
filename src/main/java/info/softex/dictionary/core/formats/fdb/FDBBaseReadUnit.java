@@ -150,7 +150,7 @@ public class FDBBaseReadUnit {
 	public Set<String> getMediaResourceKeys() throws SQLException {
 		if (mediaResources == null) {
 			mediaResources = new HashSet<String>();
-			PreparedStatement selMediaResourceKeys = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_ID_BY_WORD);
+			PreparedStatement selMediaResourceKeys = connection.prepareStatement(FDBSQLReadStatements.SELECT_ALL_MEDIA_RESOURCE_KEYS);
 			ResultSet resRS = selMediaResourceKeys.executeQuery();
 			while (resRS.next()) {
 				mediaResources.add(resRS.getString(0));
