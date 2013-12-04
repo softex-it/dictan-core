@@ -153,7 +153,7 @@ public class FDBBaseReadUnit {
 			PreparedStatement selMediaResourceKeys = connection.prepareStatement(FDBSQLReadStatements.SELECT_ALL_MEDIA_RESOURCE_KEYS);
 			ResultSet resRS = selMediaResourceKeys.executeQuery();
 			while (resRS.next()) {
-				mediaResources.add(resRS.getString(0));
+				mediaResources.add(resRS.getString(1));
 			}
 			resRS.close();
 		}
