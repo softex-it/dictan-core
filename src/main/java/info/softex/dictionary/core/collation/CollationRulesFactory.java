@@ -30,19 +30,31 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * Collation Rules Versions (are the same for default and localized collations):
+ * Collation Rules Versions:
  * 
  * version  0 - native collation rules
- * version 10 - default custom collation rules version 10 
+ * version 10 - default (Latin) predefined collation rules
+ * version 20 - local appendix of predefined collation rules version
+ * version 30 - predefined default (Latin) + predefined local appendix (i.e. full) collation rules
+ * version 40 - predefined default (Latin) + native local appendix (i.e. full) collation rules
  * 
  * @since version 2.6, 09/29/2011
  * 
  * @modified version 3.7, 06/11/2013
+ * @modified version 3.9, 12/03/2013
  * 
  * @author Dmitry Viktorov
  * 
  */
 public class CollationRulesFactory {
+	
+	public static final int COL_RULES_NATIVE_LOCAL_APPENDIX = 0;
+	//public static final int COL_RULES_NATIVE_LOCAL_LATIN = 1;
+	public static final int COL_RULES_NATIVE_LOCAL_FULL = 2;
+	//public static final int COL_RULES_PREDEFINED_LOCAL_APPENDIX = 9;
+	public static final int COL_RULES_PREDEFINED_LATIN = 10;
+	public static final int COL_RULES_PREDEFINED_FULL = 30;
+	public static final int COL_RULES_MIXED_FULL = 40;
 	
 	private static final Logger log = LoggerFactory.getLogger(CollationRulesFactory.class);
 
@@ -58,15 +70,33 @@ public class CollationRulesFactory {
 	}
 	
 	public static SimpleCollationProperties createDefaultCollationProperties() throws UnsupportedCollationException {
-		return new SimpleCollationProperties(DefaultCollationRules.DEFAULT_RULES, 10, true);
+		return new SimpleCollationProperties(DefaultCollationRules.DEFAULT_RULES, COL_RULES_PREDEFINED_LATIN, true);
 	}
+
+//	public static SimpleCollationProperties createFullMixedCollationProperties(Locale locale) throws UnsupportedCollationException {
+//		
+//		SimpleCollationProperties props = new SimpleCollationProperties(
+//				DefaultCollationRules.DEFAULT_RULES + 
+//				getNativeAppendixCollationProperties(locale).getCollationRules(), 
+//				COL_RULES_MIXED_FULL, true
+//			);
+//		
+//		return props;
+//	}
 	
-	public static SimpleCollationProperties createPredefinedFullCollationProperties(Locale locale) {
+	/**
+	 * Create predefined collation rules. It's useful for the applications that don't have the 
+	 * collation rules out of the box.
+	 * 
+	 * @param locale
+	 * @return Predefined collation properties or null if they are not defined for the locale 
+	 */
+	public static SimpleCollationProperties createFullPredefinedCollationProperties(Locale locale) {
 		
 		SimpleCollationProperties props = null;
 		
 		if (LANGS_CYRILLIC.contains(locale.getLanguage())) {
-			props = new SimpleCollationProperties(DefaultCollationRules.DEFAULT_RULES + CyrillicCollationRules.CYRILLIC_RULES, 0, true);
+			props = new SimpleCollationProperties(DefaultCollationRules.DEFAULT_RULES + CyrillicCollationRules.CYRILLIC_RULES, COL_RULES_PREDEFINED_FULL, true);
 		}
 		
 		log.debug("Predefined Collation Properties: {}; Language {}", props, locale.getLanguage());
@@ -86,7 +116,7 @@ public class CollationRulesFactory {
 			if (appendRules.trim().length() == 0) {
 				appendRules = "";
 			}
-			props = new SimpleCollationProperties(appendRules, 0, false);
+			props = new SimpleCollationProperties(appendRules, COL_RULES_NATIVE_LOCAL_APPENDIX, false);
 		} else {
 			log.info("RuleBasedCollator for the locale {} is independent from the default locale", locale);
 			throw new UnsupportedCollationException("Couldn't retrieve collation rules for the locale " + locale + ": no dependency on the default locale");
@@ -96,7 +126,7 @@ public class CollationRulesFactory {
 	}
 	
 	/**
-	 * Always returns the native collation rules: independent, version 0
+	 * Always returns the appendix of native collation rules
 	 * 
 	 * @return
 	 * @throws UnsupportedCollationException 
@@ -106,7 +136,7 @@ public class CollationRulesFactory {
 		Collator defCollator = Collator.getInstance(locale);
 		if (defCollator instanceof RuleBasedCollator) {
 			RuleBasedCollator defRuleCollator = (RuleBasedCollator)defCollator;
-			defRules = new SimpleCollationProperties(defRuleCollator.getRules(), 0, true);
+			defRules = new SimpleCollationProperties(defRuleCollator.getRules(), COL_RULES_NATIVE_LOCAL_FULL, true);
 		}
 		if (defRules == null) {
 			throw new UnsupportedCollationException("Couldn't get the default collation rules");

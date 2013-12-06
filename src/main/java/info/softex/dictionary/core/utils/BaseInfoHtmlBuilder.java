@@ -31,6 +31,7 @@ import java.util.HashMap;
  * 
  * @modified version 2.6, 09/17/2011
  * @modified version 3.7, 06/14/2013
+ * @modified version 3.9, 12/05/2013
  *  
  * @author Dmitry Viktorov
  * 
@@ -40,6 +41,7 @@ public class BaseInfoHtmlBuilder {
 	protected enum StringKey {
 		DICTIONARY_BASE,
 		COMP_DATE,
+		COMPILED_BY,
 		BASE_VERSION,
 		BASE_DATE,
 		BASE_SIZE,
@@ -50,11 +52,10 @@ public class BaseInfoHtmlBuilder {
 		FORMAT_VERSION,
 		ARTICLES_FORMATTING,
 		ABBREV_FORMATTING,		
-		CODEPAGE,
-		CODEPAGES,
 		FILE_SIZE,
-		MEDIA_BASE
-		
+		MEDIA_BASE,
+		CODEPAGE,
+		LANGUAGES
 		;
 		
 		@SuppressWarnings("serial")
@@ -62,10 +63,11 @@ public class BaseInfoHtmlBuilder {
 			put(DICTIONARY_BASE, "Dictionary Base");
 			put(MEDIA_BASE, "Media Base");
 			put(COMP_DATE, "Compilation Date");
+			put(COMPILED_BY, "Compiled By");
 			put(BASE_VERSION, "Base Version");
 			put(BASE_DATE, "Base Date");
 			put(BASE_SIZE, "Base Size");
-			put(BASE_PARTS_NUMBER, "Base Parts Number");
+			put(BASE_PARTS_NUMBER, "Number of Base Parts");
 			put(NUMBER_OF_WORDS, "Number of Words");
 			put(NUMBER_OF_ABBREVIATIONS, "Number of Abbreviations");
 			put(NUMBER_OF_RESOURCES, "Number of Resources");
@@ -73,15 +75,15 @@ public class BaseInfoHtmlBuilder {
 			put(ARTICLES_FORMATTING, "Articles Formatting");
 			put(ABBREV_FORMATTING, "Abbrev. Formatting");	
 			put(CODEPAGE, "Codepage");
-			put(CODEPAGES, "Codepages");
-			
+			put(LANGUAGES, "Languages");
 		}};
 		
 		@SuppressWarnings("serial")
 		protected static HashMap<StringKey, String> ruStrings = new HashMap<StringKey, String>() {{
 			put(DICTIONARY_BASE, "Словарная База");
 			put(MEDIA_BASE, "Медиа База");
-			put(COMP_DATE, "Дата Компиляции");
+			put(COMP_DATE, "Дата Сборки");
+			put(COMPILED_BY, "Автор Сборки");
 			put(BASE_VERSION, "Версия Базы");
 			put(BASE_DATE, "Дата Базы");
 			put(BASE_SIZE, "Размер");
@@ -93,7 +95,7 @@ public class BaseInfoHtmlBuilder {
 			put(ARTICLES_FORMATTING, "Формат Статей");
 			put(ABBREV_FORMATTING, "Формат Сокращений");
 			put(CODEPAGE, "Кодовая Страница");
-			put(CODEPAGES, "Кодовые Страницы");
+			put(LANGUAGES, "Языки");
 		}};
 	}
 	
@@ -108,7 +110,7 @@ public class BaseInfoHtmlBuilder {
 		return res;
 	}
 	
-	public static String buildDictionaryInfoTable(BasePropertiesInfo baseInfo, LanguageDirectionsInfo directionsInfo, String lang) {
+	public static String buildDictionaryInfoTable(BasePropertiesInfo baseInfo, LanguageDirectionsInfo langsInfo, String lang) {
 		
 		String compDate = wrapRow(getString(StringKey.COMP_DATE, lang), getShortDate(baseInfo.getCompilationDate()), true);
 		
@@ -123,6 +125,16 @@ public class BaseInfoHtmlBuilder {
 		
 		String artFormat = getString(StringKey.ARTICLES_FORMATTING, lang) + ": <dvl>" + baseInfo.getArticlesFormattingMode() + "</dvl>";
 		String abbrFormat = wrapRow(getString(StringKey.ABBREV_FORMATTING, lang), baseInfo.getAbbreviationsFormattingMode(), baseInfo.getAbbreviationsNumber() > 0);
+		
+		String createdBy = wrapRow(getString(StringKey.COMPILED_BY, lang), baseInfo.getCompilationCreatorName(), true);
+
+		String langDirections = "";
+		if (langsInfo != null) {
+			String langs = langsInfo.toLanguagePairsString(true);
+			if (langs.length() != 0) {
+				langDirections = "<tr><td>" + getString(StringKey.LANGUAGES, lang) + ": <dvl>" + langs + "</dvl></td></tr>";
+			}
+		}
 		
 		String codePage = "";
 		if (baseInfo.getWordsCodepageName() != null) {
@@ -170,19 +182,19 @@ public class BaseInfoHtmlBuilder {
 				html += "<tr><td>" + resNumber + "</td></tr>";
 			}
 			
-			html += "<tr><td>" + formatVer + "</td></tr>" +
-			//"<tr><td>" + tbSize + "</td></tr>" +
-			//"<tr><td>" + langDirections + "</td></tr>" +
-			codePage +
-			"<tr><td>" + artFormat + "</td></tr>" +
-			abbrFormat +
-			//"<tr><td>" + abbrFormat + "</td></tr>" +
-			baseVersion +
-			baseDate +
-			compDate + 
-			basePartsNumber +
-			"<tr><td>" + baseSize + "<br/><br/></td></tr>" +
-			media + "</table>";
+			html += langDirections +
+				"<tr><td>" + artFormat + "</td></tr>" +
+				//"<tr><td>" + tbSize + "</td></tr>" +
+				abbrFormat +
+				baseDate +
+				baseVersion +
+				codePage +
+				createdBy +
+				compDate + 
+				basePartsNumber +
+				"<tr><td>" + formatVer + "</td></tr>" +
+				"<tr><td>" + baseSize + "<br/><br/></td></tr>" +
+				media + "</table>";
 		
 		return html;
 	}

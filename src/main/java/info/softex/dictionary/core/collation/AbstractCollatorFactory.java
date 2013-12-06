@@ -28,6 +28,7 @@ import java.util.Locale;
  * @since version 2.5, 07/12/2011
  * 
  * @modified version 3.7, 06/12/2013
+ * @modified version 3.9, 12/03/2013
  * 
  * @author Dmitry Viktorov
  * 
@@ -38,8 +39,8 @@ public abstract class AbstractCollatorFactory {
 
 	public Collator createCollator(String rules, Integer strength, Integer decomposition) throws ParseException {
 		
-		strength = strength == null ? Collator.PRIMARY : strength;		
-		decomposition = decomposition == null ? Collator.CANONICAL_DECOMPOSITION : decomposition;
+		strength = (strength == null || strength < 0) ? Collator.PRIMARY : strength;		
+		decomposition = (decomposition == null || decomposition < 0) ? Collator.CANONICAL_DECOMPOSITION : decomposition;
 		
 		Collator rbc = createRuleBasedCollator(rules);
 		rbc.setStrength(strength);

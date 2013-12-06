@@ -422,7 +422,7 @@ public class ZDBaseReader implements BaseReader {
 
 		Collator col = null; 
 		
-		SimpleCollationProperties collationProps = CollationRulesFactory.createPredefinedFullCollationProperties(locale);
+		SimpleCollationProperties collationProps = CollationRulesFactory.createFullPredefinedCollationProperties(locale);
     		
 		log.info("Predefined collation properties for locale {}: {}", locale, collationProps);
 		

@@ -33,6 +33,7 @@ import java.util.TimeZone;
  * 
  * @modified version 2.6, 08/27/2011
  * @modified version 2.9, 11/13/2011
+ * @modified version 3.9, 12/05/2013
  * 
  * @author Dmitry Viktorov
  * 
@@ -140,11 +141,11 @@ public class BasePropertiesInfo implements Cloneable {
 	private long baseFileSize;	
 	
 	public String getBaseFilePath() {
-		return this.baseFilePath;
+		return baseFilePath;
 	}
 	
 	public void setBaseFilePath(String dictionaryFilePath) {
-		this.baseFilePath = dictionaryFilePath;
+		baseFilePath = dictionaryFilePath;
 	}
 
 	public String getBaseFileName() {
@@ -152,28 +153,28 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public String getBaseVersion() {
-		return (String)this.primaryParams.get(PrimaryKeys.BASE_VERSION.getKey());
+		return (String) primaryParams.get(PrimaryKeys.BASE_VERSION.getKey());
 	}
 
 	public void setBaseVersion(int major, int minor) {
 		String version = major + "." + minor;
-		this.primaryParams.put(PrimaryKeys.BASE_VERSION.getKey(), version);
+		primaryParams.put(PrimaryKeys.BASE_VERSION.getKey(), version);
 	}
 
 	public void setBaseDate(Date date) {
-		this.primaryParams.put(PrimaryKeys.BASE_DATE.getKey(), dateToString(date));
+		primaryParams.put(PrimaryKeys.BASE_DATE.getKey(), dateToString(date));
 	}
 	
 	public void setCompilationDate(Date date) {
-		this.primaryParams.put(PrimaryKeys.INFO_COMPILATION_DATE.getKey(), dateToString(date));
+		primaryParams.put(PrimaryKeys.INFO_COMPILATION_DATE.getKey(), dateToString(date));
 	}
 	
 	public String getCompilationDate() {
-		return (String)this.primaryParams.get(PrimaryKeys.INFO_COMPILATION_DATE.getKey());
+		return (String) primaryParams.get(PrimaryKeys.INFO_COMPILATION_DATE.getKey());
 	}
 	
 	public String getBaseDate() {
-		return (String)this.primaryParams.get(PrimaryKeys.BASE_DATE.getKey());
+		return (String) primaryParams.get(PrimaryKeys.BASE_DATE.getKey());
 	}
 	
 	public int getFormatVersion() {
@@ -181,23 +182,23 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public void setFormatVersion(int formatVersion) {
-		this.primaryParams.put(PrimaryKeys.FORMAT_VERSION.getKey(), formatVersion);
+		primaryParams.put(PrimaryKeys.FORMAT_VERSION.getKey(), formatVersion);
 	}
 
 	public String getFormatName() {
-		return (String)this.primaryParams.get(PrimaryKeys.FORMAT_NAME.getKey());
+		return (String) primaryParams.get(PrimaryKeys.FORMAT_NAME.getKey());
 	}
 
 	public void setFormatName(String formatName) {
-		this.primaryParams.put(PrimaryKeys.FORMAT_NAME.getKey(), formatName);
+		primaryParams.put(PrimaryKeys.FORMAT_NAME.getKey(), formatName);
 	}
 	
 	public String getBaseFullName() {
-		return (String)this.primaryParams.get(PrimaryKeys.BASE_NAME_FULL.getKey());
+		return (String) primaryParams.get(PrimaryKeys.BASE_NAME_FULL.getKey());
 	}
 	
 	public String getBaseShortName() {
-		return (String)this.primaryParams.get(PrimaryKeys.BASE_NAME_SHORT.getKey());
+		return (String) primaryParams.get(PrimaryKeys.BASE_NAME_SHORT.getKey());
 	}
 
 	public String getBaseType() {
@@ -209,19 +210,19 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 
 	public void setBaseFullName(String fullName) {
-		this.primaryParams.put(PrimaryKeys.BASE_NAME_FULL.getKey(), fullName);
+		primaryParams.put(PrimaryKeys.BASE_NAME_FULL.getKey(), fullName);
 	}
 	
 	public void setBaseShortName(String shortName) {
-		this.primaryParams.put(PrimaryKeys.BASE_NAME_SHORT.getKey(), shortName);
+		primaryParams.put(PrimaryKeys.BASE_NAME_SHORT.getKey(), shortName);
 	}
 
 	public void setBaseType(BaseTypes type) {
-		this.primaryParams.put(PrimaryKeys.BASE_TYPE.getKey(), type.name());
+		primaryParams.put(PrimaryKeys.BASE_TYPE.getKey(), type.name());
 	}
 	
 	public void setArticlesFormattingMode(ArticlesFormattingModes mode) {
-		this.primaryParams.put(PrimaryKeys.ARTICLES_FORMATTING_MODE.getKey(), mode.name());
+		primaryParams.put(PrimaryKeys.ARTICLES_FORMATTING_MODE.getKey(), mode.name());
 	}
 
 	public String getArticlesFormattingMode() {
@@ -245,7 +246,7 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public void setAbbreviationsFormattingMode(AbbreviationsFormattingModes mode) {
-		this.primaryParams.put(PrimaryKeys.ABBREVIATIONS_FORMATTING_MODE.getKey(), mode.name());
+		primaryParams.put(PrimaryKeys.ABBREVIATIONS_FORMATTING_MODE.getKey(), mode.name());
 	}
 	
 	public Map<String, Object> getPrimaryParameters() {
@@ -279,7 +280,7 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public void setArticlesCodepageName(String transCodepageName) {
-		this.articlesCodepageName = transCodepageName;
+		articlesCodepageName = transCodepageName;
 	}
 	
 	public String getArticleCodepageName() {
@@ -290,8 +291,8 @@ public class BasePropertiesInfo implements Cloneable {
 		return wordsCodepageName;
 	}
 	
-	public void setWordsCodepageName(String wordsCodepageName) {
-		this.wordsCodepageName = wordsCodepageName;
+	public void setWordsCodepageName(String inWordsCodepageName) {
+		wordsCodepageName = inWordsCodepageName;
 	}
 	
 	public int getArticlesNumber() {
@@ -299,7 +300,7 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 
 	public void setArticlesNumber(int articlesNumber) {
-		this.primaryParams.put(PrimaryKeys.ARTICLES_NUMBER.getKey(), articlesNumber);
+		primaryParams.put(PrimaryKeys.ARTICLES_NUMBER.getKey(), articlesNumber);
 	}
 
 	public int getAbbreviationsNumber() {
@@ -307,7 +308,7 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 
 	public void setAbbreviationsNumber(int abbreviationsNumber) {
-		this.primaryParams.put(PrimaryKeys.ABBREVIATIONS_NUMBER.getKey(), abbreviationsNumber);
+		primaryParams.put(PrimaryKeys.ABBREVIATIONS_NUMBER.getKey(), abbreviationsNumber);
 	}
 	
 //	public Locale getBaseLocale() {
@@ -325,15 +326,19 @@ public class BasePropertiesInfo implements Cloneable {
 //	}
 	
 	public void setCompilationCreatorName(String name) {
-		this.primaryParams.put(PrimaryKeys.INFO_COMPILATION_CREATOR_NAME.getKey(), name);
+		primaryParams.put(PrimaryKeys.INFO_COMPILATION_CREATOR_NAME.getKey(), name);
+	}
+	
+	public String getCompilationCreatorName() {
+		return (String) primaryParams.get(PrimaryKeys.INFO_COMPILATION_CREATOR_NAME.getKey());
 	}
 	
 	public void setCompilationProgramsName(String name) {
-		this.primaryParams.put(PrimaryKeys.INFO_COMPILATION_PROGRAM_NAME.getKey(), name);
+		primaryParams.put(PrimaryKeys.INFO_COMPILATION_PROGRAM_NAME.getKey(), name);
 	}
 	
 	public void setCompilationProgramsVersion(String version) {
-		this.primaryParams.put(PrimaryKeys.INFO_COMPILATION_PROGRAM_VERSION.getKey(), version);
+		primaryParams.put(PrimaryKeys.INFO_COMPILATION_PROGRAM_VERSION.getKey(), version);
 	}
 	
 //	public String getBaseDescription() {
@@ -358,55 +363,55 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public void setMediaResourcesNumber(int mediaResourcesNumber) {
-		this.primaryParams.put(PrimaryKeys.MEDIA_RESOURCES_NUMBER.getKey(), mediaResourcesNumber);
+		primaryParams.put(PrimaryKeys.MEDIA_RESOURCES_NUMBER.getKey(), mediaResourcesNumber);
 	}
 	
 	public String getMediaBaseVersion() {
 		return mediaBaseVersion;
 	}
 	
-	public void setMediaBaseVersion(String mediaBaseVersion) {
-		this.mediaBaseVersion = mediaBaseVersion;
+	public void setMediaBaseVersion(String inMediaBaseVersion) {
+		this.mediaBaseVersion = inMediaBaseVersion;
 	}
 	
 	public String getMediaFormatVersion() {
 		return mediaFormatVersion;
 	}
 	
-	public void setMediaFormatVersion(String mediaFormatVersion) {
-		this.mediaFormatVersion = mediaFormatVersion;
+	public void setMediaFormatVersion(String inMediaFormatVersion) {
+		this.mediaFormatVersion = inMediaFormatVersion;
 	}
 	
 	public String getMediaFormatName() {
 		return mediaFormatName;
 	}
 	
-	public void setMediaFormatName(String mediaFormatName) {
-		this.mediaFormatName = mediaFormatName;
+	public void setMediaFormatName(String inMediaFormatName) {
+		this.mediaFormatName = inMediaFormatName;
 	}
 	
 	public long getMediaFileSize() {
 		return mediaFileSize;
 	}
 	
-	public void setMediaFileSize(long mediaFileSize) {
-		this.mediaFileSize = mediaFileSize;
+	public void setMediaFileSize(long inMediaFileSize) {
+		this.mediaFileSize = inMediaFileSize;
 	}
 	
 	public boolean isMediaBaseSeparate() {
 		return mediaBaseSeparate;
 	}
 	
-	public void setMediaBaseSeparate(boolean mediaBaseSeparate) {
-		this.mediaBaseSeparate = mediaBaseSeparate;
+	public void setMediaBaseSeparate(boolean inMediaBaseSeparate) {
+		this.mediaBaseSeparate = inMediaBaseSeparate;
 	}
 	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public BasePropertiesInfo clone() {
 		try {
-			BasePropertiesInfo info = (BasePropertiesInfo)super.clone();
-			info.primaryParams = (LinkedHashMap)this.primaryParams.clone();
+			BasePropertiesInfo info = (BasePropertiesInfo) super.clone();
+			info.primaryParams = (LinkedHashMap) this.primaryParams.clone();
 			return info;
 		} catch (CloneNotSupportedException e) {
 			return null;

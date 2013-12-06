@@ -29,6 +29,8 @@ import java.util.Properties;
  * 
  * @since version 2.6, 09/07/2011
  * 
+ * @modified version 3.9, 12/03/2013
+ * 
  * @author Dmitry Viktorov
  * 
  */
@@ -74,6 +76,7 @@ public class BasicSQLiteConnectionFactory implements DatabaseConnectionFactory {
 		
 		Properties props = new Properties();
 		//props.put("incremental_vacuum", "-1");
+		props.put("synchronous", "0");
 		// Create a database connection
 //		Connection conn = DriverManager.getConnection("jdbc:sqlite:" + url);
 		Connection conn = DriverManager.getConnection("jdbc:sqlite:" + url, props);

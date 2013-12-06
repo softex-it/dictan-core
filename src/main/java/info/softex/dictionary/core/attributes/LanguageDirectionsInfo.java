@@ -32,6 +32,7 @@ import java.util.Map;
  * @since version 2.6, 09/18/2011
  * 
  * @modified version 3.4, 07/04/2012
+ * @modified version 3.9, 12/05/2013
  * 
  * @author Dmitry Viktorov
  * 
@@ -111,6 +112,52 @@ public class LanguageDirectionsInfo {
 	@Override
 	public String toString() {
 		return "default properties: " + defaultCollationProperties + ", directions: " + directions ; 
+	}
+	
+	private List<String> toLanguagePairs() {
+		
+		List<String> langPairs = new ArrayList<String>();
+		Map<Locale, List<CollationProperties>> langDirs = getLanguageDirections();
+		
+		if (langDirs != null) {
+			for (Locale fromLocale : langDirs.keySet()) {
+				if (fromLocale == null) continue; // Just for safety
+				String fromLang = fromLocale.getLanguage();
+				List<CollationProperties> colProps = langDirs.get(fromLocale);
+				if (colProps != null) {
+					for (CollationProperties toProps : colProps) {
+						if (toProps == null) continue; // Just for safety
+						Locale toLocale = toProps.getLocale();
+						if (toLocale == null) continue; // Just for safety
+						langPairs.add(fromLang + "-" + toLocale.getLanguage());
+					}
+				}
+			}
+		}
+		
+		return langPairs;
+		
+	}
+	
+	public String toLanguagePairsString(boolean skipUndefined) {
+		
+		String langPairsString = "";
+		
+		List<String> langPairs = toLanguagePairs();
+		
+		if (!langPairs.isEmpty()) {
+			for (int i = 0; i < langPairs.size(); i++){
+				String curPair = langPairs.get(i).toUpperCase();
+				if (!skipUndefined || !curPair.contains(UNDEFINED)) {
+					langPairsString += curPair;
+					if (i < langPairs.size() - 1) {
+						langPairsString += ", ";
+					}
+				}
+			}
+		}
+
+		return langPairsString;
 	}
 	
 	public static class CollationProperties {
