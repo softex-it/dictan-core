@@ -135,7 +135,7 @@ public class FDBBaseReadUnit {
 			
 		} catch (Exception e) {
 			log.error("Error", e);
-			throw new BaseFormatException("Couldn't load BasePropertiesInfo: " + e.getMessage());
+			throw new BaseFormatException("Couldn't load BasePropertiesInfo: " + e.getMessage(), BaseFormatException.ERROR_CANT_LOAD_BASE_PROPERIES);
 		}
 				
 		log.info("Dictionary Info: {}", baseInfo);
@@ -267,7 +267,7 @@ public class FDBBaseReadUnit {
 
     	} catch (Exception e) {
 			log.error("Error", e);
-			throw new BaseFormatException("Couldn't load dictionary: " + e.getMessage());
+			throw new BaseFormatException("Couldn't load base: " + e.getMessage());
 		}
     	
     	loaded = true;

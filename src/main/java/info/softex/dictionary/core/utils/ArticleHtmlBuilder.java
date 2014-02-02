@@ -69,9 +69,8 @@ public class ArticleHtmlBuilder {
 		// If (Article.length() > 0) is not pointed, charAt causes the StringIndexOutOfBoundsException.
 		// It happens because String.indexOf() returns 0 of length=0 - Android bug
 		
-		// Start with the converted to HTML as the probability to find it is 
-		// higher rather than the raw word. If there are no HTML symbols, than the
-		// word is same.
+		// Start with the word converted to HTML because the probability to find it is 
+		// higher than the raw word. If there are no HTML symbols, then the word is same.
 		int subIndex = article.indexOf(toHTMLString(word));
 		
 		if (subIndex < 0) {

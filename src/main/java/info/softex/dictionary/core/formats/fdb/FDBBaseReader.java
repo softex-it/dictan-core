@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @modified version 2.9, 11/11/2011
  * @modified version 3.4, 07/04/2012
+ * @modified version 3.9, 01/25/2014
  * 
  * @author Dmitry Viktorov
  * 
@@ -75,15 +77,15 @@ public class FDBBaseReader implements BaseReader {
 	protected final Map<String, String> dbParams;
 	
 	protected final int wordListBlockSize;
-			
-	public FDBBaseReader(File fdbFile, DatabaseConnectionFactory conFactory, Map<String, Object> params, AbstractCollatorFactory collatorFactory) throws SQLException {
-		this.dbParams = new HashMap<String, String>();
+	
+	public FDBBaseReader(File fdbFile, DatabaseConnectionFactory conFactory, Map<String, Object> inParams, AbstractCollatorFactory collatorFactory) throws SQLException {
+		dbParams = new HashMap<String, String>();
 		dbParams.put(DatabaseConnectionFactory.DB_NO_LOCALIZED_COLLATORS, "true");
 		dbParams.put(DatabaseConnectionFactory.DB_OPEN_READ_ONLY, "true");
 		
 		int wordListBlockSize = FDBConstants.VALUE_WORD_LIST_BLOCK_SIZE_DEFAULT;
-		if (params != null) {
-			Object wlbSize = params.get(FDBConstants.PARAM_KEY_WORD_LIST_BLOCK_SIZE);
+		if (inParams != null) {
+			Object wlbSize = inParams.get(FDBConstants.PARAM_KEY_WORD_LIST_BLOCK_SIZE);
 			if (wlbSize instanceof Integer) {
 				wordListBlockSize = (Integer)wlbSize;
 			}
@@ -165,15 +167,37 @@ public class FDBBaseReader implements BaseReader {
 	@Override
 	public BasePropertiesInfo loadBasePropertiesInfo() throws BaseFormatException {
 		BasePropertiesInfo props = mainBase.loadBasePropertiesInfo();
-		try {
-			long size = props.getBaseFileSize();
-			for (int i = 0; i <= props.getBasePartsTotalNumber(); i++) {
-				size += new File(mainBaseFilePath + i).length();
+
+		long size = props.getBaseFileSize();
+		
+		Set<Integer> missingParts = new TreeSet<Integer>();
+		
+		for (int i = 2; i <= props.getBasePartsTotalNumber(); i++) {
+			File partFile = new File(mainBaseFilePath + i);
+			if (partFile.exists()) {
+				log.debug("Part {} is found: {}", i, partFile);
+				size += partFile.length();
+			} else {
+				log.warn("Part {} is not found: {}", i, partFile);
+				missingParts.add(i);
 			}
-			props.setBaseFileSize(size);
-		} catch (Exception e) {
-			log.error("Error", e);
 		}
+		
+		if (!missingParts.isEmpty()) {
+			String missingPartsString = "";
+			String fileName = new File(mainBaseFilePath).getName();
+			for (Iterator<Integer> iterator = missingParts.iterator(); iterator.hasNext();) {
+				Integer partNum = iterator.next();
+				missingPartsString += fileName + partNum;
+				if (iterator.hasNext()) {
+					missingPartsString += ", ";
+				}
+			}
+			throw new BaseFormatException("Couldn't find the following parts of the base: " + missingPartsString, BaseFormatException.ERROR_CANT_FIND_BASE_PARTS);
+		}
+		
+		props.setBaseFileSize(size);
+
 		return props;
 	}
 	
@@ -225,7 +249,7 @@ public class FDBBaseReader implements BaseReader {
 			return mainBase.getMediaResourceKeys();
 		} catch (Exception e) {
 			log.error("Error", e);
-			throw new BaseFormatException("Couldn't read media resource keys: " + e.getMessage());
+			throw new BaseFormatException("Couldn't read media resource keys: " + e.getMessage(), BaseFormatException.ERROR_CANT_LOAD_MEDIA_KEYS);
 		}
 	}
 	
@@ -278,7 +302,7 @@ public class FDBBaseReader implements BaseReader {
 			try {
 				base = new FDBBaseReadUnit(false, mainBaseFilePath + baseNumber, conFactory.createConnection(mainBaseFilePath + baseNumber, dbParams), wordListBlockSize, null);
 			} catch (Exception e) {
-				throw new BaseFormatException("Couldn't open base  " + mainBaseFilePath + baseNumber + ": " + e.getMessage());
+				throw new BaseFormatException("Couldn't open base " + mainBaseFilePath + baseNumber + ": " + e.getMessage(), BaseFormatException.ERROR_CANT_OPEN_BASE);
 			}
 			dbs.put(baseNumber, base);
 		}

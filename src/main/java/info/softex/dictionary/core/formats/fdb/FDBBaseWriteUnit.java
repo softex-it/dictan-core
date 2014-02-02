@@ -58,6 +58,7 @@ import org.slf4j.LoggerFactory;
  * @since version 2.9, 11/19/2011
  * 
  * @modified version 3.5, 08/07/2012
+ * @modified version 3.9, 01/29/2014
  * 
  * @author Dmitry Viktorov
  * 
@@ -138,6 +139,8 @@ public class FDBBaseWriteUnit {
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_LANGUAGE_DIRECTIONS);
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_MEDIA_RESOURCE_KEYS);
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_MEDIA_RESOURCE_BLOCKS);
+			
+			st.executeUpdate(FDBSQLWriteStatements.CREATE_INDEX_LANGUAGE_DIRECTIONS);
 			
 			// Create prepared statements
 			insWordSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_WORD);

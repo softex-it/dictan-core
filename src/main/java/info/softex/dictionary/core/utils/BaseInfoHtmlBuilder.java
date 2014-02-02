@@ -39,17 +39,16 @@ import java.util.HashMap;
 public class BaseInfoHtmlBuilder {
 	
 	protected enum StringKey {
+		FORMAT_VERSION,
 		DICTIONARY_BASE,
 		COMP_DATE,
 		COMPILED_BY,
 		BASE_VERSION,
-		BASE_DATE,
 		BASE_SIZE,
 		BASE_PARTS_NUMBER,
 		NUMBER_OF_WORDS,
 		NUMBER_OF_ABBREVIATIONS,
 		NUMBER_OF_RESOURCES,
-		FORMAT_VERSION,
 		ARTICLES_FORMATTING,
 		ABBREV_FORMATTING,		
 		FILE_SIZE,
@@ -60,18 +59,17 @@ public class BaseInfoHtmlBuilder {
 		
 		@SuppressWarnings("serial")
 		protected static HashMap<StringKey, String> enStrings = new HashMap<StringKey, String>() {{
+			put(FORMAT_VERSION, "Ver.");
 			put(DICTIONARY_BASE, "Dictionary Base");
 			put(MEDIA_BASE, "Media Base");
 			put(COMP_DATE, "Compilation Date");
 			put(COMPILED_BY, "Compiled By");
-			put(BASE_VERSION, "Base Version");
-			put(BASE_DATE, "Base Date");
+			put(BASE_VERSION, "Version");
 			put(BASE_SIZE, "Base Size");
 			put(BASE_PARTS_NUMBER, "Number of Base Parts");
 			put(NUMBER_OF_WORDS, "Number of Words");
 			put(NUMBER_OF_ABBREVIATIONS, "Number of Abbreviations");
 			put(NUMBER_OF_RESOURCES, "Number of Resources");
-			put(FORMAT_VERSION, "Format Version");
 			put(ARTICLES_FORMATTING, "Articles Formatting");
 			put(ABBREV_FORMATTING, "Abbrev. Formatting");	
 			put(CODEPAGE, "Codepage");
@@ -80,18 +78,17 @@ public class BaseInfoHtmlBuilder {
 		
 		@SuppressWarnings("serial")
 		protected static HashMap<StringKey, String> ruStrings = new HashMap<StringKey, String>() {{
+			put(FORMAT_VERSION, "Ver.");
 			put(DICTIONARY_BASE, "Словарная База");
 			put(MEDIA_BASE, "Медиа База");
 			put(COMP_DATE, "Дата Сборки");
 			put(COMPILED_BY, "Автор Сборки");
-			put(BASE_VERSION, "Версия Базы");
-			put(BASE_DATE, "Дата Базы");
+			put(BASE_VERSION, "Версия");
 			put(BASE_SIZE, "Размер");
 			put(BASE_PARTS_NUMBER, "Количество Частей Базы");
 			put(NUMBER_OF_ABBREVIATIONS, "Количество Сокращений");
 			put(NUMBER_OF_WORDS, "Количество Слов");
 			put(NUMBER_OF_RESOURCES, "Количество Ресурсов");
-			put(FORMAT_VERSION, "Версия Формата");
 			put(ARTICLES_FORMATTING, "Формат Статей");
 			put(ABBREV_FORMATTING, "Формат Сокращений");
 			put(CODEPAGE, "Кодовая Страница");
@@ -114,14 +111,21 @@ public class BaseInfoHtmlBuilder {
 		
 		String compDate = wrapRow(getString(StringKey.COMP_DATE, lang), getShortDate(baseInfo.getCompilationDate()), true);
 		
-		String baseVersion = wrapRow(getString(StringKey.BASE_VERSION, lang), baseInfo.getBaseVersion(), true);
-		String baseDate = wrapRow(getString(StringKey.BASE_DATE, lang), getShortDate(baseInfo.getBaseDate()), true);
+		String combinedVersion = getShortDate(baseInfo.getBaseDate());
+		if (combinedVersion == null) {
+			combinedVersion = baseInfo.getBaseVersion();
+		} else if (baseInfo.getBaseVersion() != null && baseInfo.getBaseVersion().length() != 0) {
+			combinedVersion += " (" + baseInfo.getBaseVersion() + ")";
+		}
+		
+		String baseVersion = wrapRow(getString(StringKey.BASE_VERSION, lang), combinedVersion, true);
+		//String baseDate = wrapRow(getString(StringKey.BASE_DATE, lang), getShortDate(baseInfo.getBaseDate()), true);
 		
 		String baseSize = getString(StringKey.BASE_SIZE, lang) + ": <dvl>" + getConvertedSize(baseInfo.getBaseFileSize()) + "</dvl>";
 		String basePartsNumber = wrapRow(getString(StringKey.BASE_PARTS_NUMBER, lang), baseInfo.getBasePartsTotalNumber(), baseInfo.getBasePartsTotalNumber() > 1);
 		
 		String wordsNumber = getString(StringKey.NUMBER_OF_WORDS, lang) + ": <dvl>" + baseInfo.getArticlesNumber() + "</dvl>";
-		String formatVer = getString(StringKey.FORMAT_VERSION, lang) + ": <dvl>" + baseInfo.getFormatVersion() + "</dvl>";
+		//String formatVer = getString(StringKey.FORMAT_VERSION, lang) + ": <dvl>" + baseInfo.getFormatVersion() + "</dvl>";
 		
 		String artFormat = getString(StringKey.ARTICLES_FORMATTING, lang) + ": <dvl>" + baseInfo.getArticlesFormattingMode() + "</dvl>";
 		String abbrFormat = wrapRow(getString(StringKey.ABBREV_FORMATTING, lang), baseInfo.getAbbreviationsFormattingMode(), baseInfo.getAbbreviationsNumber() > 0);
@@ -155,12 +159,12 @@ public class BaseInfoHtmlBuilder {
 		if (baseInfo.isMediaBaseSeparate()) {
 			if (baseInfo.getMediaResourcesNumber() != 0) {
 				String resNumber = getString(StringKey.NUMBER_OF_RESOURCES, lang) + ": <dvl>" + baseInfo.getMediaResourcesNumber() + "</dvl>";
-				String mediaFormat = getString(StringKey.FORMAT_VERSION, lang) + ": <dvl>" + baseInfo.getMediaFormatVersion() + "</dvl>";
+				//String mediaFormat = getString(StringKey.FORMAT_VERSION, lang) + ": <dvl>" + baseInfo.getMediaFormatVersion() + "</dvl>";
 				String mediaFileSize = getString(StringKey.BASE_SIZE, lang) + ": <dvl>" + getConvertedSize(baseInfo.getBaseFileSize()) + "</dvl>";
 				
-				media = "<tr><th class=\"subHeader1\">" + getString(StringKey.MEDIA_BASE, lang) + ": " + baseInfo.getMediaFormatName() + "</th></tr>";
+				media = "<tr><th class=\"subHeader1\">" + getString(StringKey.MEDIA_BASE, lang) + ": " + baseInfo.getMediaFormatName() + " (" + getString(StringKey.FORMAT_VERSION, lang) + " " + baseInfo.getMediaFormatVersion() + ")</th></tr>";
 				media += "<tr><td>" + resNumber + "</td></tr>";
-				media += "<tr><td>" + mediaFormat + "</td></tr>";
+				//media += "<tr><td>" + mediaFormat + "</td></tr>";
 				media += "<tr><td>" + mediaFileSize + "</td></tr>";
 			} else {
 				media = "<tr><th class=\"subHeader1\">" + getString(StringKey.MEDIA_BASE, lang) + ": N/A</th></tr>";
@@ -169,7 +173,7 @@ public class BaseInfoHtmlBuilder {
 		
 		//"&nbsp;&nbsp;<a href=\"content://info.softex.dictan/show/dialog\">(Flags)</a>"
 		String html = "<table>" + 
-			"<tr><th class=\"subHeader1\">" + getString(StringKey.DICTIONARY_BASE, lang) + ": " + baseInfo.getFormatName() + "</th></tr>" +
+			"<tr><th class=\"subHeader1\">" + getString(StringKey.DICTIONARY_BASE, lang) + ": " + baseInfo.getFormatName() + " (" + getString(StringKey.FORMAT_VERSION, lang) + " " + baseInfo.getFormatVersion() + ")</th></tr>" +
 			"<tr><td>" + wordsNumber + "</td></tr>";
 		
 			if (baseInfo.getAbbreviationsNumber() > 0) {
@@ -186,13 +190,12 @@ public class BaseInfoHtmlBuilder {
 				"<tr><td>" + artFormat + "</td></tr>" +
 				//"<tr><td>" + tbSize + "</td></tr>" +
 				abbrFormat +
-				baseDate +
 				baseVersion +
 				codePage +
 				createdBy +
 				compDate + 
 				basePartsNumber +
-				"<tr><td>" + formatVer + "</td></tr>" +
+				//"<tr><td>" + formatVer + "</td></tr>" +
 				"<tr><td>" + baseSize + "<br/><br/></td></tr>" +
 				media + "</table>";
 		

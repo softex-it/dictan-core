@@ -23,6 +23,8 @@ package info.softex.dictionary.core.formats.fdb;
  * 
  * @since version 2.6, 08/26/2011
  * 
+ * @modified version 3.9, 01/29/2014
+ * 
  * @author Dmitry Viktorov
  * 
  */
@@ -60,6 +62,8 @@ public class FDBSQLWriteStatements {
 		"CREATE TABLE " + FDBTables.base_resources + 
 		" (base_resource_id INTEGER PRIMARY KEY, base_resource_key TEXT UNIQUE NOT NULL, base_resource BLOB NOT NULL, data_1 BLOB NOT NULL, data_2 BLOB NOT NULL, data_3 BLOB NOT NULL, info_1 TEXT NOT NULL, info_2 TEXT NOT NULL, info_3 TEXT NOT NULL, info_4 TEXT NOT NULL, info_5 TEXT NOT NULL, info_6 TEXT NOT NULL)";
 	
+	public static final String CREATE_INDEX_LANGUAGE_DIRECTIONS = 
+		"CREATE INDEX index_language_directions ON language_directions(from_locale,to_locale)";
 	
 	// INSERT --------------------------------------------------------------------------------------------
 	public static final String INSERT_BASE_PROPERTY =

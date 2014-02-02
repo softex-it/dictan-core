@@ -23,25 +23,38 @@ package info.softex.dictionary.core.formats.commons;
  * 
  * @since version 2.6, 09/01/2011
  * 
+ * @modified version 3.9, 01/25/2014
+ * 
  * @author Dmitry Viktorov
  * 
  */
+@SuppressWarnings("serial")
 public class BaseFormatException extends Exception {
 
-	private static final long serialVersionUID = -4217949012298745805L;
+	public static final int ERROR_UNDEFINED =					0;
+	public static final int ERROR_CANT_OPEN_BASE =				10;
+	public static final int ERROR_CANT_LOAD_BASE_PROPERIES =	20;
+	public static final int ERROR_CANT_FIND_BASE_PARTS =		30;
+	public static final int ERROR_CANT_LOAD_MEDIA_KEYS =		90;
 	
-	String message = "";
+	private final String message;
+	private final int errorCode;
 
-	public BaseFormatException(String message) {
-		this.message = message;
+	public BaseFormatException(String inMessage) {
+		this(inMessage, ERROR_UNDEFINED);
+	}
+	
+	public BaseFormatException(String inMessage, int inErrorCode) {
+		this.errorCode = inErrorCode;
+		this.message = inMessage;
 	}
 	
 	public String getMessage() {
 		return message;
 	}
-
-	public void setMessage(String message) {
-		this.message = message;
+	
+	public int getErrorCode() {
+		return errorCode;
 	}
 
 }
