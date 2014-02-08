@@ -23,7 +23,7 @@ import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingModes;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingMode;
 import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
@@ -36,7 +36,7 @@ import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
  * @since version 3.4, 07/02/2012
  * 
  * @modified version 3.5, 08/06/2012
+ * @modified version 4.0, 08/06/2012
  * 
  * @author Dmitry Viktorov
  *
@@ -65,13 +66,16 @@ public class BasicSourceBaseReader implements BaseReader {
 	
 	protected static final String UTF8 = "UTF-8";
 	
+	protected static byte[] contentBuffer = new byte[1048576]; // 1 MB buffer 
+	
 	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(BasicSourceBaseReader.class);
 
 	protected BasePropertiesInfo baseInfo = null;
 	protected LanguageDirectionsInfo langDirections = null;
 	
 	protected List<String> words;
-	protected List<Long> articleData;
+	
+	protected List<Long> articlePointers;
 	protected TreeMap<Integer, String> articleCache;
 
 	protected Map<String, Long> abbreviations;
@@ -87,10 +91,11 @@ public class BasicSourceBaseReader implements BaseReader {
 	protected final String mediaDirectoryPath;
 	protected final File mediaDirectory;
 
-	protected RandomAccessFile artRAF;
-	protected RandomAccessFile abbRAF;
+	protected final BufferedRandomAccessFile artRAF;
+	protected final BufferedRandomAccessFile abbRAF;
 	
-	
+	protected final long artFileSize;
+
 	protected boolean loaded = false;
 	
 	public BasicSourceBaseReader(File sourceDirectory, int articleCacheSize, int abbreviationCacheSize) throws IOException {
@@ -101,11 +106,15 @@ public class BasicSourceBaseReader implements BaseReader {
 		this.articleCacheSize = articleCacheSize;
 		this.abbreviationCacheSize = abbreviationCacheSize;
 
-		this.artRAF = new BufferedRandomAccessFile(sourceDirectory + File.separator + BasicSourceFileNames.FILE_ARTICLES, "r");
+		File articlesFile = new File(sourceDirectory + File.separator + BasicSourceFileNames.FILE_ARTICLES);
+		this.artRAF = new BufferedRandomAccessFile(articlesFile, "r");
+		this.artFileSize = articlesFile.length();
 		
 		File abbFile = new File(sourceDirectory + File.separator + BasicSourceFileNames.FILE_ABBREVIATIONS);
 		if (abbFile.exists() && abbFile.isFile()) {
 			this.abbRAF = new BufferedRandomAccessFile(abbFile, "r");
+		} else {
+			this.abbRAF = null;
 		}
 		this.mediaDirectoryPath = sourceDirectory + File.separator + BasicSourceFileNames.DIRECTORY_MEDIA;
 		this.mediaDirectory = new File(this.mediaDirectoryPath);
@@ -146,9 +155,9 @@ public class BasicSourceBaseReader implements BaseReader {
 		baseInfo = new BasePropertiesInfo();
 
 		// Articles
-		articleData = new ArrayList<Long>(10000);
+		articlePointers = new ArrayList<Long>(30000);
 		articleCache = new TreeMap<Integer, String>();
-		words = loadWords(artRAF, articleData);
+		words = loadWords(artRAF, articlePointers);
 		
 		// Abbreviations
 		abbreviationCache = new TreeMap<String, String>();
@@ -163,7 +172,7 @@ public class BasicSourceBaseReader implements BaseReader {
 		
 		// Set abbreviations formating to disabled if there are no abbreviations
 		if (baseInfo.getAbbreviationsNumber() == 0) {
-			baseInfo.setAbbreviationsFormattingMode(AbbreviationsFormattingModes.DISABLED);
+			baseInfo.setAbbreviationsFormattingMode(AbbreviationsFormattingMode.DISABLED);
 		}
 		
 		return baseInfo;
@@ -292,23 +301,41 @@ public class BasicSourceBaseReader implements BaseReader {
 	@Override
 	public ArticleInfo getRawArticleInfo(WordInfo wordInfo) throws BaseFormatException {
 
+		//long t1 = System.currentTimeMillis();
+		
 		int wid = wordInfo.getId();
 		String article = articleCache.get(wid);
+
 		if (article == null) {
 			int ci = wid;
 			try {
 				articleCache.clear();
-				artRAF.seek(articleData.get(wid));
+				artRAF.seek(articlePointers.get(wid));
 				
-				for (;ci < wid + articleCacheSize; ci++) {
-					StringBuffer strLine = readLineUTF(artRAF);
+				for (;ci < wid + articleCacheSize && ci < words.size(); ci++) {
+
+					int byteSize = 0;
+					int nextWid = ci + 1;
+					
+					if (nextWid < articlePointers.size()) {
+						byteSize = (int) (articlePointers.get(ci + 1) - articlePointers.get(ci));
+					} else {
+						byteSize = (int) (artFileSize - articlePointers.get(ci));
+					}
+					
+					StringBuffer strLine = readLineUTF(artRAF, byteSize);
 					if (strLine == null) {
 						break;
-					} else if (strLine.toString().trim().length() == 0) {
-						continue;
+					} else {
+						String trimmedLine = strLine.toString().trim();
+						if (trimmedLine.length() == 0) {
+							continue;
+						} else {
+							int delimPosition = trimmedLine.indexOf("  ");	
+							articleCache.put(ci, trimmedLine.substring(delimPosition));	
+						}
 					}
-					int delimPosition = strLine.indexOf("  ");			
-					articleCache.put(ci, strLine.substring(delimPosition));
+					
 				}
 				
 				article = articleCache.get(wid);
@@ -319,15 +346,17 @@ public class BasicSourceBaseReader implements BaseReader {
 			}
 			
 		}
-
-		return (article == null) ? null : new ArticleInfo(wordInfo, article);
+		
+		//log.info("Source | Get raw article time: {}", System.currentTimeMillis() - t1);
+		
+		return (article == null) ? null : new ArticleInfo(wordInfo, article, ArticleInfo.InjectWordMode.AUTO);
 		
 	}
 	
 	
 	// Protected Methods -----------------------------------------------------------
 	
-	protected static List<String> loadWords(RandomAccessFile raf, List<Long> pointerData) throws BaseFormatException, Exception {
+	protected static List<String> loadWords(BufferedRandomAccessFile raf, List<Long> pointerData) throws BaseFormatException, Exception {
 
 		ArrayList<String> keys = new ArrayList<String>(10000);
 		
@@ -339,10 +368,10 @@ public class BasicSourceBaseReader implements BaseReader {
 		pointerData.add(raf.getFilePointer());
 		
 		while ((line = readLineUTF(raf)) != null) {
-						
+			
 			int delimiter = line.indexOf("  ");	
 			if (delimiter < 0) {
-				if (line.toString().length() != 0) {
+				if (line.length() != 0) {
 					log.warn("Couldn't split the article line #{}, skipping: {}", i, line);
 				} else {
 					log.warn("Article line #{} is empty, skipping", i);
@@ -370,7 +399,7 @@ public class BasicSourceBaseReader implements BaseReader {
 		return keys;
 	}
 	
-	protected static Map<String, Long> loadAbbreviations(RandomAccessFile raf) throws BaseFormatException, Exception {
+	protected static Map<String, Long> loadAbbreviations(BufferedRandomAccessFile raf) throws BaseFormatException, Exception {
 		HashMap<String, Long> keys = new HashMap<String, Long>(100);
 		if (raf != null) {
 			StringBuffer line = null;
@@ -409,17 +438,39 @@ public class BasicSourceBaseReader implements BaseReader {
 		return Collections.unmodifiableSet(resources);
 	}
 	
-	protected static StringBuffer readLineUTF(RandomAccessFile raf) throws IOException {
-		long startPointer = raf.getFilePointer();
-		String line = raf.readLine();
-		if (line == null) {
+	/**
+	 * It's important to return string buffer because the String transferred 
+	 * to StringBuffer by the compiler may cause OOM in the loop.
+	 * 
+	 * @param raf
+	 * @return
+	 * @throws IOException
+	 */
+	protected static StringBuffer readLineUTF(BufferedRandomAccessFile raf) throws IOException {
+
+		byte[] lineBuffer = raf.readLineBuffer();
+		if (lineBuffer == null) {
 			return null;
 		}
-		int lineByteLength = (int)(raf.getFilePointer() - startPointer);
-		raf.seek(startPointer);
-		byte[] lineBuffer = new byte[lineByteLength];
-		raf.readFully(lineBuffer);
+
 		return new StringBuffer(new String(lineBuffer, UTF8));
+		
+	}
+	
+	protected static StringBuffer readLineUTF(BufferedRandomAccessFile raf, int length) throws IOException {
+
+		if (length > contentBuffer.length) {
+			contentBuffer = new byte[length];
+			log.warn("Read buffer is extended to: {}", length);
+		}
+		
+		int read = raf.readFullBuffer(contentBuffer, 0, length);
+		if (read < 0) {
+			return null;
+		}
+
+		return new StringBuffer(new String(contentBuffer, 0, length, UTF8));
+		
 	}
 	
 }

@@ -19,6 +19,7 @@
 
 package info.softex.dictionary.core.formats.source.io;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -35,24 +36,24 @@ import java.io.RandomAccessFile;
  * superclass.
  */
 public class BufferedRandomAccessFile extends RandomAccessFile {
-	static final int LogBuffSz_ = 16; // 64K buffer
-	public static final int BuffSz_ = (1 << LogBuffSz_);
+	
+	private static final int BUFFER_SIZE = 64 * 1024; // 64K buffer
 
-	private String path_;
+	private final String path;
 
 	/*
 	 * This implementation is based on the buffer implementation in Modula-3's
 	 * "Rd", "Wr", "RdClass", and "WrClass" interfaces.
 	 */
-	private boolean dirty_; // true iff unflushed bytes exist
-	private boolean syncNeeded_; // dirty_ can be cleared by e.g. seek, so track
+	private boolean dirty; // true iff unflushed bytes exist
+	private boolean syncNeeded; // dirty can be cleared by e.g. seek, so track
 									// sync separately
-	private long curr_; // current position in file
-	private long lo_, hi_; // bounds on characters in "buff"
-	private byte[] buff_; // local buffer
-	private long maxHi_; // this.lo + this.buff.length
-	private boolean hitEOF_; // buffer contains last file block?
-	private long diskPos_; // disk position
+	private long curr; // current position in file
+	private long lo, hi; // bounds on characters in "buff"
+	private byte[] buff; // local buffer
+	private long maxHi; // this.lo + this.buff.length
+	private boolean hitEOF; // buffer contains last file block?
+	private long diskPos; // disk position
 	private long fileLength = -1; // cache for file size
 
 	/*
@@ -120,7 +121,7 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
 	public BufferedRandomAccessFile(File file, String mode, int size)
 			throws IOException {
 		super(file, mode);
-		path_ = file.getAbsolutePath();
+		path = file.getAbsolutePath();
 		this.init(size, mode);
 	}
 
@@ -135,17 +136,17 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
 
 	public BufferedRandomAccessFile(String name, String mode, int size) throws IOException {
 		super(name, mode);
-		path_ = name;
+		path = name;
 		this.init(size, mode);
 	}
 
 	private void init(int size, String mode) throws IOException {
-		this.dirty_ = false;
-		this.lo_ = this.curr_ = this.hi_ = 0;
-		this.buff_ = (size > BuffSz_) ? new byte[size] : new byte[BuffSz_];
-		this.maxHi_ = (long) BuffSz_;
-		this.hitEOF_ = false;
-		this.diskPos_ = 0L;
+		this.dirty = false;
+		this.lo = this.curr = this.hi = 0;
+		this.buff = (size > BUFFER_SIZE) ? new byte[size] : new byte[BUFFER_SIZE];
+		this.maxHi = (long) BUFFER_SIZE;
+		this.hitEOF = false;
+		this.diskPos = 0L;
 		if ("r".equals(mode)) {
 			// read only file, we can cache file length
 			this.fileLength = super.length();
@@ -153,33 +154,33 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
 	}
 
 	public String getPath() {
-		return path_;
+		return path;
 	}
 
 	public void sync() throws IOException {
-		if (syncNeeded_) {
+		if (syncNeeded) {
 			flush();
 			getChannel().force(true); // true, because file length counts as
 										// "metadata"
-			syncNeeded_ = false;
+			syncNeeded = false;
 		}
 	}
 
 	public void close() throws IOException {
 		sync();
-		this.buff_ = null;
+		this.buff = null;
 		super.close();
 	}
 
 	/* Flush any dirty bytes in the buffer to disk. */
 	public void flush() throws IOException {
-		if (this.dirty_) {
-			if (this.diskPos_ != this.lo_)
-				super.seek(this.lo_);
-			int len = (int) (this.hi_ - this.lo_);
-			super.write(this.buff_, 0, len);
-			this.diskPos_ = this.hi_;
-			this.dirty_ = false;
+		if (this.dirty) {
+			if (this.diskPos != this.lo)
+				super.seek(this.lo);
+			int len = (int) (this.hi - this.lo);
+			super.write(this.buff, 0, len);
+			this.diskPos = this.hi;
+			this.dirty = false;
 		}
 	}
 
@@ -190,21 +191,21 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
 	 */
 	private int fillBuffer() throws IOException {
 		int count = 0;
-		int remainder = this.buff_.length;
+		int remainder = this.buff.length;
 		while (remainder > 0) {
-			int n = super.read(this.buff_, count, remainder);
+			int n = super.read(this.buff, count, remainder);
 			if (n < 0)
 				break;
 			count += n;
 			remainder -= n;
 		}
-		this.hitEOF_ = (count < this.buff_.length);
-		this.diskPos_ += count;
+		this.hitEOF = (count < this.buff.length);
+		this.diskPos += count;
 		return count;
 	}
 
 	public void seek(long pos) throws IOException {
-		this.curr_ = pos;
+		this.curr = pos;
 	}
 
 	/*
@@ -214,25 +215,25 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
 	 */
 	private void reBuffer() throws IOException {
 		this.flush();
-		this.lo_ = this.curr_;
-		this.maxHi_ = this.lo_ + (long) this.buff_.length;
-		if (this.diskPos_ != this.lo_) {
-			super.seek(this.lo_);
-			this.diskPos_ = this.lo_;
+		this.lo = this.curr;
+		this.maxHi = this.lo + (long) this.buff.length;
+		if (this.diskPos != this.lo) {
+			super.seek(this.lo);
+			this.diskPos = this.lo;
 		}
 		int n = this.fillBuffer();
-		this.hi_ = this.lo_ + (long) n;
+		this.hi = this.lo + (long) n;
 	}
 
 	public long getFilePointer() {
-		return this.curr_;
+		return this.curr;
 	}
 
 	public long length() throws IOException {
 		if (fileLength == -1) {
 			// max accounts for the case where we have written past the old file
 			// length, but not yet flushed our buffer
-			return Math.max(this.curr_, super.length());
+			return Math.max(this.curr, super.length());
 		} else {
 			// opened as read only, file length is cached
 			return fileLength;
@@ -240,13 +241,13 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
 	}
 
 	public int read() throws IOException {
-		if (this.lo_ > this.curr_ || this.curr_ >= this.hi_) {
+		if (this.lo > this.curr || this.curr >= this.hi) {
 			this.reBuffer();
-			if (this.curr_ == this.hi_ && this.hitEOF_)
+			if (this.curr == this.hi && this.hitEOF)
 				return -1;
 		}
-		byte res = this.buff_[(int) (this.curr_ - this.lo_)];
-		this.curr_++;
+		byte res = this.buff[(int) (this.curr - this.lo)];
+		this.curr++;
 		return ((int) res) & 0xFF; // convert byte -> int
 	}
 
@@ -255,29 +256,30 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
 	}
 
 	public int read(byte[] b, int off, int len) throws IOException {
-		if (this.lo_ > this.curr_ || this.curr_ >= this.hi_) {
-			this.reBuffer();
-			if (this.curr_ == this.hi_ && this.hitEOF_)
+		if (lo > curr || curr >= hi) {
+			reBuffer();
+			if (curr == hi && hitEOF) {
 				return -1;
+			}
 		}
-		len = Math.min(len, (int) (this.hi_ - this.curr_));
-		int buffOff = (int) (this.curr_ - this.lo_);
-		System.arraycopy(this.buff_, buffOff, b, off, len);
-		this.curr_ += len;
+		len = Math.min(len, (int) (hi - curr));
+		int buffOff = (int) (curr - lo);
+		System.arraycopy(buff, buffOff, b, off, len);
+		curr += len;
 		return len;
 	}
 
 	public void write(int b) throws IOException {
-		if (this.lo_ > this.curr_ || this.curr_ > this.hi_
-				|| this.curr_ >= maxHi_) {
+		if (this.lo > this.curr || this.curr > this.hi || this.curr >= maxHi) {
 			this.reBuffer();
 		}
-		this.buff_[(int) (this.curr_ - this.lo_)] = (byte) b;
-		this.curr_++;
-		if (this.curr_ > this.hi_)
-			this.hi_ = this.curr_;
-		this.dirty_ = true;
-		syncNeeded_ = true;
+		this.buff[(int) (this.curr - this.lo)] = (byte) b;
+		this.curr++;
+		if (this.curr > this.hi) {
+			this.hi = this.curr;
+		}
+		dirty = true;
+		syncNeeded = true;
 	}
 
 	public void write(byte[] b) throws IOException {
@@ -289,8 +291,8 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
 			int n = this.writeAtMost(b, off, len);
 			off += n;
 			len -= n;
-			this.dirty_ = true;
-			syncNeeded_ = true;
+			dirty = true;
+			syncNeeded = true;
 		}
 	}
 
@@ -300,15 +302,15 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
 	 * syncNeeded.
 	 */
 	private int writeAtMost(byte[] b, int off, int len) throws IOException {
-		if (this.lo_ > this.curr_ || this.curr_ > this.hi_ || this.curr_ >= maxHi_) {
+		if (this.lo > this.curr || this.curr > this.hi || this.curr >= maxHi) {
 			this.reBuffer();
 		}
-		len = Math.min(len, (int) (this.maxHi_ - this.curr_));
-		int buffOff = (int) (this.curr_ - this.lo_);
-		System.arraycopy(b, off, this.buff_, buffOff, len);
-		this.curr_ += len;
-		if (this.curr_ > this.hi_) {
-			this.hi_ = this.curr_;
+		len = Math.min(len, (int) (this.maxHi - this.curr));
+		int buffOff = (int) (this.curr - this.lo);
+		System.arraycopy(b, off, this.buff, buffOff, len);
+		this.curr += len;
+		if (this.curr > this.hi) {
+			this.hi = this.curr;
 		}
 		return len;
 	}
@@ -320,5 +322,57 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
 	public long bytesRemaining() throws IOException {
 		return length() - getFilePointer();
 	}
+	
+	// Custom methods -----------------------------------------------
+	
+    public byte[] readLineBuffer() throws IOException {
+    	
+    	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+
+		int c = -1;
+		boolean eol = false;
+	
+		while (!eol) {
+		    switch (c = read()) {
+			    case -1:
+			    case '\n':
+			    		eol = true;
+			    	break;
+			    case '\r':
+				    	eol = true;
+				    	long cur = getFilePointer();
+				    	if ((read()) != '\n') {
+				    		seek(cur);
+				    	}
+				    break;
+			    default:
+			    		baos.write(c);
+			    	break;
+		    }
+		}
+	
+		if ((c == -1) && (baos.size() == 0)) {
+		    return null;
+		}
+		return baos.toByteArray();
+    }
+    
+    /**
+     * Reads until the buffer is full or eof reached
+     * 
+     * @param inBuffer
+     * @return
+     * @throws IOException
+     */
+    public int readFullBuffer(byte[] inBuffer, int off, int length) throws IOException {
+		int read = 0;
+		while(read < length) {
+			int curRead = read(inBuffer, read + off, length - read);
+			if (curRead >= 0) {
+				read += curRead;
+			}
+		}
+		return read;
+    }
 	
 }
