@@ -23,8 +23,8 @@ import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingModes;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo.ArticlesFormattingModes;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingMode;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo.ArticlesFormattingMode;
 import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
@@ -59,6 +59,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 2.6, 09/02/2011
  * @modified version 2.7, 10/23/2011
  * @modified version 3.7, 06/11/2013
+ * @modified version 4.0, 02/04/2014
  *  
  * @author Dmitry Viktorov
  * 
@@ -126,16 +127,17 @@ public class ZDBaseReader implements BaseReader {
 		
 		try {
 			if (!wordInfo.hasIndex()) {
-				//int index = getWordIndex(wordInfo.getWord());
 				int index = searchWordIndex(wordInfo.getWord(), false);
 				if (index >= 0) {
 					wordInfo.setId(index);
 				} else {
 					return null;
 				}
+			} else if (wordInfo.getWord() == null) {
+				wordInfo.setWord(getWords().get(wordInfo.getId()));
 			}
 
-			articleInfo = new ArticleInfo(wordInfo, getArticle(wordInfo.getId(), isRaw));
+			articleInfo = new ArticleInfo(wordInfo, getArticle(wordInfo, isRaw));
 
 		} catch (Exception e) {
 			log.error("Error", e);
@@ -146,12 +148,15 @@ public class ZDBaseReader implements BaseReader {
 		
 	}
 	
-	protected String getArticle(int index, boolean isRaw) throws Exception {
+	protected String getArticle(WordInfo wordInfo, boolean isRaw) throws Exception {
+		int index = wordInfo.getId();
 		String article = zdReader.getArticle(index);
 		if (!isRaw) {
 			article = ArticleHtmlFormatter.prepareArticle(
+					wordInfo.getWord(),
 					zdReader.getArticle(index), getAbbreviationKeys(), 
-					baseInfo.getArticlesFormattingMode(), 
+					baseInfo.getArticlesFormattingMode(),
+					baseInfo.getArticlesFormattingInjectWordMode(),
 					baseInfo.getAbbreviationsFormattingMode(),
 					baseInfo.getMediaResourcesNumber() != 0
 				);
@@ -394,10 +399,10 @@ public class ZDBaseReader implements BaseReader {
 
     	//dictInfo.setBaseLocale(resolver.getLanguageLocale(zdHeader.getCollateLocaleId()));
 		
-    	ArticlesFormattingModes artMode = zdHeader.getFlags().isArticleFormatEnabled() ? ArticlesFormattingModes.FULL : ArticlesFormattingModes.DISABLED;
+    	ArticlesFormattingMode artMode = zdHeader.getFlags().isArticleFormatEnabled() ? ArticlesFormattingMode.FULL : ArticlesFormattingMode.DISABLED;
 		dictInfo.setArticlesFormattingMode(artMode);
 		
-		AbbreviationsFormattingModes abbrMode = zdHeader.getAbbreviationsNumber() == 0 ? AbbreviationsFormattingModes.DISABLED : AbbreviationsFormattingModes.FULL;  
+		AbbreviationsFormattingMode abbrMode = zdHeader.getAbbreviationsNumber() == 0 ? AbbreviationsFormattingMode.DISABLED : AbbreviationsFormattingMode.FULL;  
     	dictInfo.setAbbreviationsFormattingMode(abbrMode);
 		
     	dictInfo.setFormatName(FORMAT_INFO.getName());

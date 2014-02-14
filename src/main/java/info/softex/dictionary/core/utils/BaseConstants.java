@@ -25,6 +25,7 @@ package info.softex.dictionary.core.utils;
  * 
  * @modified version 3.0, 11/27/2011
  * @modified version 3.1, 05/22/2012
+ * @modified version 4.1, 02/05/2014
  *  
  * @author Dmitry Viktorov
  * 
@@ -35,10 +36,17 @@ public class BaseConstants {
 	public static final String URLSEG_IMAGES = "images";
 	public static final String URLSEG_EXTERNAL = "external";
 	public static final String URLSEG_INTERNAL = "internal";
-	public static final String URLSEG_TRANS_WORD = "trans-word";
-	public static final String URLSEG_TRANS_INDEX = "trans-index";
+	//public static final String URLSEG_ARTICLE_WORD = "article-word";
+	public static final String URLSEG_ARTICLE_INDEX = "article-index";
 	public static final String URLSEG_SOUNDS = "sounds";
 	
 	public static final String RESOURCE_INT_IMG_SOUND = "sound_32";
+	
+	
+	protected static final String MODE_DISABLED = "DISABLED";
+	protected static final String MODE_BASIC = "BASIC";
+	protected static final String MODE_FULL = "FULL";
+	protected static final String MODE_AUTO = "AUTO";
+	protected static final String MODE_ALWAYS = "ALWAYS";
 	
 }

@@ -54,6 +54,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 2.9, 11/11/2011
  * @modified version 3.4, 07/04/2012
  * @modified version 3.9, 01/25/2014
+ * @modified version 4.0, 02/08/2014
  * 
  * @author Dmitry Viktorov
  * 
@@ -110,8 +111,10 @@ public class FDBBaseReader implements BaseReader {
 		if (articleInfo != null) {
 			BasePropertiesInfo baseInfo = mainBase.getBasePropertiesInfo();
 			String article = ArticleHtmlFormatter.prepareArticle(
+					wordInfo.getWord(),
 					articleInfo.getArticle(), getAbbreviationKeys(), 
 					baseInfo.getArticlesFormattingMode(), 
+					baseInfo.getArticlesFormattingInjectWordMode(),
 					baseInfo.getAbbreviationsFormattingMode(),
 					baseInfo.getMediaResourcesNumber() != 0
 				);
@@ -128,8 +131,11 @@ public class FDBBaseReader implements BaseReader {
 				return null;
 			}
 			wordInfo.setId(wordId);
+		} else if (wordInfo.getWord() == null) {
+			wordInfo.setWord(getWords().get(wordInfo.getId()));
 		}
-		return getBaseForArticle(wordInfo.getId()).getRawArticleInfo(wordInfo);
+		ArticleInfo articleInfo = getBaseForArticle(wordInfo.getId()).getRawArticleInfo(wordInfo);
+		return articleInfo;
 	}
 		
 	@Override

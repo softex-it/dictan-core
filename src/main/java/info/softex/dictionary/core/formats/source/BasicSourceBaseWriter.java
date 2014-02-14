@@ -33,9 +33,9 @@ import info.softex.dictionary.core.formats.commons.BaseWriter;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.Observer;
 
@@ -46,11 +46,15 @@ import org.slf4j.LoggerFactory;
  * 
  * @since version 3.4, 07/02/2012
  * 
+ * @modified version 4.0, 02/08/2014
+ * 
  * @author Dmitry Viktorov
  *
  */
 @BaseFormat(name = "BASIC_SOURCE", primaryExtension = "", extensions = {})
 public class BasicSourceBaseWriter implements BaseWriter {
+	
+	protected static final String UTF8 = "UTF-8";
 	
 	private final Logger log = LoggerFactory.getLogger(BasicSourceBaseWriter.class);
 	
@@ -186,7 +190,7 @@ public class BasicSourceBaseWriter implements BaseWriter {
 			abbFile.delete();
 		}
 		abbFile.createNewFile();
-		return new BufferedWriter(new FileWriter(abbFile));
+		return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(abbFile), UTF8));
 	}
 	
 	protected void updateProgress() {

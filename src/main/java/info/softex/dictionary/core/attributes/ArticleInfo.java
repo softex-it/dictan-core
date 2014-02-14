@@ -31,6 +31,7 @@ import java.lang.ref.SoftReference;
  * @modified version 1.10, 02/24/2011
  * @modified version 2.5, 07/24/2011
  * @modified version 2.6, 09/20/2011
+ * @modified version 4.0, 02/02/2014
  * 
  * @author Dmitry Viktorov
  *
@@ -46,22 +47,22 @@ public class ArticleInfo implements Cloneable {
 
 	private String article = null;
 	
-	private SoftReference<String> translationSoftRef = null;
+	private SoftReference<String> articleSoftRef = null;
 	
 	private RT referenceType;
 	
-	public ArticleInfo(WordInfo wordInfo, String translation) {
+	public ArticleInfo(WordInfo inWordInfo, String inArticle) {
 		this.referenceType = RT.STRONG;
-		this.wordInfo = wordInfo;
-		this.setArticle(translation);
+		this.wordInfo = inWordInfo;
+		setArticle(inArticle);
 	}
 
 	public WordInfo getWordInfo() {
-		return this.wordInfo;
+		return wordInfo;
 	}
 
-	public void setWordInfo(WordInfo wordInfo) {
-		this.wordInfo = wordInfo;
+	public void setWordInfo(WordInfo inWordInfo) {
+		this.wordInfo = inWordInfo;
 	}
 	
 	public String getArticle() {
@@ -70,19 +71,19 @@ public class ArticleInfo implements Cloneable {
 		} 
 		
 		if (this.referenceType == RT.SOFT) {
-			return this.translationSoftRef.get();
+			return this.articleSoftRef.get();
 		}
 		
 		return null;
 	}
 	
 	public void setArticle(String trans) {
-		if (this.referenceType == RT.STRONG) {
-			this.article = trans;
-			this.translationSoftRef = null;
-		} else if (this.referenceType == RT.SOFT) {
-			this.translationSoftRef = new SoftReference<String>(trans);
-			this.article = null;
+		if (referenceType == RT.STRONG) {
+			article = trans;
+			articleSoftRef = null;
+		} else if (referenceType == RT.SOFT) {
+			articleSoftRef = new SoftReference<String>(trans);
+			article = null;
 		}
 	}
 	
@@ -91,42 +92,29 @@ public class ArticleInfo implements Cloneable {
 			throw new IllegalArgumentException("Reference Type " + refType + " is illegal");
 		}
 		
-		this.referenceType = refType;
+		referenceType = refType;
 
 		// Soft reference
-		if (this.referenceType == RT.SOFT) {
+		if (referenceType == RT.SOFT) {
 			if (article != null) {
-				translationSoftRef = new SoftReference<String>(article);
+				articleSoftRef = new SoftReference<String>(article);
 				article = null;
 			}
 		}
 		
 		// Strong reference
-		if (this.referenceType == RT.STRONG) {
-			if (translationSoftRef != null) {
-				article = translationSoftRef.get();
-				translationSoftRef = null;
+		if (referenceType == RT.STRONG) {
+			if (articleSoftRef != null) {
+				article = articleSoftRef.get();
+				articleSoftRef = null;
 			}
 		}
 	
 	}
 	
-	/**
-	 * Check if the translation reference is strong before calling it, 
-	 * or assign the translation to a variable by the soft reference, and
-	 * check if this translation is not null.
-	 * 
-	 * @return
-	 */
-	public String getFullArticle() {
-		String word = this.wordInfo.getWord();
-		String postTrans = ArticleHtmlBuilder.postArticle(word, getArticle());
-		return postTrans;
-	}
-	
-	public String getFullHtmlArticle(String bodyCSSFN) {
+	public String getFullArticle(String globalCSSPath, String fontName, String fontPath, int fontSize) {
 		return ArticleHtmlBuilder.buildHtmlArticle(
-			getFullArticle(), bodyCSSFN
+			getArticle(), globalCSSPath, fontName, fontPath, fontSize
 		);
 	}
 	
@@ -144,13 +132,13 @@ public class ArticleInfo implements Cloneable {
 	}
 	
 	public ArticleInfo clone(RT refType) {
-		ArticleInfo transInfo = new ArticleInfo(this.wordInfo.clone(), this.article);
+		ArticleInfo transInfo = new ArticleInfo(wordInfo.clone(), article);
 		transInfo.setReferenceType(refType);
 		return transInfo;
 	}
 	
 	public boolean isHttpRelated() {
-		return this.wordInfo == null ? false : this.wordInfo.isHttpRelated();
+		return wordInfo == null ? false : wordInfo.isHttpRelated();
 	}
 	
 }

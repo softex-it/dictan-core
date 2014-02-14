@@ -23,14 +23,17 @@ package info.softex.dictionary.core.formats.fdb;
  * 
  * @since version 2.6, 08/28/2011
  * 
+ * @modified version 4.0, 02/02/2014
+ * 
  * @author Dmitry Viktorov
  * 
  */
 public class FDBConstants {
 	
 	public static final int FDB_VERSION_1 = 1;
-
-	public static final int CURRENT_FDB_VERSION = FDB_VERSION_1;
+	public static final int FDB_VERSION_2 = 2;
+	
+	public static final int CURRENT_FDB_VERSION = FDB_VERSION_2;
 	
 	
 	public static final String PARAM_KEY_WORD_LIST_BLOCK_SIZE = "wordListBlockSize";

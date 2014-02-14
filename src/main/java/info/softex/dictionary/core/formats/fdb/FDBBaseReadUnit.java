@@ -22,7 +22,7 @@ package info.softex.dictionary.core.formats.fdb;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingModes;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingMode;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.collation.AbstractCollatorFactory;
@@ -53,6 +53,8 @@ import org.slf4j.LoggerFactory;
 /**
  * 
  * @since version 2.9, 11/11/2011
+ * 
+ * @modified version 4.0, 02/04/2014
  * 
  * @author Dmitry Viktorov
  * 
@@ -128,7 +130,7 @@ public class FDBBaseReadUnit {
 			
 			// Set abbreviations formating to disabled if there are no abbreviations
 			if (baseInfo.getAbbreviationsNumber() == 0) {
-				baseInfo.setAbbreviationsFormattingMode(AbbreviationsFormattingModes.DISABLED);
+				baseInfo.setAbbreviationsFormattingMode(AbbreviationsFormattingMode.DISABLED);
 			}
 			
 			rs.close();
@@ -195,15 +197,6 @@ public class FDBBaseReadUnit {
 			lcrRS.close();
 
 			log.debug("Loaded Language Directions: {}", this.langDirections);
-			
-			//System.out.println(languageDirections.getDefaultCollationProperties().getAdditionalCollationRules());
-//			System.out.println(langDirections.getLanguageDirections().get(new Locale("ru")));
-//			System.out.println(langDirections.getCombinedCollationRules().equals(
-//					langDirections.getDefaultCollationProperties().getBasicCollationRules() + 
-//					langDirections.getDefaultCollationProperties().getAdditionalCollationRules() +
-//					langDirections.getLanguageDirections().get(new Locale("ru")).get(0).getBasicCollationRules()
-//			));
-//			System.out.println(langDirections.getLanguageDirections());
 			
 			this.collator = collatorFactory.createCollator(this.langDirections.getCombinedCollationRules(), null, null);
 			
@@ -276,6 +269,7 @@ public class FDBBaseReadUnit {
 	
 	protected void loadAbbreviations() throws BaseFormatException {
 		try {
+			
 			Statement st = connection.createStatement();
 		
 			ResultSet rs = st.executeQuery(FDBSQLReadStatements.SELECT_ABBREVIATIONS);
@@ -296,15 +290,12 @@ public class FDBBaseReadUnit {
 	}
 	
 	/**
-	 * FDB admits only lower case resource keys.
-	 * 
 	 * @param resourceKey
 	 * @return -1 if the key is not found, index otherwise
 	 * @throws BaseFormatException 
 	 */
 	public int searchMediaResourceKeyIndex(String resourceKey) throws BaseFormatException {
 		try {
-			resourceKey = resourceKey.toLowerCase();
 			
 			selMediaResourceIdByKey.setString(1, resourceKey);
 			ResultSet resIdRS = selMediaResourceIdByKey.executeQuery();
@@ -475,91 +466,9 @@ public class FDBBaseReadUnit {
 			throw new BaseFormatException("Couldn't retrieve the article: " + e.getMessage());
 		}
 		
-//		if (!isRaw && articleInfo != null) {
-//			String article = ArticleHtmlFormatter.prepareArticle(
-//					articleInfo.getArticle(), getAbbreviationKeys(), 
-//					baseInfo.getArticlesFormattingMode(), 
-//					baseInfo.getAbbreviationsFormattingMode(),
-//					baseInfo.getMediaResourcesNumber() != 0
-//				);
-//			articleInfo.setArticle(article);
-//		}
-		
 		return articleInfo;
 		
 	}
-	
-//	/**
-//	 * 
-//	 * @param wordInfo - must always have index
-//	 * @param isRaw
-//	 * @return
-//	 * @throws BaseFormatException
-//	 */
-//	public ArticleInfo getArticleInfo(WordInfo wordInfo, boolean isRaw) throws BaseFormatException {
-//		
-//		ArticleInfo articleInfo = null;
-//		
-//		try {
-//			Statement st = connection.createStatement();
-//			ResultSet rs = null;
-//			
-////			if (!wordInfo.hasIndex()) {
-////				//int wordId = getWordIndex(wordInfo.getWord());
-////				int wordId = searchWordIndex(wordInfo.getWord(), false);
-////				if (wordId >= 0) {
-////					wordInfo.setId(wordId);
-////				} else {
-////					return null;
-////				}
-////			}
-//				
-//			rs = st.executeQuery(
-//				"SELECT article_block_id, article_block FROM " + FDBTables.article_blocks + 
-//				" WHERE article_block_id=(SELECT MAX(article_block_id) FROM " + 
-//				FDBTables.article_blocks + " WHERE article_block_id<=" + wordInfo.getId() + ")");
-//
-//			if (rs.next()) {
-//				
-//				int blockId = rs.getInt(1);
-//				
-//				log.debug("Retrieving article: word_id: {}, article_block_id: {}", wordInfo.getId(), blockId);
-//				int segmentNumber = wordInfo.getId() - blockId;
-//				
-//				byte[] decompBytes = readSegmentBytesFromStream(
-//						new SmartInflaterInputStream(new ByteArrayInputStream(rs.getBytes(2))), segmentNumber
-//					);
-//				
-//				articleInfo = new ArticleInfo(wordInfo, new String(decompBytes, ENC_UTF8));
-//				
-//			} else {
-//				throw new BaseFormatException("Article for the word " + wordInfo.getWord() + " doesn't exist, possible base corruption");
-//			}
-//			
-//			rs.close();
-//
-//			log.debug("Article: {}", articleInfo);
-//
-//		} catch (BaseFormatException e) {
-//			throw e;
-//		} catch (Exception e) {
-//			log.error("Error", e);
-//			throw new BaseFormatException("Couldn't retrieve the article: " + e.getMessage());
-//		}
-//		
-//		if (!isRaw && articleInfo != null) {
-//			String article = ArticleHtmlFormatter.prepareArticle(
-//					articleInfo.getArticle(), getAbbreviationKeys(), 
-//					baseInfo.getArticlesFormattingMode(), 
-//					baseInfo.getAbbreviationsFormattingMode(),
-//					baseInfo.getMediaResourcesNumber() != 0
-//				);
-//			articleInfo.setArticle(article);
-//		}
-//		
-//		return articleInfo;
-//		
-//	}
 	
 	public Set<String> getAbbreviationKeys() {
 		return abbreviations == null ? null : abbreviations.keySet();
@@ -568,36 +477,5 @@ public class FDBBaseReadUnit {
 	public void close() throws Exception {
 		connection.close();
 	}
-	
-	// Protected methods ----------------------------------------------------------
-	
-//	protected static void populateItemsNumbers(Statement statement, BasePropertiesInfo bpInfo) throws BaseFormatException, SQLException {
-//
-//		long start = System.currentTimeMillis();
-//		
-//		String[] queries = new String[] {FDBSQLReadStatements.SELECT_WORDS_NUMER, 
-//										 FDBSQLReadStatements.SELECT_ABBREVIATIONS_NUMER, 
-//										 FDBSQLReadStatements.SELECT_MEDIA_RESOURCES_NUMER};
-//		int[] numbers = new int[queries.length];
-//		
-//		for (int i = 0; i < queries.length; i++) {
-//			ResultSet rs = statement.executeQuery(queries[i]);
-//			if (rs.next()) {
-//				numbers[i] = rs.getInt(1);
-//			}
-//			rs.close();			
-//		}
-//
-//		bpInfo.setWordsNumber(numbers[0]);
-//		bpInfo.setAbbreviationsNumber(numbers[1]);
-//		bpInfo.setMediaResourcesNumber(numbers[2]);
-//		
-//		if (bpInfo.getWordsNumber() < 1) {
-//			throw new BaseFormatException("The words number couldn't be retrieved");
-//		}
-//			
-//		log.debug("Number of items: words={}, abbreviations={}, media resources={}, time={}", new Object[] {bpInfo.getWordsNumber(), bpInfo.getAbbreviationsNumber(), bpInfo.getMediaResourcesNumber(), System.currentTimeMillis() - start});
-//	}
-	
 
 }

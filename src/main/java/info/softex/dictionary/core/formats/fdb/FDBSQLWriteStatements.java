@@ -24,22 +24,23 @@ package info.softex.dictionary.core.formats.fdb;
  * @since version 2.6, 08/26/2011
  * 
  * @modified version 3.9, 01/29/2014
+ * @modified version 4.0, 02/06/2014
  * 
  * @author Dmitry Viktorov
  * 
  */
 public class FDBSQLWriteStatements {
 
-	public static final String CREATE_TABLE_WORDS = 
-		"CREATE TABLE " + FDBTables.words + 
+	public static final String CREATE_TABLE_WORDS =
+		"CREATE TABLE " + FDBTables.words +
 		" (word_id INTEGER PRIMARY KEY, word TEXT UNIQUE NOT NULL)";
 	
-	public static final String CREATE_TABLE_ARTICLE_BLOCKS = 
-		"CREATE TABLE " + FDBTables.article_blocks + 
+	public static final String CREATE_TABLE_ARTICLE_BLOCKS =
+		"CREATE TABLE " + FDBTables.article_blocks +
 		" (article_block_id INTEGER PRIMARY KEY, article_block BLOB NOT NULL)";
 	
-	public static final String CREATE_TABLE_LANGUAGE_DIRECTIONS = 
-		"CREATE TABLE " + FDBTables.language_directions + 
+	public static final String CREATE_TABLE_LANGUAGE_DIRECTIONS =
+		"CREATE TABLE " + FDBTables.language_directions +
 		" (language_direction_id INTEGER PRIMARY KEY, from_locale TEXT NOT NULL, to_locale TEXT NOT NULL)";
 
 	public static final String CREATE_TABLE_ABBREVIATIONS =
@@ -62,8 +63,11 @@ public class FDBSQLWriteStatements {
 		"CREATE TABLE " + FDBTables.base_resources + 
 		" (base_resource_id INTEGER PRIMARY KEY, base_resource_key TEXT UNIQUE NOT NULL, base_resource BLOB NOT NULL, data_1 BLOB NOT NULL, data_2 BLOB NOT NULL, data_3 BLOB NOT NULL, info_1 TEXT NOT NULL, info_2 TEXT NOT NULL, info_3 TEXT NOT NULL, info_4 TEXT NOT NULL, info_5 TEXT NOT NULL, info_6 TEXT NOT NULL)";
 	
-	public static final String CREATE_INDEX_LANGUAGE_DIRECTIONS = 
-		"CREATE INDEX index_language_directions ON language_directions(from_locale,to_locale)";
+	public static final String CREATE_INDEX_LANGUAGE_DIRECTIONS_FL = 
+		"CREATE INDEX index_language_directions_from_locale ON language_directions(from_locale)";
+
+	public static final String CREATE_INDEX_LANGUAGE_DIRECTIONS_TL = 
+		"CREATE INDEX index_language_directions_to_locale ON language_directions(to_locale)";
 	
 	// INSERT --------------------------------------------------------------------------------------------
 	public static final String INSERT_BASE_PROPERTY =

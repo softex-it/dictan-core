@@ -36,7 +36,6 @@ import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -62,9 +61,9 @@ import org.slf4j.LoggerFactory;
 @BaseFormat(name = "BASIC_SOURCE", primaryExtension = "", extensions = {})
 public class BasicSourceBaseReader implements BaseReader {
 	
-	private static final Logger log = LoggerFactory.getLogger(BasicSourceBaseReader.class);
-	
 	protected static final String UTF8 = "UTF-8";
+	
+	private static final Logger log = LoggerFactory.getLogger(BasicSourceBaseReader.class);
 	
 	protected static byte[] contentBuffer = new byte[1048576]; // 1 MB buffer 
 	
@@ -288,8 +287,10 @@ public class BasicSourceBaseReader implements BaseReader {
 		ArticleInfo articleInfo = getRawArticleInfo(wordInfo);
 		if (articleInfo != null) {
 			String article = ArticleHtmlFormatter.prepareArticle(
+					wordInfo.getWord(),
 					articleInfo.getArticle(), getAbbreviationKeys(), 
 					baseInfo.getArticlesFormattingMode(), 
+					baseInfo.getArticlesFormattingInjectWordMode(),
 					baseInfo.getAbbreviationsFormattingMode(),
 					baseInfo.getMediaResourcesNumber() != 0
 				);
@@ -349,7 +350,7 @@ public class BasicSourceBaseReader implements BaseReader {
 		
 		//log.info("Source | Get raw article time: {}", System.currentTimeMillis() - t1);
 		
-		return (article == null) ? null : new ArticleInfo(wordInfo, article, ArticleInfo.InjectWordMode.AUTO);
+		return (article == null) ? null : new ArticleInfo(wordInfo, article);
 		
 	}
 	
@@ -458,7 +459,7 @@ public class BasicSourceBaseReader implements BaseReader {
 	}
 	
 	protected static StringBuffer readLineUTF(BufferedRandomAccessFile raf, int length) throws IOException {
-
+		
 		if (length > contentBuffer.length) {
 			contentBuffer = new byte[length];
 			log.warn("Read buffer is extended to: {}", length);

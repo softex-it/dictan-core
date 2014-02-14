@@ -59,6 +59,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @modified version 3.5, 08/07/2012
  * @modified version 3.9, 01/29/2014
+ * @modified version 4.0, 02/02/2014
  * 
  * @author Dmitry Viktorov
  * 
@@ -95,7 +96,6 @@ public class FDBBaseWriteUnit {
 	
 	protected int curMediaResourceBlockMemSize = 0;
 	protected LinkedList<byte[]> mediaResourcesBuffer = new LinkedList<byte[]>();
-	
 	
 	protected PreparedStatement insWordSt;
 	protected PreparedStatement insArticleSt;
@@ -140,7 +140,8 @@ public class FDBBaseWriteUnit {
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_MEDIA_RESOURCE_KEYS);
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_MEDIA_RESOURCE_BLOCKS);
 			
-			st.executeUpdate(FDBSQLWriteStatements.CREATE_INDEX_LANGUAGE_DIRECTIONS);
+			st.executeUpdate(FDBSQLWriteStatements.CREATE_INDEX_LANGUAGE_DIRECTIONS_FL);
+			st.executeUpdate(FDBSQLWriteStatements.CREATE_INDEX_LANGUAGE_DIRECTIONS_TL);
 			
 			// Create prepared statements
 			insWordSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_WORD);
@@ -174,35 +175,35 @@ public class FDBBaseWriteUnit {
 	}
 	
 	
-	public BasePropertiesInfo saveBasePropertiesInfo(BasePropertiesInfo baseInfo, FormatInfo formatInfo) throws SQLException, NoSuchAlgorithmException {
+	public BasePropertiesInfo saveBasePropertiesInfo(BasePropertiesInfo inBaseInfo, FormatInfo inFormatInfo) throws SQLException, NoSuchAlgorithmException {
 		
 		if (baseIndex == 1) {
 
-			this.baseInfo = baseInfo;
+			this.baseInfo = inBaseInfo;
 
-			baseInfo.setFormatName(formatInfo.getName());
-			baseInfo.setFormatVersion(FDBConstants.CURRENT_FDB_VERSION);
+			inBaseInfo.setFormatName(inFormatInfo.getName());
+			inBaseInfo.setFormatVersion(FDBConstants.CURRENT_FDB_VERSION);
 		
 			// Dates
 			Date currentDate = new Date();
-			if (baseInfo.getCompilationDate() == null) {
-				baseInfo.setCompilationDate(currentDate);
+			if (inBaseInfo.getCompilationDate() == null) {
+				inBaseInfo.setCompilationDate(currentDate);
 			}
-			if (baseInfo.getBaseDate() == null) {
-				baseInfo.setBaseDate(currentDate);
+			if (inBaseInfo.getBaseDate() == null) {
+				inBaseInfo.setBaseDate(currentDate);
 			}
 			
 			// If articles number is not set, it always must have a value
-			if (baseInfo.getArticlesNumber() == 0) {
-				baseInfo.setArticlesNumber(0);
+			if (inBaseInfo.getArticlesNumber() == 0) {
+				inBaseInfo.setArticlesNumber(0);
 			}
 			
-			baseInfo.getPrimaryParameters().put(PrimaryKeys.ARTICLES_BLOCKS_SIZE_UNCOMPRESSED_MIN.getKey(), this.minArticleBlockMemSize);
-			baseInfo.getPrimaryParameters().put(PrimaryKeys.MEDIA_RESOURCES_BLOCKS_SIZE_UNCOMPRESSED_MIN.getKey(), this.minMediaResourceBlockMemSize);
+			inBaseInfo.getPrimaryParameters().put(PrimaryKeys.ARTICLES_BLOCKS_SIZE_UNCOMPRESSED_MIN.getKey(), this.minArticleBlockMemSize);
+			inBaseInfo.getPrimaryParameters().put(PrimaryKeys.MEDIA_RESOURCES_BLOCKS_SIZE_UNCOMPRESSED_MIN.getKey(), this.minMediaResourceBlockMemSize);
 			
 			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_SECURITY_PROPERTIES_MD5.getKey(), "");
 			
-			Map<String, Object> params = new HashMap<String, Object>(baseInfo.getPrimaryParameters());
+			Map<String, Object> params = new HashMap<String, Object>(inBaseInfo.getPrimaryParameters());
 			LinkedHashMap<String, Object> orderedParams = new LinkedHashMap<String, Object>();
 			BasePropertiesInfo.PrimaryKeys[] pkArr = BasePropertiesInfo.PrimaryKeys.values();
 			for (int i = 0; i < pkArr.length; i++) {
@@ -220,13 +221,13 @@ public class FDBBaseWriteUnit {
 		
 		} else { // Dependent bases
 			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_SECURITY_PROPERTIES_MD5.getKey(), "");
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.FORMAT_NAME.getKey(), baseInfo.getFormatName());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.FORMAT_VERSION.getKey(), Integer.toString(baseInfo.getFormatVersion()));
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_VERSION.getKey(), baseInfo.getBaseVersion());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_TYPE.getKey(), baseInfo.getBaseType());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_DATE.getKey(), baseInfo.getBaseDate());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_NAME_SHORT.getKey(), baseInfo.getBaseShortName());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_NAME_FULL.getKey(), baseInfo.getBaseFullName());
+			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.FORMAT_NAME.getKey(), inBaseInfo.getFormatName());
+			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.FORMAT_VERSION.getKey(), Integer.toString(inBaseInfo.getFormatVersion()));
+			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_VERSION.getKey(), inBaseInfo.getBaseVersion());
+			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_TYPE.getKey(), inBaseInfo.getBaseType());
+			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_DATE.getKey(), inBaseInfo.getBaseDate());
+			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_NAME_SHORT.getKey(), inBaseInfo.getBaseShortName());
+			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_NAME_FULL.getKey(), inBaseInfo.getBaseFullName());
 			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_PARTS_CURRENT_NUMBER.getKey(), Integer.toString(baseIndex));
 		}
 		
@@ -381,7 +382,6 @@ public class FDBBaseWriteUnit {
 
 	public void flushArticles(int curArticlesNumber) throws SQLException, UnsupportedEncodingException, IOException {
 
-		long startTime = System.currentTimeMillis();
 		if (curWordsBatchSize != 0) {
 			insWordSt.executeBatch();
 			insWordSt.clearBatch();
@@ -389,8 +389,6 @@ public class FDBBaseWriteUnit {
 		insertBlockBatch(insArticleSt, articlesBuffer, curArticlesNumber, curArticleBlockMemSize);
 		articlesBuffer = new LinkedList<byte[]>();
 		curArticleBlockMemSize = 0;
-		
-		log.info("Articles flushed, total time: {}", System.currentTimeMillis() - startTime);
 		
 	}
 	
@@ -449,6 +447,8 @@ public class FDBBaseWriteUnit {
 			return insBlockSt;
 		}
 
+		long startTime = System.currentTimeMillis();
+		
 		int blockSize = block.size(); // Only for logging
 		
 		int blockMemSize = curBlockMemSize + 4 * block.size() + 8;
@@ -484,8 +484,8 @@ public class FDBBaseWriteUnit {
 		insBlockSt.execute();
 		
 		log.info(
-				"Block flushed, number: {}, uncomp size: {}, comp size: {}", 
-				new Object[] {blockSize, curBlockMemSize, compData.length}
+				"Block flushed, elements: {}, uncomp size: {}, comp size: {}, time: {}", 
+				new Object[] {blockSize, curBlockMemSize, compData.length, System.currentTimeMillis() - startTime}
 			);
 
 		return insBlockSt;

@@ -5,7 +5,7 @@
 	
 	<groupId>info.softex.dictionary</groupId>
 	<artifactId>dictan-core</artifactId>
-	<version>3.9</version>
+	<version>4.0</version>
 	<packaging>jar</packaging>
   
   	<properties>

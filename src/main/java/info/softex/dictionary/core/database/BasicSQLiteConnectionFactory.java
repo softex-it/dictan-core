@@ -68,18 +68,21 @@ public class BasicSQLiteConnectionFactory implements DatabaseConnectionFactory {
 
 //		http://www.xerial.org/trac/Xerial/wiki/SQLiteJDBC#RuninPure-Javamode
 		
-//		SQLiteConfig config = new SQLiteConfig();
-// 		config.setReadOnly(true);   
-//		config.setSharedCache(true);
-//		config.recursiveTriggers(true);
-		
+		//SQLiteConfig config = new SQLiteConfig();
+		//config.setSynchronous(SynchronousMode.OFF);
+		//config.enableRecursiveTriggers(false);
+		//config.setReadUncommited(true);
+		//config.setSharedCache(false);
+		//config.setTempStore(TempStore.DEFAULT);
+		//config.setReadOnly(true);  
+		//config.recursiveTriggers(true);
 		
 		Properties props = new Properties();
-		//props.put("incremental_vacuum", "-1");
-		props.put("synchronous", "0");
+		props.put("synchronous", "OFF");
+		
 		// Create a database connection
-//		Connection conn = DriverManager.getConnection("jdbc:sqlite:" + url);
 		Connection conn = DriverManager.getConnection("jdbc:sqlite:" + url, props);
+//		Connection conn = DriverManager.getConnection("jdbc:sqlite:" + url);
 //		Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbPath, config.toProperties());
 		
 		//conn.setTransactionIsolation(Connection.TRANSACTION_READ_UNCOMMITTED);

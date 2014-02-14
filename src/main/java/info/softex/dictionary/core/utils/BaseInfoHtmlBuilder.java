@@ -32,6 +32,7 @@ import java.util.HashMap;
  * @modified version 2.6, 09/17/2011
  * @modified version 3.7, 06/14/2013
  * @modified version 3.9, 12/05/2013
+ * @modified version 4.0, 02/09/2014
  *  
  * @author Dmitry Viktorov
  * 
@@ -50,6 +51,7 @@ public class BaseInfoHtmlBuilder {
 		NUMBER_OF_ABBREVIATIONS,
 		NUMBER_OF_RESOURCES,
 		ARTICLES_FORMATTING,
+		ARTICLES_FORMATTING_INJECT_WORDS,
 		ABBREV_FORMATTING,		
 		FILE_SIZE,
 		MEDIA_BASE,
@@ -71,6 +73,7 @@ public class BaseInfoHtmlBuilder {
 			put(NUMBER_OF_ABBREVIATIONS, "Number of Abbreviations");
 			put(NUMBER_OF_RESOURCES, "Number of Resources");
 			put(ARTICLES_FORMATTING, "Articles Formatting");
+			put(ARTICLES_FORMATTING_INJECT_WORDS, "Prefix Articles with Words");
 			put(ABBREV_FORMATTING, "Abbrev. Formatting");	
 			put(CODEPAGE, "Codepage");
 			put(LANGUAGES, "Languages");
@@ -90,6 +93,7 @@ public class BaseInfoHtmlBuilder {
 			put(NUMBER_OF_WORDS, "Количество Слов");
 			put(NUMBER_OF_RESOURCES, "Количество Ресурсов");
 			put(ARTICLES_FORMATTING, "Формат Статей");
+			put(ARTICLES_FORMATTING_INJECT_WORDS, "Префикс Статей Словами");
 			put(ABBREV_FORMATTING, "Формат Сокращений");
 			put(CODEPAGE, "Кодовая Страница");
 			put(LANGUAGES, "Языки");
@@ -128,6 +132,7 @@ public class BaseInfoHtmlBuilder {
 		//String formatVer = getString(StringKey.FORMAT_VERSION, lang) + ": <dvl>" + baseInfo.getFormatVersion() + "</dvl>";
 		
 		String artFormat = getString(StringKey.ARTICLES_FORMATTING, lang) + ": <dvl>" + baseInfo.getArticlesFormattingMode() + "</dvl>";
+		String artFormatIWM = getString(StringKey.ARTICLES_FORMATTING_INJECT_WORDS, lang) + ": <dvl>" + baseInfo.getArticlesFormattingInjectWordMode() + "</dvl>";
 		String abbrFormat = wrapRow(getString(StringKey.ABBREV_FORMATTING, lang), baseInfo.getAbbreviationsFormattingMode(), baseInfo.getAbbreviationsNumber() > 0);
 		
 		String createdBy = wrapRow(getString(StringKey.COMPILED_BY, lang), baseInfo.getCompilationCreatorName(), true);
@@ -188,7 +193,7 @@ public class BaseInfoHtmlBuilder {
 			
 			html += langDirections +
 				"<tr><td>" + artFormat + "</td></tr>" +
-				//"<tr><td>" + tbSize + "</td></tr>" +
+				"<tr><td>" + artFormatIWM + "</td></tr>" +
 				abbrFormat +
 				baseVersion +
 				codePage +

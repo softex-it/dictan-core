@@ -34,6 +34,7 @@ import java.util.TimeZone;
  * @modified version 2.6, 08/27/2011
  * @modified version 2.9, 11/13/2011
  * @modified version 3.9, 12/05/2013
+ * @modified version 4.0, 02/02/2014
  * 
  * @author Dmitry Viktorov
  * 
@@ -57,6 +58,7 @@ public class BasePropertiesInfo implements Cloneable {
 		
 		ARTICLES_NUMBER("articles.number"),
 		ARTICLES_FORMATTING_MODE("articles.formatting.mode"),
+		ARTICLES_FORMATTING_INJECT_WORD_MODE("articles.formatting.word.inject.mode"),
 		ARTICLES_BLOCKS_SIZE_UNCOMPRESSED_MIN("articles.blocks.size.uncompressed.min"),
 		
 		ABBREVIATIONS_NUMBER("abbreviations.number"),
@@ -100,13 +102,19 @@ public class BasePropertiesInfo implements Cloneable {
 
 	}
 	
-	public enum ArticlesFormattingModes {
+	public enum ArticlesFormattingMode {
 		DISABLED, 
 		FULL,
 		BASIC
 	}
+	
+	public enum ArticlesFormattingInjectWordMode { 
+		DISABLED,
+		ALWAYS,
+		AUTO
+	}
 
-	public enum AbbreviationsFormattingModes {
+	public enum AbbreviationsFormattingMode {
 		DISABLED,
 		FULL,
 		BASIC
@@ -121,12 +129,8 @@ public class BasePropertiesInfo implements Cloneable {
 	
 	protected LinkedHashMap<String, Object> primaryParams = new LinkedHashMap<String, Object>();
 	
-	//private int wordsNumber = 0;
-	//private int abbreviationsNumber = 0;
-	
 	// Media
 	private boolean mediaBaseSeparate = false;
-	//private int mediaResourcesNumber = 0;
 	private String mediaBaseVersion = null;
 	private String mediaFormatVersion = null;
 	private String mediaFormatName = null;
@@ -221,8 +225,12 @@ public class BasePropertiesInfo implements Cloneable {
 		primaryParams.put(PrimaryKeys.BASE_TYPE.getKey(), type.name());
 	}
 	
-	public void setArticlesFormattingMode(ArticlesFormattingModes mode) {
+	public void setArticlesFormattingMode(ArticlesFormattingMode mode) {
 		primaryParams.put(PrimaryKeys.ARTICLES_FORMATTING_MODE.getKey(), mode.name());
+	}
+	
+	public void setArticlesFormattingInjectWordMode(ArticlesFormattingInjectWordMode prependMode) {
+		primaryParams.put(PrimaryKeys.ARTICLES_FORMATTING_INJECT_WORD_MODE.getKey(), prependMode.name());
 	}
 
 	public String getArticlesFormattingMode() {
@@ -230,22 +238,30 @@ public class BasePropertiesInfo implements Cloneable {
 		if (mode instanceof String) {
 			
 			if ("MEDIA".equalsIgnoreCase((String)mode)) { // Except the obsolete MEDIA formatting
-				return ArticlesFormattingModes.BASIC.name();
+				return ArticlesFormattingMode.BASIC.name();
 			}
-			return ArticlesFormattingModes.valueOf(mode.toString()).name();
+			return ArticlesFormattingMode.valueOf(mode.toString()).name();
 		}
-		return ArticlesFormattingModes.FULL.name();
+		return ArticlesFormattingMode.FULL.name();
+	}
+	
+	public String getArticlesFormattingInjectWordMode() {
+		Object mode = primaryParams.get(PrimaryKeys.ARTICLES_FORMATTING_INJECT_WORD_MODE.getKey());
+		if (mode instanceof String) {
+			return ArticlesFormattingInjectWordMode.valueOf(mode.toString()).name();
+		}
+		return ArticlesFormattingInjectWordMode.AUTO.name();
 	}
 
 	public String getAbbreviationsFormattingMode() {
 		Object mode = primaryParams.get(PrimaryKeys.ABBREVIATIONS_FORMATTING_MODE.getKey());
 		if (mode instanceof String) {
-			return AbbreviationsFormattingModes.valueOf(mode.toString()).name();
+			return AbbreviationsFormattingMode.valueOf(mode.toString()).name();
 		}
-		return AbbreviationsFormattingModes.FULL.name();
+		return AbbreviationsFormattingMode.FULL.name();
 	}
 	
-	public void setAbbreviationsFormattingMode(AbbreviationsFormattingModes mode) {
+	public void setAbbreviationsFormattingMode(AbbreviationsFormattingMode mode) {
 		primaryParams.put(PrimaryKeys.ABBREVIATIONS_FORMATTING_MODE.getKey(), mode.name());
 	}
 	
@@ -466,8 +482,6 @@ public class BasePropertiesInfo implements Cloneable {
 		//2012-03-06T08:00:00,000Z
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss,SSS'Z'");
 		format.setCalendar(Calendar.getInstance(TimeZone.getTimeZone("GMT")));
-		//Date date = format.parse("2003-01-25 00:15:30");
-		//System.out.println(date);
 		return format.format(date);
 	}
  	
