@@ -65,7 +65,7 @@ public class ZDDynamicArticlesReader {
 	protected ZDDynamicListSet dynamicWords = null;
 	
 	protected Map<String, String> abbreviations = null;
-	protected int blockOffsets[] = null;
+	protected int[] blockOffsets = null;
 	protected BlockCache lastLoadedBlock = null;
 	protected ZDHeader zdHeader = null;
 	//protected final ProgressInfo progressInfo = new ProgressInfo();
