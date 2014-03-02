@@ -112,10 +112,8 @@ public class ArticleInfo implements Cloneable {
 	
 	}
 	
-	public String getFullArticle(String globalCSSPath, String fontName, String fontPath, int fontSize) {
-		return ArticleHtmlBuilder.buildHtmlArticle(
-			getArticle(), globalCSSPath, fontName, fontPath, fontSize
-		);
+	public String getFullArticle(String inGlobalCSSPath, FontInfo inFontInfo) {
+		return ArticleHtmlBuilder.buildHtmlArticle(getArticle(), inGlobalCSSPath, inFontInfo);
 	}
 	
 	public boolean isStrongTranslationRefernce() {

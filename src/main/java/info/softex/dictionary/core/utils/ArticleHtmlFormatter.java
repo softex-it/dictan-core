@@ -32,7 +32,8 @@ import org.slf4j.LoggerFactory;
  * 
  * @modified version 3.3, 06/15/2012
  * @modified version 3.5, 08/01/2012
- * @modified version 4.0, 02/06/2014 
+ * @modified version 4.0, 02/06/2014
+ * @modified version 4.1, 02/25/2014 
  * 
  * @author Dmitry Viktorov
  *
@@ -73,7 +74,7 @@ public class ArticleHtmlFormatter {
 			return a;
 		}
 		
-		//log.debug("Prepare Article | Input: {}", t);
+		// log.debug("Prepare Article | Input: {}", t);
 		
 		long t1 = System.currentTimeMillis();
 		
@@ -149,8 +150,15 @@ public class ArticleHtmlFormatter {
 		
 		// Rewrite paths to images and audio if media is available
 		if (isMediaAvailable) {
-			a = icReplaceAll(a, "\\<img(.+?)src\\s*=\\s*[\"'](.+?)[\"'](.*?)/{0,1}\\>", "<img$1src=\"" + BaseConstants.URLSEG_INTERNAL + "/" + BaseConstants.URLSEG_IMAGES + "/$2\"$3/>");
-			a = icReplaceAll(a, "\\<audio(.+?)src\\s*=\\s*[\"'](.+?)[\"'](.*?)/{0,1}\\>", "<audio$1src=\"" + BaseConstants.URLSEG_SOUNDS + "/$2\"$3/>"); // audio tag added in HTML5
+			
+			// Images
+			a = icReplaceAll(a, "<img(.+?)src\\s*=\\s*[\"'](.+?)[\"'](.*?)/{0,1}>", "<img$1src=\"" + BaseConstants.URLSEG_INTERNAL + "/" + BaseConstants.URLSEG_IMAGES + "/$2\"$3/>");
+			
+			 // Audio (added in HTML5)
+			a = icReplaceAll(a, "<audio(.+?)src\\s*=\\s*[\"'](.+?)[\"'](.*?)>(.*?)</audio>", 
+				"<a href=\"" + BaseConstants.URLSEG_SOUNDS + "/$2\"><img src=\"" + 
+				BaseConstants.URLSEG_EXTERNAL + "/" + BaseConstants.URLSEG_IMAGES + "/" + 
+				BaseConstants.RESOURCE_INT_IMG_SOUND + "\" border=\"0\" style=\"vertical-align:middle\"/></a>"); // audio tag added in HTML5
 		}
 		return a;
 		

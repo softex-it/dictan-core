@@ -29,19 +29,23 @@ package info.softex.dictionary.core.attributes;
 public class FontInfo {
 	
 	private String name = null;
-	
-	private String style = null;
-	
 	private String filePath = null;
+	
+	private String style = Style.normal.name();
+	private String weight = Weight.normal.name();
 	
 	private int size;
 	
 	public FontInfo() {}
 	
-	public FontInfo(String inFontName, String inFontStyle, int inFontSize) {
+	public FontInfo(String inFontName, int inFontSize) {
+		this(inFontName, inFontSize, null);
+	}
+	
+	public FontInfo(String inFontName, int inFontSize, String inFilePath) {
 		this.name = inFontName;
-		this.style = inFontStyle;
 		this.size = inFontSize;
+		this.filePath = inFilePath;
 	}
 
 	public String getName() {
@@ -56,8 +60,18 @@ public class FontInfo {
 		return style;
 	}
 
-	public void setStyle(String style) {
-		this.style = style;
+	public void setStyle(String inStyle) {
+		Style candStyle = Style.resolveStyle(inStyle);
+		this.style = candStyle != null ? candStyle.name() : Style.normal.name();
+	}
+
+	public String getWeight() {
+		return weight;
+	}
+
+	public void setWeight(String inWeight) {
+		Weight candWeight = Weight.resolveWeight(inWeight);
+		this.weight = candWeight != null ? candWeight.name() : Weight.normal.name();
 	}
 
 	public String getFilePath() {
@@ -75,10 +89,41 @@ public class FontInfo {
 	public void setSize(int size) {
 		this.size = size;
 	}
-
+	
 	@Override
 	public String toString() {
 		return "Name: " + name + ", Style: " + style + ", Size: " + size + ", File Path: " + filePath;
+	}
+	
+	public static enum Style {
+		normal,
+		italic,
+		oblique;
+		public static Style resolveStyle(String style) {
+			Style[] values = values();
+			for (int i = 0; i < values.length; i++) {
+				if (values[i].name().equalsIgnoreCase(style)) {
+					return values[i];
+				}
+			}
+			return null;
+		}
+	}
+	
+	public static enum Weight {
+		normal,
+		bold,
+		bolder,
+		lighter;
+		public static Weight resolveWeight(String weight) {
+			Weight[] values = values();
+			for (int i = 0; i < values.length; i++) {
+				if (values[i].name().equalsIgnoreCase(weight)) {
+					return values[i];
+				}
+			}
+			return null;
+		}
 	}
 
 }

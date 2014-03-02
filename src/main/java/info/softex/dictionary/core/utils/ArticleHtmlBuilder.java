@@ -19,6 +19,8 @@
 
 package info.softex.dictionary.core.utils;
 
+import info.softex.dictionary.core.attributes.FontInfo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +30,8 @@ import org.slf4j.LoggerFactory;
  * @modified version 1.4, 12/19/2010 
  * @modified version 1.9, 02/18/2011
  * @modified version 2.5, 07/10/2011 
- * @modified version 4.1, 02/03/2014 
+ * @modified version 4.0, 02/03/2014 
+ * @modified version 4.1, 02/17/2014 
  * 
  * @author Dmitry Viktorov
  *
@@ -37,33 +40,69 @@ public class ArticleHtmlBuilder {
 	
 	private static final Logger log = LoggerFactory.getLogger(ArticleHtmlBuilder.class.getSimpleName());
 
-	public static String buildHtmlArticle(String article, String inGlobalCSSPath, String fontName, String fontPath, int fontSize) {
+	public static String buildHtmlArticle(String article, String inGlobalCSSPath, FontInfo inFontInfo) {
 
 		String globalCSSLink = "";
 		if (inGlobalCSSPath != null && inGlobalCSSPath.length() > 0) {
 			globalCSSLink = "<link rel='stylesheet' type='text/css' href='" + inGlobalCSSPath + "' />";
 		}
 		
-		String style = "<style>body {text-align:left;padding:1pt;}</style>";
-		if (fontName != null && fontPath != null && fontSize > 0) {
-			
-			// src: url('file:///android_asset/transcr.ttf');
-			style = 
-				"<style>" +
-					"@font-face {font-family:'" + fontName + "';src:url('" + fontPath + "');" +
-					"} body {font-family:'" + fontName+ "';font-size:" + fontSize + "px;text-align:left;padding:1pt;}" +
-				"</style>";
-		}
+		String styles = buildFontStyles(inFontInfo);
 		
     	String articleHtml =
     		"<html><head>" +
-    		"<meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>" +
+    		"<meta http-equiv='content-type' content='text/html'/>" +
+    		"<meta charset='UTF-8'>" +
     		globalCSSLink +
-			style +
+			styles +
 	    	"</head><body>" + article + "</body></html>";
     	
     	return articleHtml;
 		
+	}
+	
+	protected static String buildFontStyles(FontInfo fontInfo) {
+		String fontSizeString = fontInfo.getSize() > 0 ? fontInfo.getSize() + "px" : "100%";
+		String fontName = fontInfo.getName();
+		String fontPath = fontInfo.getFilePath();
+		
+		String fontAttr = "font-size:" + fontSizeString + 
+			";font-weight:" + fontInfo.getWeight() + ";font-style:" + fontInfo.getStyle();
+		
+		String style = "<style>";
+		if (fontPath != null) {
+			if (fontName == null) {
+				fontName = "Default Application Font";
+			}
+			style += "@font-face {font-family:'" + fontName + "';src:url('" + fontPath + "');}";
+			style += " body {font-family:'" + fontName + "';" + fontAttr + ";text-align:left;padding:1pt;}";
+		} else if (fontName != null) {
+//			String fontFamily = resolveFontFamily(fontName);
+//			if (fontFamily == null) {
+//				fontFamily = fontName;
+//			}
+			style += "body {font-family:'" + fontName + "';" + fontAttr + ";text-align:left;padding:1pt;}";
+		} else {
+			style += "body {" + fontAttr + ";text-align:left;padding:1pt;}";
+			log.debug("Article font is not set");
+		}
+
+		style += "</style>";
+		
+		return style;
+	}
+	
+	protected static String resolveFontFamily(String fontName) {
+		String lcFontName = fontName.toLowerCase();
+		String fontFamily = null;
+		if (lcFontName.contains("sans mono")) {
+			fontFamily = "monospace";
+		} else if (lcFontName.contains("sans")) {
+			fontFamily = "sans-serif";
+		} else if (lcFontName.contains("serif")) {
+			fontFamily = "serif";
+		}
+		return fontFamily;
 	}
 	
 }
