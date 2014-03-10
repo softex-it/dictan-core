@@ -29,8 +29,8 @@ import info.softex.dictionary.core.attributes.MediaResourceInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.collation.AbstractCollatorFactory;
 import info.softex.dictionary.core.database.DatabaseConnectionFactory;
-import info.softex.dictionary.core.formats.commons.BaseFormatException;
-import info.softex.dictionary.core.formats.commons.BaseReader;
+import info.softex.dictionary.core.formats.api.BaseFormatException;
+import info.softex.dictionary.core.formats.api.BaseReader;
 import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
 
 import java.io.File;

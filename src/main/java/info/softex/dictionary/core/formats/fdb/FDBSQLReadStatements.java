@@ -23,6 +23,8 @@ package info.softex.dictionary.core.formats.fdb;
  * 
  * @since version 2.6, 09/15/2011
  * 
+ * @modified version 4.2, 03/05/2014
+ * 
  * @author Dmitry Viktorov
  * 
  */
@@ -48,6 +50,11 @@ public class FDBSQLReadStatements {
 	
 	public static final String SELECT_WORD_ID_BY_WORD =	
 		"SELECT word_id FROM " + FDBTables.words + " WHERE word=(?)";
+
+	public static final String SELECT_ARTICLE_BLOCK_BY_ID =
+		"SELECT article_block_id, article_block FROM " + FDBTables.article_blocks +
+		" WHERE article_block_id=(SELECT MAX(article_block_id) FROM " +
+		FDBTables.article_blocks + " WHERE article_block_id<=(?))";
 	
 	public static final String SELECT_MEDIA_RESOURCE_ID_BY_MEDIA_RESOURCE_KEY =	
 		"SELECT media_resource_id from " + FDBTables.media_resource_keys + " WHERE media_resource_key=?"; 

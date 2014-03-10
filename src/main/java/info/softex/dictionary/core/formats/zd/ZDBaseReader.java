@@ -32,8 +32,8 @@ import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.collation.AbstractCollatorFactory;
 import info.softex.dictionary.core.collation.CollationRulesFactory;
 import info.softex.dictionary.core.collation.CollationRulesFactory.SimpleCollationProperties;
-import info.softex.dictionary.core.formats.commons.BaseFormatException;
-import info.softex.dictionary.core.formats.commons.BaseReader;
+import info.softex.dictionary.core.formats.api.BaseFormatException;
+import info.softex.dictionary.core.formats.api.BaseReader;
 import info.softex.dictionary.core.regional.RegionalResolver;
 import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
 

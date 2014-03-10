@@ -19,7 +19,7 @@
 
 package info.softex.dictionary.core.formats.zd;
 
-import info.softex.dictionary.core.formats.commons.BaseFormatException;
+import info.softex.dictionary.core.formats.api.BaseFormatException;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

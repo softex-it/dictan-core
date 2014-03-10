@@ -30,7 +30,7 @@ import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
 import info.softex.dictionary.core.attributes.ProgressInfo;
 import info.softex.dictionary.core.database.DatabaseConnectionFactory;
-import info.softex.dictionary.core.formats.commons.BaseWriter;
+import info.softex.dictionary.core.formats.api.BaseWriter;
 
 import java.io.File;
 import java.io.IOException;

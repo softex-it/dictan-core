@@ -32,11 +32,12 @@ import java.lang.ref.SoftReference;
  * @modified version 2.5, 07/24/2011
  * @modified version 2.6, 09/20/2011
  * @modified version 4.0, 02/02/2014
+ * @modified version 4.2, 03/07/2014
  * 
  * @author Dmitry Viktorov
  *
  */
-public class ArticleInfo implements Cloneable {
+public class ArticleInfo implements Cloneable, KeyValueInfo<String> {
 	
 	public static enum RT {
 		STRONG,
@@ -77,12 +78,12 @@ public class ArticleInfo implements Cloneable {
 		return null;
 	}
 	
-	public void setArticle(String trans) {
+	public void setArticle(String inArticle) {
 		if (referenceType == RT.STRONG) {
-			article = trans;
+			article = inArticle;
 			articleSoftRef = null;
 		} else if (referenceType == RT.SOFT) {
-			articleSoftRef = new SoftReference<String>(trans);
+			articleSoftRef = new SoftReference<String>(inArticle);
 			article = null;
 		}
 	}
@@ -137,6 +138,26 @@ public class ArticleInfo implements Cloneable {
 	
 	public boolean isHttpRelated() {
 		return wordInfo == null ? false : wordInfo.isHttpRelated();
+	}
+
+	@Override
+	public String getKey() {
+		return getWordInfo().getWord();
+	}
+
+	@Override
+	public void setKey(String key) {
+		getWordInfo().setWord(key);
+	}
+
+	@Override
+	public String getValue() {
+		return getArticle();
+	}
+
+	@Override
+	public void setValue(String value) {
+		setArticle(value);
 	}
 	
 }

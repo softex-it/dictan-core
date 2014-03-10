@@ -4,7 +4,7 @@ import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.database.BasicSQLiteConnectionFactory;
-import info.softex.dictionary.core.formats.commons.BaseWriter;
+import info.softex.dictionary.core.formats.api.BaseWriter;
 
 
 public class FDBase {

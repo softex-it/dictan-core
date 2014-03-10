@@ -483,10 +483,10 @@ public class FDBBaseWriteUnit {
 		insBlockSt.setBytes(2, compData);
 		insBlockSt.execute();
 		
-		log.info(
-				"Block flushed, elements: {}, uncomp size: {}, comp size: {}, time: {}", 
-				new Object[] {blockSize, curBlockMemSize, compData.length, System.currentTimeMillis() - startTime}
-			);
+		log.debug(
+			"Block flushed, elements: {}, uncomp size: {}, comp size: {}, time: {}", 
+			new Object[] {blockSize, curBlockMemSize, compData.length, System.currentTimeMillis() - startTime}
+		);
 
 		return insBlockSt;
 	}

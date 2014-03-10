@@ -17,7 +17,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.commons;
+package info.softex.dictionary.core.formats.api;
 
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
@@ -37,11 +37,14 @@ import java.util.Set;
  * @modified version 2.0, 03/10/2011
  * @modified version 2.5, 07/13/2011
  * @modified version 2.6, 08/21/2011
+ * @modified version 4.2, 03/06/2014
  *  
  * @author Dmitry Viktorov
  * 
  */
 public interface BaseReader {
+	
+	public static final String UTF8 = "UTF-8";
 	
 	public void close() throws Exception;
 	

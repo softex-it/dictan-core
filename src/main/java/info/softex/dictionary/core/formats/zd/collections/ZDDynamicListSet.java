@@ -23,7 +23,7 @@ import info.softex.dictionary.core.collections.AbstractDynamicListSet;
 import info.softex.dictionary.core.collections.BasicCacheBlock;
 import info.softex.dictionary.core.collections.CacheBlockReferenceTypes;
 import info.softex.dictionary.core.collections.RestoreBlockException;
-import info.softex.dictionary.core.formats.commons.BaseFormatException;
+import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.zd.ZDConstants;
 import info.softex.dictionary.core.formats.zd.ZDReadUtils;
 import info.softex.dictionary.core.formats.zd.io.zip.TIIStream;

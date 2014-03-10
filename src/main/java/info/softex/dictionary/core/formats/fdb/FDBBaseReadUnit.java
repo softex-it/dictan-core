@@ -26,7 +26,7 @@ import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFo
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.collation.AbstractCollatorFactory;
-import info.softex.dictionary.core.formats.commons.BaseFormatException;
+import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.fdb.collections.FDBDynamicListSet;
 import info.softex.dictionary.core.io.SmartInflaterInputStream;
 
@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
  * @since version 2.9, 11/11/2011
  * 
  * @modified version 4.0, 02/04/2014
+ * @modified version 4.2, 03/05/2014
  * 
  * @author Dmitry Viktorov
  * 
@@ -79,6 +80,7 @@ public class FDBBaseReadUnit {
 	protected final int wordListBlockSize;
 	
 	protected PreparedStatement selWordIdByWordSt;
+	protected PreparedStatement selArticleBlockByIdSt;
 	protected PreparedStatement selMediaResourceIdByKey;
 	protected PreparedStatement selMediaResourceById; 
 	
@@ -219,9 +221,10 @@ public class FDBBaseReadUnit {
     	try {
     	
     		// Init Prepared Statements
-    		this.selWordIdByWordSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_ID_BY_WORD);
-    		this.selMediaResourceIdByKey = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_ID_BY_MEDIA_RESOURCE_KEY);
-    		this.selMediaResourceById = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BY_MEDIA_RESOURCE_ID);
+    		selWordIdByWordSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_ID_BY_WORD);
+    		selArticleBlockByIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_ARTICLE_BLOCK_BY_ID);
+    		selMediaResourceIdByKey = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_ID_BY_MEDIA_RESOURCE_KEY);
+    		selMediaResourceById = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BY_MEDIA_RESOURCE_ID);
     		
     		long s1 = System.currentTimeMillis();
     		
@@ -430,13 +433,15 @@ public class FDBBaseReadUnit {
 		}
 		
 		try {
-			Statement st = connection.createStatement();
-			ResultSet rs = null;
 						
-			rs = st.executeQuery(
-				"SELECT article_block_id, article_block FROM " + FDBTables.article_blocks + 
-				" WHERE article_block_id=(SELECT MAX(article_block_id) FROM " + 
-				FDBTables.article_blocks + " WHERE article_block_id<=" + wordInfo.getId() + ")");
+			selArticleBlockByIdSt.setInt(1, wordInfo.getId());
+			ResultSet rs = selArticleBlockByIdSt.executeQuery();
+
+//			Statement st = connection.createStatement();			
+//			ResultSet rs = st.executeQuery(
+//				"SELECT article_block_id, article_block FROM " + FDBTables.article_blocks + 
+//				" WHERE article_block_id=(SELECT MAX(article_block_id) FROM " + 
+//				FDBTables.article_blocks + " WHERE article_block_id<=" + wordInfo.getId() + ")");
 
 			if (rs.next()) {
 				

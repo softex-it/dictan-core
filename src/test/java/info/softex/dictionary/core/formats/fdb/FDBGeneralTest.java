@@ -10,7 +10,7 @@ import info.softex.dictionary.core.collation.BasicCollatorFactory;
 import info.softex.dictionary.core.collation.CollationRulesFactory;
 import info.softex.dictionary.core.collation.CollationRulesFactory.SimpleCollationProperties;
 import info.softex.dictionary.core.database.BasicSQLiteConnectionFactory;
-import info.softex.dictionary.core.formats.commons.BaseWriter;
+import info.softex.dictionary.core.formats.api.BaseWriter;
 
 import java.io.File;
 import java.text.Collator;

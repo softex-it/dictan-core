@@ -17,7 +17,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.source.io;
+package info.softex.dictionary.core.formats.source;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;

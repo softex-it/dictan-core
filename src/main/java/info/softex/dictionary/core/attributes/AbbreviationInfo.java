@@ -24,11 +24,12 @@ package info.softex.dictionary.core.attributes;
  * @since version 2.5, 07/13/2011
  * 
  * @modified version 2.6, 10/15/2011
+ * @modified version 4.2, 03/07/2014
  * 
  * @author Dmitry Viktorov
  *
  */
-public class AbbreviationInfo {
+public class AbbreviationInfo implements KeyValueInfo<String> {
 
 	private String abbreviation = null;
 	private String definition = null;
@@ -60,6 +61,26 @@ public class AbbreviationInfo {
 	@Override
 	public String toString() {
 		return "AbbreviationInfo: " + abbreviation + "=" + definition;
+	}
+
+	@Override
+	public String getKey() {
+		return getAbbreviation();
+	}
+
+	@Override
+	public void setKey(String key) {
+		setAbbreviation(key);
+	}
+
+	@Override
+	public String getValue() {
+		return getDefinition();
+	}
+
+	@Override
+	public void setValue(String value) {
+		setDefinition(value);
 	}
 	
 }

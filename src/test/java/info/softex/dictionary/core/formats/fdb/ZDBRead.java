@@ -1,6 +1,6 @@
 package info.softex.dictionary.core.formats.fdb;
 
-import info.softex.dictionary.core.formats.commons.BaseFormatException;
+import info.softex.dictionary.core.formats.api.BaseFormatException;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

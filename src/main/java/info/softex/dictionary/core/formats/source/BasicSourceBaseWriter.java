@@ -28,7 +28,7 @@ import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
 import info.softex.dictionary.core.attributes.ProgressInfo;
-import info.softex.dictionary.core.formats.commons.BaseWriter;
+import info.softex.dictionary.core.formats.api.BaseWriter;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
  * @since version 3.4, 07/02/2012
  * 
  * @modified version 4.0, 02/08/2014
+ * @modified version 4.2, 03/08/2014
  * 
  * @author Dmitry Viktorov
  *
@@ -79,7 +80,7 @@ public class BasicSourceBaseWriter implements BaseWriter {
 	protected int articleNumber = 0;
 	protected int mediaResourcesNumber = 0;
 	
-	public BasicSourceBaseWriter(File outDirectory, String baseName) throws IOException {
+	public BasicSourceBaseWriter(File outDirectory) throws IOException {
 		if (outDirectory == null || outDirectory.exists() && !outDirectory.isDirectory()) {
 			throw new IOException("The target must be a directory, not a file!");
 		}
@@ -125,7 +126,7 @@ public class BasicSourceBaseWriter implements BaseWriter {
 
 	@Override
 	public void saveArticleInfo(ArticleInfo articleInfo) throws Exception {
-		artWriter.write(articleInfo.getWordInfo().getWord() + "  " + articleInfo.getArticle() + "\r\n");
+		artWriter.write(articleInfo.getWordInfo().getWord() + SourceReaderUtils.SOURCE_DELIMITER + articleInfo.getArticle() + "\r\n");
 		articleNumber++;
 		updateProgress();
 	}

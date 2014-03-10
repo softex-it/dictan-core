@@ -17,7 +17,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.commons;
+package info.softex.dictionary.core.formats.api;
 
 /**
  * 
