@@ -115,14 +115,14 @@ public class SourceReaderUtils {
 				m += kvInfo.getKey().length();
 
 				if (i % 10000 == 0) {
-					log.info("Articles No: {}, Keys Length: {}, Pointer: {}", i, m, raf.getFilePointer());
+					log.info("Key No: {}, Keys Length: {}, Pointer: {}", i, m, raf.getFilePointer());
 				}
 				
 				keys.add(kvInfo.getKey());
 				pointerData.add(raf.getFilePointer());
 				
 			} else {
-				log.warn("Article line is empty or inconsistent #{}, skipping: {}", i, line);
+				log.warn("Line {} is empty or inconsistent, skipping", i, line);
 			}
 
 		}
