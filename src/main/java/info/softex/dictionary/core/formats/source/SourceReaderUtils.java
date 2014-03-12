@@ -115,7 +115,7 @@ public class SourceReaderUtils {
 				m += kvInfo.getKey().length();
 
 				if (i % 10000 == 0) {
-					log.info("I " + i + ", M " + m + ", P " + raf.getFilePointer());
+					log.info("Articles No: {}, Keys Length: {}, Pointer: {}", i, m, raf.getFilePointer());
 				}
 				
 				keys.add(kvInfo.getKey());
