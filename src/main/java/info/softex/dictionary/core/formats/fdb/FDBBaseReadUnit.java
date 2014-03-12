@@ -82,19 +82,27 @@ public class FDBBaseReadUnit {
 	protected PreparedStatement selWordIdByWordSt;
 	protected PreparedStatement selArticleBlockByIdSt;
 	protected PreparedStatement selMediaResourceIdByKey;
-	protected PreparedStatement selMediaResourceById; 
+	protected PreparedStatement selMediaResourceBlockById; 
 	
 	protected final AbstractCollatorFactory collatorFactory;
 	
 	protected final boolean main;
 	protected boolean loaded;
 	
-	public FDBBaseReadUnit(boolean main, String baseFilePath, Connection connection, int wordListBlockSize, AbstractCollatorFactory collatorFactory) {
+	public FDBBaseReadUnit(boolean main, String baseFilePath, Connection connection, int wordListBlockSize, AbstractCollatorFactory collatorFactory) throws SQLException {
 		this.main = main;
 		this.baseFilePath = baseFilePath;
 		this.connection = connection;
 		this.wordListBlockSize = wordListBlockSize;
 		this.collatorFactory = collatorFactory;
+		
+		// Init Prepared Statements
+		if (main) {
+			selWordIdByWordSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_ID_BY_WORD);
+			selMediaResourceIdByKey = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_ID_BY_MEDIA_RESOURCE_KEY);
+		}
+		selMediaResourceBlockById = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_BY_MEDIA_RESOURCE_ID);
+		selArticleBlockByIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_ARTICLE_BLOCK_BY_ID);
 	}
 	
 	private static final Logger log = LoggerFactory.getLogger(FDBBaseReadUnit.class.getSimpleName());
@@ -219,12 +227,6 @@ public class FDBBaseReadUnit {
 	public void load() throws BaseFormatException {
 		   
     	try {
-    	
-    		// Init Prepared Statements
-    		selWordIdByWordSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_ID_BY_WORD);
-    		selArticleBlockByIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_ARTICLE_BLOCK_BY_ID);
-    		selMediaResourceIdByKey = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_ID_BY_MEDIA_RESOURCE_KEY);
-    		selMediaResourceById = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BY_MEDIA_RESOURCE_ID);
     		
     		long s1 = System.currentTimeMillis();
     		
@@ -323,8 +325,8 @@ public class FDBBaseReadUnit {
 
 			byte[] resourceData = null;
 			
-			selMediaResourceById.setInt(1, resourceId);
-			ResultSet resRS = selMediaResourceById.executeQuery();
+			selMediaResourceBlockById.setInt(1, resourceId);
+			ResultSet resRS = selMediaResourceBlockById.executeQuery();
 			
 			if (resRS.next()) {
 				

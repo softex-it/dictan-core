@@ -59,7 +59,7 @@ public class FDBSQLReadStatements {
 	public static final String SELECT_MEDIA_RESOURCE_ID_BY_MEDIA_RESOURCE_KEY =	
 		"SELECT media_resource_id from " + FDBTables.media_resource_keys + " WHERE media_resource_key=?"; 
 	
-	public static final String SELECT_MEDIA_RESOURCE_BY_MEDIA_RESOURCE_ID =	
+	public static final String SELECT_MEDIA_RESOURCE_BLOCK_BY_MEDIA_RESOURCE_ID =	
 		"SELECT media_resource_block_id, media_resource_block FROM " + FDBTables.media_resource_blocks + 
 		" WHERE media_resource_block_id=(SELECT MAX(media_resource_block_id) FROM " + 
 		FDBTables.media_resource_blocks + " WHERE media_resource_block_id<=(?))";
