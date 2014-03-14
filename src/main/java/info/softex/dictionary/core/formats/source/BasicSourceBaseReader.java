@@ -69,6 +69,8 @@ public class BasicSourceBaseReader implements BaseReader {
 	protected SourceFileReader articleReader;
 	protected SourceFileReader abbrevReader;
 	
+	protected List<String> words;
+	protected Set<String> abbrevKeys;
 	protected Set<String> mediaResources;
 	
 	protected final String mediaDirectoryPath;
@@ -135,21 +137,27 @@ public class BasicSourceBaseReader implements BaseReader {
 		
 		// Words & Articles
 		articleReader.load(false);
-		
-		// Abbreviations
-		abbrevReader.load(true);
+		words = articleReader.getLineKeys();
 
 		// Media Resources
 		mediaResources = loadMediaResources(mediaDirectory);
 		
-		baseInfo.setArticlesNumber(articleReader.getLineKeys().size());
-		baseInfo.setAbbreviationsNumber(abbrevReader.getLineKeys().size());
-		baseInfo.setMediaResourcesNumber(mediaResources.size());
+		// Abbreviations
+		abbrevKeys = new HashSet<String>();
+		baseInfo.setAbbreviationsNumber(0);
+		if (abbrevReader != null) {
+			abbrevReader.load(true);
+			abbrevKeys = abbrevReader.getLineMapper().keySet();
+			baseInfo.setAbbreviationsNumber(abbrevReader.getLineKeys().size());
+		}
 		
 		// Set abbreviations formating to disabled if there are no abbreviations
 		if (baseInfo.getAbbreviationsNumber() == 0) {
 			baseInfo.setAbbreviationsFormattingMode(AbbreviationsFormattingMode.DISABLED);
 		}
+		
+		baseInfo.setArticlesNumber(articleReader.getLineKeys().size());
+		baseInfo.setMediaResourcesNumber(mediaResources.size());
 		
 		return baseInfo;
 	}
@@ -207,7 +215,7 @@ public class BasicSourceBaseReader implements BaseReader {
 
 	@Override
 	public Set<String> getAbbreviationKeys() throws BaseFormatException {
-		return abbrevReader.getLineMapper().keySet();
+		return abbrevKeys;
 	}
 
 	@Override
@@ -229,7 +237,7 @@ public class BasicSourceBaseReader implements BaseReader {
 
 	@Override
 	public List<String> getWords() throws BaseFormatException {
-		return articleReader.getLineKeys();
+		return words;
 	}
 
 	@Override
