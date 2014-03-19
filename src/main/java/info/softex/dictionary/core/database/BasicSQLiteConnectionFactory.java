@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  */
 public class BasicSQLiteConnectionFactory implements DatabaseConnectionFactory {
 	
-	private static final Logger log = LoggerFactory.getLogger(BasicSQLiteConnectionFactory.class.getSimpleName());
+	private static final Logger log = LoggerFactory.getLogger(BasicSQLiteConnectionFactory.class);
 	
 	protected static final String DEFAULT_JDBC_DRIVER = "org.sqlite.JDBC";
 	
@@ -92,7 +92,7 @@ public class BasicSQLiteConnectionFactory implements DatabaseConnectionFactory {
 			throw new SQLException("Couldn't find the JDBC Driver: " + driverClassName + "; Reason: " + e.getMessage());
 		}
 
-//		http://www.xerial.org/trac/Xerial/wiki/SQLiteJDBC#RuninPure-Javamode
+		// http://www.xerial.org/trac/Xerial/wiki/SQLiteJDBC#RuninPure-Javamode
 		
 		//SQLiteConfig config = new SQLiteConfig();
 		//config.setSynchronous(SynchronousMode.OFF);
