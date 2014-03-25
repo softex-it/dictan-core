@@ -44,9 +44,27 @@ public class BasicSQLiteConnectionFactory implements DatabaseConnectionFactory {
 	
 	protected static final String DEFAULT_JDBC_DRIVER = "org.sqlite.JDBC";
 	
-	protected static final String SYSPROP_SQLITE_LIB_NAME_KEY = "org.sqlite.lib.name";
-	protected static final String SYSPROP_SQLITE_LIB_NAME_VALUE = "sqlitejdbc";
-	protected static final String SYSPROP_SQLITE_LIB_NAME_EXT = ".jnilib";
+	protected static final String SYSPROP_SQLITE_LIB_KEY = "org.sqlite.lib.name";
+	protected static final String SYSPROP_SQLITE_LIB_MAPPING_KEY = "sqlitejdbc";
+	protected static final String SYSPROP_SQLITE_LIB_NAME = "libsqlitejdbc.jnilib";
+
+	protected static final String OS_NAME_KEY = "os.name";
+	protected static final String OS_MAC = "mac";
+	
+	// Fix the change at Java 7 at OS X where mapping to .jnilib was changed to .dylib
+	static {
+		if (System.getProperty(OS_NAME_KEY).toLowerCase().indexOf(OS_MAC) >= 0) {
+		
+			String sqliteLibName = System.mapLibraryName(SYSPROP_SQLITE_LIB_MAPPING_KEY);
+			log.debug("SQLite native library name: {}", sqliteLibName);
+			
+			if (sqliteLibName != null && !sqliteLibName.equals(SYSPROP_SQLITE_LIB_NAME)) {
+				log.info("SQLite native library name changed from {} to: {}", sqliteLibName, SYSPROP_SQLITE_LIB_NAME);
+				System.setProperty(SYSPROP_SQLITE_LIB_KEY, SYSPROP_SQLITE_LIB_NAME);
+			}
+			
+		}
+	}
 	
 	/**
 	 * 
@@ -71,22 +89,7 @@ public class BasicSQLiteConnectionFactory implements DatabaseConnectionFactory {
 
 		// Load the sqlite-JDBC driver using the current class loader
 		try {
-			
 			Class.forName(driverClassName);
-			
-			// Fix the change at Java 7 at OS X where mapping to .jnilib was changed to .dylib
-			String sqliteFullLibName = System.mapLibraryName(SYSPROP_SQLITE_LIB_NAME_VALUE);
-			log.debug("SQLite native library name: {}", sqliteFullLibName);
-			
-			if (sqliteFullLibName != null && !sqliteFullLibName.endsWith(SYSPROP_SQLITE_LIB_NAME_EXT)) {
-				int dotInd = sqliteFullLibName.lastIndexOf(".");
-				if (dotInd > 0) {
-					sqliteFullLibName = sqliteFullLibName.substring(0, dotInd) + SYSPROP_SQLITE_LIB_NAME_EXT;
-					log.info("SQLite native library name changed to: {}", sqliteFullLibName);
-					System.setProperty(SYSPROP_SQLITE_LIB_NAME_KEY, sqliteFullLibName);
-				}
-			}
-			
 		} catch (ClassNotFoundException e) {
 			log.error("Error", e);
 			throw new SQLException("Couldn't find the JDBC Driver: " + driverClassName + "; Reason: " + e.getMessage());

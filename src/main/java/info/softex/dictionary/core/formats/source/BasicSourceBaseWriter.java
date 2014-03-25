@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @modified version 4.0, 02/08/2014
  * @modified version 4.2, 03/08/2014
+ * @modified version 4.4, 03/17/2014
  * 
  * @author Dmitry Viktorov
  *
@@ -90,15 +91,12 @@ public class BasicSourceBaseWriter implements BaseWriter {
 	@Override
 	public void createBase(String... params) throws Exception {
 		
+		// Create environment
 		outDirectory.mkdirs();
-		
 		mediaDirectory = new File(outDirectory.getAbsolutePath() + File.separator + BasicSourceFileNames.DIRECTORY_MEDIA);
 		mediaDirectory.mkdirs();
-	
-		artWriter = createWriter(BasicSourceFileNames.FILE_ARTICLES);
-		abbWriter = createWriter(BasicSourceFileNames.FILE_ABBREVIATIONS);
-		debugWriter = createWriter(BasicSourceFileNames.FILE_DEBUG);
 		
+		createWriters();
 	}
 
 	@Override
@@ -126,16 +124,12 @@ public class BasicSourceBaseWriter implements BaseWriter {
 
 	@Override
 	public void saveArticleInfo(ArticleInfo articleInfo) throws Exception {
-		artWriter.write(articleInfo.getWordInfo().getWord() + SourceReaderUtils.SOURCE_DELIMITER + articleInfo.getArticle() + "\r\n");
-		articleNumber++;
-		updateProgress();
+		saveArticleLine(articleInfo.getWordInfo().getWord() + SourceReaderUtils.SOURCE_DELIMITER + articleInfo.getArticle() + "\r\n");
 	}
 
 	@Override
-	public void saveAbbreviation(AbbreviationInfo abbreviationInfo) throws Exception {
-		abbWriter.write(abbreviationInfo.getAbbreviation() + "  " + abbreviationInfo.getDefinition() + "\r\n");
-		abbreviationsNumber++;
-		updateProgress();
+	public void saveAbbreviationInfo(AbbreviationInfo abbreviationInfo) throws Exception {
+		saveAbbreviationLine(abbreviationInfo.getAbbreviation() + SourceReaderUtils.SOURCE_DELIMITER + abbreviationInfo.getDefinition() + "\r\n");
 	}
 
 	@Override
@@ -185,7 +179,25 @@ public class BasicSourceBaseWriter implements BaseWriter {
 		progressInfo.addObserver(observer);
 	}
 	
-	private Writer createWriter(String fileName) throws Exception {
+	protected void createWriters() throws Exception {
+		artWriter = createWriter(BasicSourceFileNames.FILE_ARTICLES);
+		abbWriter = createWriter(BasicSourceFileNames.FILE_ABBREVIATIONS);
+		debugWriter = createWriter(BasicSourceFileNames.FILE_DEBUG);
+	}
+	
+	protected void saveArticleLine(String inArticleLine) throws Exception {
+		artWriter.write(inArticleLine);
+		articleNumber++;
+		updateProgress();
+	}
+
+	protected void saveAbbreviationLine(String inAbbrevLine) throws Exception {
+		abbWriter.write(inAbbrevLine);
+		abbreviationsNumber++;
+		updateProgress();
+	}
+	
+	protected Writer createWriter(String fileName) throws Exception {
 		File abbFile = new File(outDirectory.getAbsolutePath() + File.separator + fileName);
 		if (abbFile.exists()) {
 			abbFile.delete();

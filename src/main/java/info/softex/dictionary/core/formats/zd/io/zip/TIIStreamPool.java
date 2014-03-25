@@ -110,7 +110,8 @@ public class TIIStreamPool {
 			}
 		}
 		
-		log.info("Streams: {}; Reading Threads: {}; Returning Threads: {}", new Object[] {streamsNumber, readThreadNumber, returnThreadNumber});
+		log.debug("Streams: {}; Reading Threads: {}; Returning Threads: {}", streamsNumber, readThreadNumber, returnThreadNumber);
+		
 	}
 	
 	public TIIStream getIfCloser(long position, long curPosition) {

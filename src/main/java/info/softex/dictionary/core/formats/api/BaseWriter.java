@@ -32,6 +32,8 @@ import info.softex.dictionary.core.attributes.MediaResourceInfo;
 /**
  * 
  * @since version 2.6, 08/21/2011
+ * 
+ * @since modified 4.4, 03/17/2014
  *  
  * @author Dmitry Viktorov
  * 
@@ -47,7 +49,7 @@ public interface BaseWriter {
 	public LanguageDirectionsInfo getLanguageDirectionsInfo();
 	
 	public void saveArticleInfo(ArticleInfo articleInfo) throws Exception;
-	public void saveAbbreviation(AbbreviationInfo abbreviationInfo) throws Exception;
+	public void saveAbbreviationInfo(AbbreviationInfo abbreviationInfo) throws Exception;
 	public void saveBaseResourceInfo(BaseResourceInfo baseResourceInfo) throws Exception;
 	public void saveMediaResourceInfo(MediaResourceInfo mediaResourceInfo) throws Exception;
 	

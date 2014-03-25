@@ -132,8 +132,11 @@ public class FDBBaseWriter implements BaseWriter {
 	@Override
 	public void saveArticleInfo(ArticleInfo articleInfo) throws Exception {
 		
-		mainBase.saveWord(articleInfo.getWordInfo().getWord().trim(), wordsNumber);
+		if (wordsNumber == 0) {
+			saveArticlesBlockIdStart4BaseIndex(activeBase.getBaseIndex());
+		}
 		
+		mainBase.saveWord(articleInfo.getWordInfo().getWord().trim(), wordsNumber);
 		boolean isFlashed = activeBase.saveArticle(articleInfo.getArticle().trim(), wordsNumber++);
 		
 		updateProgress();
@@ -146,6 +149,11 @@ public class FDBBaseWriter implements BaseWriter {
 	
 	@Override
 	public void saveMediaResourceInfo(MediaResourceInfo mediaResourceInfo) throws Exception {
+		
+		if (mediaResourcesNumber == 0) {
+			saveMediaResourcesBlockIdStart4BaseIndex(activeBase.getBaseIndex());
+		}
+		
 		mainBase.saveMediaResourceKey(mediaResourceInfo.getKey().getResourceKey(), mediaResourcesNumber);
 		boolean isFlashed = activeBase.saveMediaResource(mediaResourceInfo.getByteArray(), mediaResourcesNumber++);
 		
@@ -163,7 +171,7 @@ public class FDBBaseWriter implements BaseWriter {
 	}
 	
 	@Override
-	public void saveAbbreviation(AbbreviationInfo abbreviationInfo) throws Exception {
+	public void saveAbbreviationInfo(AbbreviationInfo abbreviationInfo) throws Exception {
 		mainBase.saveAbbreviation(abbreviationInfo);
 		abbreviationsNumber++;
 		updateProgress();
@@ -224,28 +232,25 @@ public class FDBBaseWriter implements BaseWriter {
 			
 			if (newBaseIndex > 2) {
 				mainBase.updateBaseProperty(
-						BasePropertiesInfo.PrimaryKeys.BASE_PARTS_TOTAL_NUMBER.getKey(), 
-						Integer.toString(newBaseIndex)
-					);
+					BasePropertiesInfo.PrimaryKeys.BASE_PARTS_TOTAL_NUMBER.getKey(), 
+					Integer.toString(newBaseIndex)
+				);
 			} else {
 				getBasePropertiesInfo().getPrimaryParameters().put(PrimaryKeys.BASE_PARTS_SIZE_MIN.getKey(), minMainBaseSize);
 				mainBase.insertBaseProperty(PrimaryKeys.BASE_PARTS_SIZE_MIN.getKey(), Long.toString(minMainBaseSize));
 				mainBase.insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_PARTS_CURRENT_NUMBER.getKey(), "1");
 				mainBase.insertBaseProperty(
 					BasePropertiesInfo.PrimaryKeys.BASE_PARTS_TOTAL_NUMBER.getKey(), 
-					Integer.toString(newBaseIndex));
+					Integer.toString(newBaseIndex)
+				);
 			}
 			
 			if (lastPartWordsNumber < wordsNumber) {
-				mainBase.insertBaseProperty(
-					BasePropertiesInfo.PrimaryKeys.getBasePartsArticlesBlockIdStartKey(newBaseIndex),
-					Integer.toString(wordsNumber));
+				saveArticlesBlockIdStart4BaseIndex(newBaseIndex);
 			}
 
 			if (lastPartMediaResourcesNumber < mediaResourcesNumber) {
-				mainBase.insertBaseProperty(
-					BasePropertiesInfo.PrimaryKeys.getBasePartsMediaResourcesBlockIdStartKey(newBaseIndex),
-					Integer.toString(mediaResourcesNumber));
+				saveMediaResourcesBlockIdStart4BaseIndex(newBaseIndex);
 			}			
 			
 			lastPartWordsNumber = wordsNumber;
@@ -253,6 +258,20 @@ public class FDBBaseWriter implements BaseWriter {
 			
 		}
 		
+	}
+	
+	protected void saveArticlesBlockIdStart4BaseIndex(int baseIndex) throws IOException, SQLException, NoSuchAlgorithmException {
+		mainBase.insertBaseProperty(
+			BasePropertiesInfo.PrimaryKeys.getBasePartsArticlesBlockIdStartKey(baseIndex),
+			Integer.toString(wordsNumber)
+		);
+	}
+	
+	protected void saveMediaResourcesBlockIdStart4BaseIndex(int baseIndex) throws IOException, SQLException, NoSuchAlgorithmException {
+		mainBase.insertBaseProperty(
+			BasePropertiesInfo.PrimaryKeys.getBasePartsMediaResourcesBlockIdStartKey(baseIndex),
+			Integer.toString(mediaResourcesNumber)
+		);
 	}
 	
 	@Override

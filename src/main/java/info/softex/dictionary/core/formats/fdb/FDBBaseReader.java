@@ -146,7 +146,7 @@ public class FDBBaseReader implements BaseReader {
 		mainBase.load();
 		
 		BasePropertiesInfo baseProps = mainBase.getBasePropertiesInfo();
-		int depPartsNumber = baseProps.getBasePartsTotalNumber() == 0 ? 0 : baseProps.getBasePartsTotalNumber() - 1;
+		int depPartsNumber = baseProps.getBasePartsTotalNumber() <= 0 ? 0 : baseProps.getBasePartsTotalNumber() - 1;
 		
 		log.debug("Total dependent parts number: {}", depPartsNumber);
 		
@@ -155,13 +155,13 @@ public class FDBBaseReader implements BaseReader {
 		for (int i = 2; i < depPartsNumber + 2; i++) {
 			
 			int startArtId = baseProps.getBasePartsArticlesBlockIdStart(i);
-			if (startArtId > 0) {
+			if (startArtId >= 0) {
 				dbArticlesRanges.add(new BaseRange(startArtId, i));
 				log.debug("Added articles block id start: {}", startArtId);				
 			}
 			
 			int startResId = baseProps.getBasePartsMediaResourcesBlockIdStart(i);
-			if (startResId > 0) {
+			if (startResId >= 0) {
 				dbMediaResourcesRanges.add(new BaseRange(startResId, i));
 				log.debug("Added media resources block id start: {}", startResId);				
 			}

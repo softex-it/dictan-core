@@ -507,5 +507,8 @@ public class FDBBaseWriteUnit {
 		 return String.format("%1$032X", new BigInteger(1, digest.digest()));
 	}
 	
+	public int getBaseIndex() {
+		return baseIndex;
+	}
 
 }

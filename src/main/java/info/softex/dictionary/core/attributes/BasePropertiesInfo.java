@@ -278,7 +278,8 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public int getBasePartsTotalNumber() {
-		return getIntValue(PrimaryKeys.BASE_PARTS_TOTAL_NUMBER.getKey());
+		int result = getIntValue(PrimaryKeys.BASE_PARTS_TOTAL_NUMBER.getKey());
+		return result > 0 ? result : 0;
 	}
 	
 	
@@ -312,7 +313,8 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public int getArticlesNumber() {
-		return getIntValue(PrimaryKeys.ARTICLES_NUMBER.getKey());
+		int result = getIntValue(PrimaryKeys.ARTICLES_NUMBER.getKey());
+		return result > 0 ? result : 0;
 	}
 
 	public void setArticlesNumber(int articlesNumber) {
@@ -320,7 +322,8 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 
 	public int getAbbreviationsNumber() {
-		return getIntValue(PrimaryKeys.ABBREVIATIONS_NUMBER.getKey());
+		int result = getIntValue(PrimaryKeys.ABBREVIATIONS_NUMBER.getKey());
+		return result > 0 ? result : 0;
 	}
 
 	public void setAbbreviationsNumber(int abbreviationsNumber) {
@@ -375,7 +378,8 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public int getMediaResourcesNumber() {
-		return getIntValue(PrimaryKeys.MEDIA_RESOURCES_NUMBER.getKey());
+		int result = getIntValue(PrimaryKeys.MEDIA_RESOURCES_NUMBER.getKey());
+		return result > 0 ? result : 0;
 	}
 	
 	public void setMediaResourcesNumber(int mediaResourcesNumber) {
@@ -451,7 +455,7 @@ public class BasePropertiesInfo implements Cloneable {
 		} else if (obj != null) {
 			throw new IllegalArgumentException("The key " + keyString + " cannot be cast to int");
 		}
-		return 0;
+		return -1;
 	}
 	
 //	private int getIntValue(PrimaryKeys key) {

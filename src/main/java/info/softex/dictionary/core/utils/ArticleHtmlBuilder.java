@@ -76,7 +76,7 @@ public class ArticleHtmlBuilder {
 			}
 			style += "@font-face {font-family:'" + fontName + "';src:url('" + fontPath + "');}";
 			style += " body {font-family:'" + fontName + "';" + fontAttr + ";text-align:left;padding:1pt;}";
-		} else if (fontName != null) {
+		} else if (fontName != null && fontName.length() > 0) {
 //			String fontFamily = resolveFontFamily(fontName);
 //			if (fontFamily == null) {
 //				fontFamily = fontName;

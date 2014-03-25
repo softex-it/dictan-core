@@ -22,6 +22,8 @@ package info.softex.dictionary.core.formats.source;
 /**
  * 
  * @since version 3.4, 07/04/2012
+ *
+ * @modified version 4.4, 03/17/2014
  * 
  * @author Dmitry Viktorov
  *
@@ -32,5 +34,9 @@ public class BasicSourceFileNames {
 	protected final static String FILE_ARTICLES = "articles.txt";
 	protected final static String FILE_ABBREVIATIONS = "abbreviations.txt";
 	protected final static String FILE_DEBUG = "debug.txt";
+	
+	protected final static String FILE_ARTICLES_KEYS = "articles_keys.txt";
+	protected final static String FILE_ABBREVIATIONS_KEYS = "abbreviations_keys.txt";
+	protected final static String FILE_MEDIA_KEYS = "media_keys.txt";	
 	
 }
