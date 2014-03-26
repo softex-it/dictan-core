@@ -1,7 +1,7 @@
 package info.softex.dictionary.core.formats.fdb;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
@@ -21,12 +21,12 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * 
  * @since version 2.6, 08/27/2011
  * 
  * @modified version 3.2, 04/20/2013
+ * @modified version 4.5, 03/26/2014
  * 
  * @author Dmitry Viktorov
  *
