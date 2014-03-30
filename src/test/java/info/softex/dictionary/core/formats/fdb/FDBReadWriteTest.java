@@ -1,3 +1,22 @@
+/*
+ *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
+ *	
+ *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *	
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License (LGPL) as 
+ *  published by the Free Software Foundation, either version 3 of the License, 
+ *  or any later version.
+ *	
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU Lesser General Public License for more details.
+ *	
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package info.softex.dictionary.core.formats.fdb;
 
 import static org.junit.Assert.assertEquals;
@@ -31,14 +50,12 @@ import org.slf4j.LoggerFactory;
  * @author Dmitry Viktorov
  *
  */
-public class FDBGeneralTest {
+public class FDBReadWriteTest {
 	
-	private final static Logger log = LoggerFactory.getLogger(FDBGeneralTest.class.getSimpleName());
+	private final Logger log = LoggerFactory.getLogger(getClass());
 	
 	public static final String BASE_NAME = "Best Base";
-
 	public static final String BASE_PATH = "../dicts";
-	
 	public static final String BASE_FILE = "new_dictionary.fdb";
 	
 	@Test
@@ -54,11 +71,6 @@ public class FDBGeneralTest {
 			if (file.exists()) {
 				file.delete();
 			}
-			
-			// create a database connection
-			//connection = DriverManager.getConnection("jdbc:sqlite:" + file.getAbsolutePath());
-			//connection = new BasicSQLiteConnectionFactory().createConnection(file.getAbsolutePath());
-			//connection.createStatement().execute("PRAGMA synchronous=OFF");
 			
 			BaseWriter writer = new FDBBaseWriter(file.getAbsolutePath(), new BasicSQLiteConnectionFactory(), null);
 			writer.createBase();
@@ -100,8 +112,7 @@ public class FDBGeneralTest {
 			
 			log.info("Base is populated!");
 			
-			FDBBaseReader r = new FDBBaseReader(file, 
-				new BasicSQLiteConnectionFactory(), null, new BasicCollatorFactory());
+			FDBBaseReader r = new FDBBaseReader(file, new BasicSQLiteConnectionFactory(), null, new BasicCollatorFactory());
 			
 			r.load();
 			BasePropertiesInfo dictInfo = r.getBasePropertiesInfo();
@@ -160,13 +171,11 @@ public class FDBGeneralTest {
 		
 	}
 	
-	private static void pushSampleToWriter(BaseWriter writer, int mlp, int packSize) throws Exception {
+	private void pushSampleToWriter(BaseWriter writer, int mlp, int packSize) throws Exception {
 
 		for (int i = 0; i < mlp; i++) {
 			
-			//List<ArticleInfo> trs = new ArrayList<ArticleInfo>(packSize);
-
-			log.info("Starting MLP {}", i);
+			//log.info("Starting MLP {}", i);
 			int offset = i * packSize;
 			
 			for (int j = 0; j < packSize; j++) {
@@ -175,8 +184,6 @@ public class FDBGeneralTest {
 			}
 			
 			log.info("Pushing MLP: {}", i);
-			
-			//writer.saveArticleInfos(trs);
 			
 		}
 		
