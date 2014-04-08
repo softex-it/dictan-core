@@ -1,0 +1,5 @@
+test1  <p>art1</p>
+test2  <p style="font-weight:bold; text-align:center; font-size:110%; background:#ffeecc; border:1px solid #aaaaaa;">art2</p>
+test3  <p style="text-align:center;background-color:#C1D8FF;color:#000000">art3</p>
+test4  <p>art4</p>
+test5  <p>art5</p>

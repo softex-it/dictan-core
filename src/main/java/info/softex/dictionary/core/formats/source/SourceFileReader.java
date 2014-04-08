@@ -21,6 +21,7 @@ package info.softex.dictionary.core.formats.source;
 
 import info.softex.dictionary.core.attributes.KeyValueInfo;
 import info.softex.dictionary.core.formats.api.BaseFormatException;
+import info.softex.dictionary.core.formats.source.utils.SourceReaderUtils;
 
 import java.io.File;
 import java.io.IOException;

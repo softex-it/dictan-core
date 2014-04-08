@@ -79,7 +79,7 @@ public class FDBBaseReader implements BaseReader {
 	
 	protected final int wordListBlockSize;
 	
-	public FDBBaseReader(File fdbFile, DatabaseConnectionFactory conFactory, Map<String, Object> inParams, AbstractCollatorFactory collatorFactory) throws SQLException {
+	public FDBBaseReader(File fdbFile, DatabaseConnectionFactory conFactory, Map<String, ?> inParams, AbstractCollatorFactory collatorFactory) throws SQLException {
 		dbParams = new HashMap<String, String>();
 		dbParams.put(DatabaseConnectionFactory.DB_NO_LOCALIZED_COLLATORS, "true");
 		dbParams.put(DatabaseConnectionFactory.DB_OPEN_READ_ONLY, "true");
@@ -88,7 +88,7 @@ public class FDBBaseReader implements BaseReader {
 		if (inParams != null) {
 			Object wlbSize = inParams.get(FDBConstants.PARAM_KEY_WORD_LIST_BLOCK_SIZE);
 			if (wlbSize instanceof Integer) {
-				wordListBlockSize = (Integer)wlbSize;
+				wordListBlockSize = (Integer) wlbSize;
 			}
 		}
 

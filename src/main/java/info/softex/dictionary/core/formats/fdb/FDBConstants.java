@@ -24,6 +24,7 @@ package info.softex.dictionary.core.formats.fdb;
  * @since version 2.6, 08/28/2011
  * 
  * @modified version 4.0, 02/02/2014
+ * @modified version 4.5, 03/29/2014
  * 
  * @author Dmitry Viktorov
  * 
@@ -37,7 +38,11 @@ public class FDBConstants {
 	
 	
 	public static final String PARAM_KEY_WORD_LIST_BLOCK_SIZE = "wordListBlockSize";
-	public static final String PARAM_KEY_BASE_SIZE_LIMIT = "baseSizeLimit";
+	
+	public static final String PARAM_KEY_BASE_MAIN_SIZE_LIMIT = "mainBaseSizeLimit";
+	public static final String PARAM_KEY_BASE_SECONDARY_SIZE_LIMIT = "secondaryBaseSizeLimit";
+	
+	public static final String PARAM_VALUE_DEFAULT = "default";
 	
 	public static final int VALUE_WORD_LIST_BLOCK_SIZE_DEFAULT = 256;
 	

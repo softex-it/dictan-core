@@ -123,16 +123,14 @@ public class BaseInfoHtmlBuilder {
 		}
 		
 		String baseVersion = wrapRow(getString(StringKey.BASE_VERSION, lang), combinedVersion, true);
-		//String baseDate = wrapRow(getString(StringKey.BASE_DATE, lang), getShortDate(baseInfo.getBaseDate()), true);
-		
+
 		String baseSize = getString(StringKey.BASE_SIZE, lang) + ": <dvl>" + getConvertedSize(baseInfo.getBaseFileSize()) + "</dvl>";
 		String basePartsNumber = wrapRow(getString(StringKey.BASE_PARTS_NUMBER, lang), baseInfo.getBasePartsTotalNumber(), baseInfo.getBasePartsTotalNumber() > 1);
 		
 		String wordsNumber = getString(StringKey.NUMBER_OF_WORDS, lang) + ": <dvl>" + baseInfo.getArticlesNumber() + "</dvl>";
-		//String formatVer = getString(StringKey.FORMAT_VERSION, lang) + ": <dvl>" + baseInfo.getFormatVersion() + "</dvl>";
 		
-		String artFormat = getString(StringKey.ARTICLES_FORMATTING, lang) + ": <dvl>" + baseInfo.getArticlesFormattingMode() + "</dvl>";
-		String artFormatIWM = getString(StringKey.ARTICLES_FORMATTING_INJECT_WORDS, lang) + ": <dvl>" + baseInfo.getArticlesFormattingInjectWordMode() + "</dvl>";
+		String artFormat = wrapRow(getString(StringKey.ARTICLES_FORMATTING, lang), baseInfo.getArticlesFormattingMode(), true);
+		String artFormatIWM = wrapRow(getString(StringKey.ARTICLES_FORMATTING_INJECT_WORDS, lang), baseInfo.getArticlesFormattingInjectWordMode(), true);
 		String abbrFormat = wrapRow(getString(StringKey.ABBREV_FORMATTING, lang), baseInfo.getAbbreviationsFormattingMode(), baseInfo.getAbbreviationsNumber() > 0);
 		
 		String createdBy = wrapRow(getString(StringKey.COMPILED_BY, lang), baseInfo.getCompilationCreatorName(), true);
@@ -156,9 +154,6 @@ public class BaseInfoHtmlBuilder {
 					" / " + formatCPString(baseInfo.getArticleCodepageName()) + "</dvl></td></tr>";
 			}
 		}
-
-		//String flags = "Flags: <dvl>" + dictInfo.getDictionaryFlags().getStringFlagsAsString() + "</dvl>";
-		//String tbSize = "Translation Block Size: <dvl>" + dictInfo.getTransBlockSize() + "</dvl>";
 		
 		String media = "";
 		if (baseInfo.isMediaBaseSeparate()) {
@@ -176,7 +171,6 @@ public class BaseInfoHtmlBuilder {
 			}
 		}
 		
-		//"&nbsp;&nbsp;<a href=\"content://info.softex.dictan/show/dialog\">(Flags)</a>"
 		String html = "<table>" + 
 			"<tr><th class=\"subHeader1\">" + getString(StringKey.DICTIONARY_BASE, lang) + ": " + baseInfo.getFormatName() + " (" + getString(StringKey.FORMAT_VERSION, lang) + " " + baseInfo.getFormatVersion() + ")</th></tr>" +
 			"<tr><td>" + wordsNumber + "</td></tr>";
@@ -192,15 +186,14 @@ public class BaseInfoHtmlBuilder {
 			}
 			
 			html += langDirections +
-				"<tr><td>" + artFormat + "</td></tr>" +
-				"<tr><td>" + artFormatIWM + "</td></tr>" +
+				artFormat +
+				artFormatIWM +
 				abbrFormat +
 				baseVersion +
 				codePage +
 				createdBy +
 				compDate + 
 				basePartsNumber +
-				//"<tr><td>" + formatVer + "</td></tr>" +
 				"<tr><td>" + baseSize + "<br/><br/></td></tr>" +
 				media + "</table>";
 		

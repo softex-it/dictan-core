@@ -1,0 +1,5 @@
+word 1  article 1
+word 2  article 2
+word3  article 3
+
+word 4  article 4

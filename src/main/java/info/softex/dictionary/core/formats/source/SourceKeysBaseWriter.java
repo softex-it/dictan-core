@@ -1,5 +1,6 @@
 package info.softex.dictionary.core.formats.source;
 
+import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
@@ -15,11 +16,12 @@ import java.io.Writer;
  * @author Dmitry Viktorov
  *
  */
-public class BasicSourceKeysBaseWriter extends BasicSourceBaseWriter {
+@BaseFormat(name = "SOURCE_KEYS", primaryExtension = "", extensions = {})
+public class SourceKeysBaseWriter extends SourceBaseWriter {
 	
 	protected Writer mediaWriter;
 
-	public BasicSourceKeysBaseWriter(File outDirectory) throws IOException {
+	public SourceKeysBaseWriter(File outDirectory) throws IOException {
 		super(outDirectory);
 	}
 	
@@ -40,10 +42,10 @@ public class BasicSourceKeysBaseWriter extends BasicSourceBaseWriter {
 	
 	@Override
 	protected void createWriters() throws Exception {
-		artWriter = createWriter(BasicSourceFileNames.FILE_ARTICLES_KEYS);
-		abbWriter = createWriter(BasicSourceFileNames.FILE_ABBREVIATIONS_KEYS);
-		debugWriter = createWriter(BasicSourceFileNames.FILE_DEBUG);
-		mediaWriter = createWriter(BasicSourceFileNames.FILE_MEDIA_KEYS);
+		artWriter = createWriter(SourceFileNames.FILE_ARTICLES_KEYS);
+		abbWriter = createWriter(SourceFileNames.FILE_ABBREVIATIONS_KEYS);
+		debugWriter = createWriter(SourceFileNames.FILE_DEBUG);
+		mediaWriter = createWriter(SourceFileNames.FILE_MEDIA_KEYS);
 	}
 	
 	protected void saveMediaKeyLine(String inAbbrevLine) throws Exception {

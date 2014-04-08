@@ -17,9 +17,11 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.source;
+package info.softex.dictionary.core.formats.source.utils;
 
 import info.softex.dictionary.core.attributes.KeyValueInfo;
+import info.softex.dictionary.core.formats.source.BufferedRandomAccessFile;
+import info.softex.dictionary.core.formats.source.SourceKeyValueInfo;
 
 import java.io.IOException;
 import java.nio.MappedByteBuffer;

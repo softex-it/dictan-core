@@ -54,14 +54,14 @@ import org.slf4j.LoggerFactory;
  *
  */
 @BaseFormat(name = "BASIC_SOURCE", primaryExtension = "", extensions = {})
-public class BasicSourceBaseReader implements BaseReader {
+public class SourceBaseReader implements BaseReader {
 	
-	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(BasicSourceBaseReader.class);
+	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(SourceBaseReader.class);
 	
 	public static final int BUF_SIZE_ARTICLES = 2097152; // 2.0 MB 
 	public static final int BUF_SIZE_ABBREVS = 131072; // 128 KB
 	
-	private static final Logger log = LoggerFactory.getLogger(BasicSourceBaseReader.class);
+	private static final Logger log = LoggerFactory.getLogger(SourceBaseReader.class);
 
 	protected BasePropertiesInfo baseInfo = null;
 	protected LanguageDirectionsInfo langDirections = null;
@@ -79,24 +79,15 @@ public class BasicSourceBaseReader implements BaseReader {
 
 	protected boolean isLoaded = false;
 	
-	public BasicSourceBaseReader(File inSourceDirectory) throws IOException {
+	public SourceBaseReader(File inSourceDirectory) throws IOException {
 		
 		if (inSourceDirectory == null || inSourceDirectory.exists() && !inSourceDirectory.isDirectory()) {
 			throw new IOException("The source must be a directory, not a file!");
 		}
 		
 		this.sourceDirectory = inSourceDirectory;
-
-		File articleFile = new File(inSourceDirectory + File.separator + BasicSourceFileNames.FILE_ARTICLES);
-		this.articleReader = new SourceFileReader(articleFile, BUF_SIZE_ARTICLES);
 		
-		File abbrevFile = new File(inSourceDirectory + File.separator + BasicSourceFileNames.FILE_ABBREVIATIONS);
-		if (abbrevFile.exists() && abbrevFile.isFile()) {
-			this.abbrevReader = new SourceFileReader(abbrevFile, BUF_SIZE_ABBREVS);
-		} else {
-			this.abbrevReader = null;
-		}
-		this.mediaDirectoryPath = inSourceDirectory + File.separator + BasicSourceFileNames.DIRECTORY_MEDIA;
+		this.mediaDirectoryPath = inSourceDirectory + File.separator + SourceFileNames.DIRECTORY_MEDIA;
 		this.mediaDirectory = new File(this.mediaDirectoryPath);
 		
 	}
@@ -136,27 +127,21 @@ public class BasicSourceBaseReader implements BaseReader {
 		baseInfo = new BasePropertiesInfo();
 		
 		// Words & Articles
-		articleReader.load(false);
-		words = articleReader.getLineKeys();
+		words = loadWords();
 
 		// Media Resources
-		mediaResources = loadMediaResources(mediaDirectory);
+		mediaResources = loadMediaResources();
 		
 		// Abbreviations
-		abbrevKeys = new HashSet<String>();
-		baseInfo.setAbbreviationsNumber(0);
-		if (abbrevReader != null) {
-			abbrevReader.load(true);
-			abbrevKeys = abbrevReader.getLineMapper().keySet();
-			baseInfo.setAbbreviationsNumber(abbrevReader.getLineKeys().size());
-		}
+		abbrevKeys = loadAbbreviations();
+		baseInfo.setAbbreviationsNumber(abbrevKeys.size());
 		
 		// Set abbreviations formating to disabled if there are no abbreviations
 		if (baseInfo.getAbbreviationsNumber() == 0) {
 			baseInfo.setAbbreviationsFormattingMode(AbbreviationsFormattingMode.DISABLED);
 		}
 		
-		baseInfo.setArticlesNumber(articleReader.getLineKeys().size());
+		baseInfo.setArticlesNumber(words.size());
 		baseInfo.setMediaResourcesNumber(mediaResources.size());
 		
 		return baseInfo;
@@ -267,7 +252,27 @@ public class BasicSourceBaseReader implements BaseReader {
 		return null;
 	}
 	
-	protected static Set<String> loadMediaResources(File mediaDirectory) throws BaseFormatException, Exception {
+	protected List<String> loadWords() throws BaseFormatException, Exception {
+		File articleFile = new File(sourceDirectory + File.separator + SourceFileNames.FILE_ARTICLES);
+		articleReader = new SourceFileReader(articleFile, BUF_SIZE_ARTICLES);
+		articleReader.load(false);
+		return articleReader.getLineKeys();
+	}
+	
+	protected Set<String> loadAbbreviations() throws BaseFormatException, Exception {
+		Set<String> abbKeys = new HashSet<String>();
+		File abbrevFile = new File(sourceDirectory + File.separator + SourceFileNames.FILE_ABBREVIATIONS);
+		if (abbrevFile.exists() && abbrevFile.isFile()) {
+			abbrevReader = new SourceFileReader(abbrevFile, BUF_SIZE_ABBREVS);
+			abbrevReader.load(true);
+			abbKeys = abbrevReader.getLineMapper().keySet();
+		} else {
+			this.abbrevReader = null;
+		}
+		return abbKeys;
+	}
+	
+	protected Set<String> loadMediaResources() throws BaseFormatException, Exception {
 		HashSet<String> resources = new HashSet<String>();
 		if (mediaDirectory.exists() && mediaDirectory.isDirectory()) {
             for (File file : mediaDirectory.listFiles()) {

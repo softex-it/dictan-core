@@ -60,15 +60,16 @@ import org.slf4j.LoggerFactory;
  * @modified version 3.5, 08/07/2012
  * @modified version 3.9, 01/29/2014
  * @modified version 4.0, 02/02/2014
+ * @modified version 4.5, 03/29/2014
  * 
  * @author Dmitry Viktorov
  * 
  */
 public class FDBBaseWriteUnit {
 	
-	private static final Logger log = LoggerFactory.getLogger(FDBBaseWriteUnit.class.getSimpleName());
+	private final static Logger log = LoggerFactory.getLogger(FDBBaseWriteUnit.class);
 	
-	protected static final String ENC_UTF8 = "UTF-8";
+	protected final static String UTF8 = "UTF-8";
 
 	protected BasePropertiesInfo baseInfo = null;
 	protected LanguageDirectionsInfo langDirections = null;
@@ -126,7 +127,7 @@ public class FDBBaseWriteUnit {
 		FDBTables[] tables = FDBTables.values();
 		for (int i = 0; i < tables.length; i++) {
 			st.executeUpdate(FDBSQLWriteStatements.DROP_TABLE_UNI + " " + tables[i]);
-			log.info("Dropping {}", tables[i]);
+			log.debug("Dropping {}", tables[i]);
 		}
 		
 		if (baseIndex == 1) {
@@ -246,8 +247,8 @@ public class FDBBaseWriteUnit {
 		
 		insBaseResourceSt.setInt(1, baseResourcesNumber++);
 		insBaseResourceSt.setString(2, "collation.rules.default");
-		insBaseResourceSt.setBytes(3, languageDirectionsInfo.getDefaultCollationProperties().getBasicCollationRules().getBytes(ENC_UTF8));
-		insBaseResourceSt.setBytes(4, languageDirectionsInfo.getDefaultCollationProperties().getAdditionalCollationRules().getBytes(ENC_UTF8));
+		insBaseResourceSt.setBytes(3, languageDirectionsInfo.getDefaultCollationProperties().getBasicCollationRules().getBytes(UTF8));
+		insBaseResourceSt.setBytes(4, languageDirectionsInfo.getDefaultCollationProperties().getAdditionalCollationRules().getBytes(UTF8));
 		insBaseResourceSt.setBytes(5, new byte[0]);
 		insBaseResourceSt.setBytes(6, new byte[0]);
 		insBaseResourceSt.setString(7, Integer.toString(languageDirectionsInfo.getDefaultCollationProperties().getCollationVersion()));
@@ -271,8 +272,8 @@ public class FDBBaseWriteUnit {
 				
 				insBaseResourceSt.setInt(1, baseResourcesNumber++);
 				insBaseResourceSt.setString(2, "collation.rules." + fromLanguage);
-				insBaseResourceSt.setBytes(3, langProps.getBasicCollationRules().getBytes(ENC_UTF8));
-				insBaseResourceSt.setBytes(4, langProps.getAdditionalCollationRules().getBytes(ENC_UTF8));
+				insBaseResourceSt.setBytes(3, langProps.getBasicCollationRules().getBytes(UTF8));
+				insBaseResourceSt.setBytes(4, langProps.getAdditionalCollationRules().getBytes(UTF8));
 				insBaseResourceSt.setBytes(5, new byte[0]);
 				insBaseResourceSt.setBytes(6, new byte[0]);
 				insBaseResourceSt.setString(7, Integer.toString(langProps.getCollationVersion()));
@@ -359,7 +360,7 @@ public class FDBBaseWriteUnit {
 	}
 	
 	public boolean saveArticle(String article, int articleNumber) throws Exception {
-		byte[] articleData = article.getBytes(ENC_UTF8);
+		byte[] articleData = article.getBytes(UTF8);
 		articlesBuffer.add(articleData);
 		curArticleBlockMemSize += articleData.length;
 		if (curArticleBlockMemSize >= minArticleBlockMemSize) {
@@ -403,7 +404,8 @@ public class FDBBaseWriteUnit {
 		mediaResourcesBuffer = new LinkedList<byte[]>();
 		curMediaResourceBlockMemSize = 0;
 		
-		log.info("Media resources flushed, total time: {}", System.currentTimeMillis() - startTime);
+		log.debug("Media resources flushed, total time: {}", System.currentTimeMillis() - startTime);
+		
 	}
 	
 	//----------------------------------------------------
@@ -421,7 +423,7 @@ public class FDBBaseWriteUnit {
 		ResultSet rs = selAllBaseInfoSt.executeQuery();
 		StringBuffer sb = new StringBuffer();
 		while (rs.next()) {
-			log.info(rs.getString(1) + " | " + rs.getString(2) + " | " + rs.getString(3));
+			log.debug(rs.getString(1) + " | " + rs.getString(2) + " | " + rs.getString(3));
 			String property = rs.getString(2);
 			if (!property.equalsIgnoreCase(BasePropertiesInfo.PrimaryKeys.BASE_SECURITY_PROPERTIES_MD5.getKey())) {
 				sb.append(property);
@@ -430,7 +432,7 @@ public class FDBBaseWriteUnit {
 		
 		String secCode = getMD5(sb.toString());
 
-		log.info("MD5 String: {}, {}, {}", new Object[] {sb, sb.length(), secCode});
+		log.debug("MD5 String: {}, {}, {}", new Object[] {sb, sb.length(), secCode});
 		
 		updateBaseProperty(
 				BasePropertiesInfo.PrimaryKeys.BASE_SECURITY_PROPERTIES_MD5.getKey(), 
@@ -443,7 +445,7 @@ public class FDBBaseWriteUnit {
 			PreparedStatement insBlockSt, List<byte[]> block, int id, int curBlockMemSize) throws UnsupportedEncodingException, IOException, SQLException {
 		
 		if (block.size() == 0) {
-			log.info("Block size is 0 for id {} and mem size is {}. Skipping insert.", id, curBlockMemSize);
+			log.debug("Block size is 0 for id {} and mem size is {}. Skipping insert.", id, curBlockMemSize);
 			return insBlockSt;
 		}
 

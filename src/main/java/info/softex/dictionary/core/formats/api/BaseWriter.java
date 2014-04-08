@@ -34,11 +34,14 @@ import info.softex.dictionary.core.attributes.MediaResourceInfo;
  * @since version 2.6, 08/21/2011
  * 
  * @since modified 4.4, 03/17/2014
+ * @since modified 4.5, 03/30/2014
  *  
  * @author Dmitry Viktorov
  * 
  */
 public interface BaseWriter {
+	
+	public static final String UTF8 = "UTF-8";
 	
 	public void createBase(String... params) throws Exception;
 	

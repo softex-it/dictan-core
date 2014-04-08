@@ -26,6 +26,7 @@ import java.util.Observable;
  * @since version 1.0, 09/23/2010
  * 
  * @modified version 3.4, 07/09/2012
+ * @modified version 4.5, 05/06/2014
  * 
  * @author Dmitry Viktorov
  *
@@ -69,7 +70,7 @@ public final class ProgressInfo extends Observable {
 	}
 	
     public double getPercentComplete() {
-    	return total == 0 ? -1 : (double)current / total;
+    	return total == 0 ? -1 : (double) current / (double) total;
     }
     
 }

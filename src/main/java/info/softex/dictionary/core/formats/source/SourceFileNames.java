@@ -24,19 +24,21 @@ package info.softex.dictionary.core.formats.source;
  * @since version 3.4, 07/04/2012
  *
  * @modified version 4.4, 03/17/2014
+ * @modified version 4.5, 04/02/2014
  * 
  * @author Dmitry Viktorov
  *
  */
-public class BasicSourceFileNames {
+public class SourceFileNames {
 
-	protected final static String DIRECTORY_MEDIA = "media";
-	protected final static String FILE_ARTICLES = "articles.txt";
-	protected final static String FILE_ABBREVIATIONS = "abbreviations.txt";
-	protected final static String FILE_DEBUG = "debug.txt";
+	public final static String DIRECTORY_MEDIA = "media";
+	public final static String DIRECTORY_ARTICLES_HTML = "articles_html";
+	public final static String FILE_ARTICLES = "articles.txt";
+	public final static String FILE_ABBREVIATIONS = "abbreviations.txt";
+	public final static String FILE_DEBUG = "debug.txt";
 	
-	protected final static String FILE_ARTICLES_KEYS = "articles_keys.txt";
-	protected final static String FILE_ABBREVIATIONS_KEYS = "abbreviations_keys.txt";
-	protected final static String FILE_MEDIA_KEYS = "media_keys.txt";	
+	public final static String FILE_ARTICLES_KEYS = "articles_keys.txt";
+	public final static String FILE_ABBREVIATIONS_KEYS = "abbreviations_keys.txt";
+	public final static String FILE_MEDIA_KEYS = "media_keys.txt";	
 	
 }

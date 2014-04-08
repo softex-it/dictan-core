@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @modified version 2.9, 11/19/2011
  * @modified version 3.4, 07/02/2012
+ * @modified version 4.5, 03/29/2014
  * 
  * @author Dmitry Viktorov
  * 
@@ -57,7 +58,7 @@ import org.slf4j.LoggerFactory;
 @BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb"})
 public class FDBBaseWriter implements BaseWriter {
 	
-	private static final Logger log = LoggerFactory.getLogger(FDBBaseWriter.class.getSimpleName());
+	private static final Logger log = LoggerFactory.getLogger(FDBBaseWriter.class);
 
 	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(FDBBaseWriter.class);
 
@@ -70,6 +71,7 @@ public class FDBBaseWriter implements BaseWriter {
 	protected final String mainBaseFilePath;
 	
 	protected long minMainBaseSize = 0;
+	protected long minSecondaryBaseSize = 0;
 	
 	protected final DatabaseConnectionFactory conFactory;
 	
@@ -86,30 +88,48 @@ public class FDBBaseWriter implements BaseWriter {
 	protected int curArticlesNumber = 0;
 	protected int curMediaResourcesNumber = 0;
 	
-	public FDBBaseWriter(String baseFilePath, DatabaseConnectionFactory conFactory, Map<String, String> params) throws SQLException, IOException {
+	public FDBBaseWriter(String inBaseFilePath, DatabaseConnectionFactory inConFactory, Map<String, String> params) throws SQLException, IOException {
 		if (params != null) {
-			String baseSizeLimit = params.get(FDBConstants.PARAM_KEY_BASE_SIZE_LIMIT);
-			if (baseSizeLimit != null && "default".equalsIgnoreCase(baseSizeLimit.toString())) {
-				//minMainBaseSize = 3800000000L; // 4 294 967 295
-				//minMainBaseSize = 20000000;
-				minMainBaseSize = 1610612736L; // 1610612736L - 1.5 GB
-				//minMainBaseSize = 1073741824L; // 1 GB
-			} else if (baseSizeLimit != null) {
-				try {
-					minMainBaseSize = Long.parseLong(baseSizeLimit.toString());
-				} catch (Exception e) {
-					log.error("Error", e);
+			
+			// Secondary base size
+			String secBaseSizeLimit = params.get(FDBConstants.PARAM_KEY_BASE_SECONDARY_SIZE_LIMIT);
+			if (secBaseSizeLimit != null) {
+				if (FDBConstants.PARAM_VALUE_DEFAULT.equalsIgnoreCase(secBaseSizeLimit.toString())) {
+					//minSecondaryBaseSize = 3800000000L; // 4 294 967 295
+					//minSecondaryBaseSize = 20000000;
+					//minSecondaryBaseSize = 1073741824L; // 1 GB
+					minSecondaryBaseSize = 1610612736L; // 1610612736L - 1.5 GB
+				} else {
+					minSecondaryBaseSize = parseLongNoException(secBaseSizeLimit);
 				}
 			}
+			
+			// Main base size
+			if (minSecondaryBaseSize > 0) {
+				String mainBaseSizeLimit = params.get(FDBConstants.PARAM_KEY_BASE_MAIN_SIZE_LIMIT);
+				if (mainBaseSizeLimit != null) {
+					minMainBaseSize = parseLongNoException(mainBaseSizeLimit);
+				} 
+				if (minMainBaseSize <= 0) {
+					minMainBaseSize = minSecondaryBaseSize;
+				}
+			}
+			
 		}
 		
-		this.mainBaseFilePath = baseFilePath;
-		this.conFactory = conFactory;
-		this.mainBase = this.activeBase = new FDBBaseWriteUnit(1, baseFilePath, conFactory.createConnection(baseFilePath, null));
-		//this.activeBase = mainBase;
+		log.info("FDB minimum main/secondary base sizes: {} / {}", minMainBaseSize, minSecondaryBaseSize);
+		
+		// Create the parent directory for the base file
+		File mainBaseDirPath = new File(inBaseFilePath).getParentFile();
+		if (mainBaseDirPath != null && !mainBaseDirPath.exists()) {
+			mainBaseDirPath.mkdirs();
+		}
+		
+		this.mainBaseFilePath = inBaseFilePath;
+		this.conFactory = inConFactory;
+		this.mainBase = this.activeBase = new FDBBaseWriteUnit(1, inBaseFilePath, inConFactory.createConnection(inBaseFilePath, null));
 		this.dbs.add(mainBase);
 		
-		//this.fdbController = new FDBBaseWriteController(conFactory, filePath, minMainBaseSize);
 	}
 	
 	@Override
@@ -207,15 +227,17 @@ public class FDBBaseWriter implements BaseWriter {
 	// Protected -----------------------------------------------
 		
 	protected void reviseBaseFiles() throws IOException, SQLException, NoSuchAlgorithmException {
-		if (minMainBaseSize == 0) {
+		
+		if (minSecondaryBaseSize == 0) {
 			return;
 		}
 		
-		File activeBaseFile = activeBase.getBaseFile();
+		long activeBaseFileLength = activeBase.getBaseFile().length();
+		long currentMinBaseSize = (mainBase == activeBase) ? minMainBaseSize : minSecondaryBaseSize;
 		
-		if (activeBaseFile.length() >= minMainBaseSize) {
+		if (activeBaseFileLength >= currentMinBaseSize) {
 			
-			log.info("Revising base files: min base size {}, current base size {}", minMainBaseSize, activeBaseFile.length());
+			log.info("Revising base files: min base size {}, current base size {}", currentMinBaseSize, activeBaseFileLength);
 			
 			int newBaseIndex = dbs.size() + 1;
 			String newFilePath = mainBaseFilePath + newBaseIndex;
@@ -236,8 +258,10 @@ public class FDBBaseWriter implements BaseWriter {
 					Integer.toString(newBaseIndex)
 				);
 			} else {
-				getBasePropertiesInfo().getPrimaryParameters().put(PrimaryKeys.BASE_PARTS_SIZE_MIN.getKey(), minMainBaseSize);
-				mainBase.insertBaseProperty(PrimaryKeys.BASE_PARTS_SIZE_MIN.getKey(), Long.toString(minMainBaseSize));
+				getBasePropertiesInfo().getPrimaryParameters().put(PrimaryKeys.BASE_PARTS_MAIN_SIZE_MIN.getKey(), minMainBaseSize);
+				getBasePropertiesInfo().getPrimaryParameters().put(PrimaryKeys.BASE_PARTS_SECONDARY_SIZE_MIN.getKey(), minSecondaryBaseSize);
+				mainBase.insertBaseProperty(PrimaryKeys.BASE_PARTS_MAIN_SIZE_MIN.getKey(), Long.toString(minMainBaseSize));
+				mainBase.insertBaseProperty(PrimaryKeys.BASE_PARTS_SECONDARY_SIZE_MIN.getKey(), Long.toString(minSecondaryBaseSize));
 				mainBase.insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_PARTS_CURRENT_NUMBER.getKey(), "1");
 				mainBase.insertBaseProperty(
 					BasePropertiesInfo.PrimaryKeys.BASE_PARTS_TOTAL_NUMBER.getKey(), 
@@ -304,6 +328,15 @@ public class FDBBaseWriter implements BaseWriter {
 		}
 		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.MEDIA_RESOURCES_NUMBER.getKey(), Integer.toString(mediaResourcesNumber));
 		curMediaResourcesNumber = mediaResourcesNumber;
+	}
+	
+	protected static long parseLongNoException(String inString) {
+		try {
+			return Long.parseLong(inString);
+		} catch (Exception e) {
+			log.error("Error", e);
+		}
+		return 0;
 	}
 
 

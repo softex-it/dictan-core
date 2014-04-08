@@ -1,0 +1,8 @@
+My "title" with quote, My &#34;title&#34; with quote.html
+My title wi*dia with asterisk, My title wi&#42;dia with asterisk.html
+My title /path with slash, My title &#47;path with slash.html
+My title wi:dia wi:th colon, My title wi&#58;dia wi&#58;th colon.html
+My title <pedia> with gt&lt, My title &#60;pedia&#62; with gt&lt.html
+My title?letit with question?s, My title&#63;letit with question&#63;s.html
+My title \path\to\file with slash, My title &#92;path&#92;to&#92;file with slash.html
+My title command1 | command2  with p|pe, My title command1 &#124; command2  with p&#124;pe.html

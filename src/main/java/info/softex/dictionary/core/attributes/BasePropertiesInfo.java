@@ -35,6 +35,7 @@ import java.util.TimeZone;
  * @modified version 2.9, 11/13/2011
  * @modified version 3.9, 12/05/2013
  * @modified version 4.0, 02/02/2014
+ * @modified version 4.5, 03/29/2014
  * 
  * @author Dmitry Viktorov
  * 
@@ -53,7 +54,8 @@ public class BasePropertiesInfo implements Cloneable {
 		BASE_NAME_FULL("base.name.full"),
 		BASE_PARTS_CURRENT_NUMBER("base.parts.current.number"),
 		BASE_PARTS_TOTAL_NUMBER("base.parts.total.number"),
-		BASE_PARTS_SIZE_MIN("base.parts.size.min"),
+		BASE_PARTS_MAIN_SIZE_MIN("base.parts.main.size.min"),
+		BASE_PARTS_SECONDARY_SIZE_MIN("base.parts.secondary.size.min"),
 		BASE_SECURITY_PROPERTIES_MD5("base.security.properties.md5"),
 		
 		ARTICLES_NUMBER("articles.number"),
@@ -315,6 +317,13 @@ public class BasePropertiesInfo implements Cloneable {
 	public int getArticlesNumber() {
 		int result = getIntValue(PrimaryKeys.ARTICLES_NUMBER.getKey());
 		return result > 0 ? result : 0;
+	}
+	
+	/**
+	 * @return - Total number of articles, media resources, and abbreviations
+	 */
+	public int getAmraNumber() {
+		return getArticlesNumber() + getMediaResourcesNumber() + getAbbreviationsNumber();
 	}
 
 	public void setArticlesNumber(int articlesNumber) {

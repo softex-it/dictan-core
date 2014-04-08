@@ -29,6 +29,8 @@ import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
 import info.softex.dictionary.core.attributes.ProgressInfo;
 import info.softex.dictionary.core.formats.api.BaseWriter;
+import info.softex.dictionary.core.formats.source.utils.SourceFormatUtils;
+import info.softex.dictionary.core.formats.source.utils.SourceReaderUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -37,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Map;
 import java.util.Observer;
 
 import org.slf4j.Logger;
@@ -49,18 +52,17 @@ import org.slf4j.LoggerFactory;
  * @modified version 4.0, 02/08/2014
  * @modified version 4.2, 03/08/2014
  * @modified version 4.4, 03/17/2014
+ * @modified version 4.5, 03/29/2014
  * 
  * @author Dmitry Viktorov
  *
  */
 @BaseFormat(name = "BASIC_SOURCE", primaryExtension = "", extensions = {})
-public class BasicSourceBaseWriter implements BaseWriter {
+public class SourceBaseWriter implements BaseWriter {
 	
-	protected static final String UTF8 = "UTF-8";
+	private static final Logger log = LoggerFactory.getLogger(SourceBaseWriter.class);
 	
-	private final Logger log = LoggerFactory.getLogger(BasicSourceBaseWriter.class);
-	
-	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(BasicSourceBaseWriter.class);
+	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(SourceBaseWriter.class);
 		
 	byte mediaBuffer[] = new byte[16384];
 	
@@ -81,11 +83,12 @@ public class BasicSourceBaseWriter implements BaseWriter {
 	protected int articleNumber = 0;
 	protected int mediaResourcesNumber = 0;
 	
-	public BasicSourceBaseWriter(File outDirectory) throws IOException {
-		if (outDirectory == null || outDirectory.exists() && !outDirectory.isDirectory()) {
+	public SourceBaseWriter(File inOutDirectory) throws IOException {
+		if (inOutDirectory == null || inOutDirectory.exists() && !inOutDirectory.isDirectory()) {
 			throw new IOException("The target must be a directory, not a file!");
 		}
-		this.outDirectory = outDirectory;
+		this.outDirectory = inOutDirectory;
+		this.outDirectory.mkdirs();
 	}
 	
 	@Override
@@ -93,17 +96,22 @@ public class BasicSourceBaseWriter implements BaseWriter {
 		
 		// Create environment
 		outDirectory.mkdirs();
-		mediaDirectory = new File(outDirectory.getAbsolutePath() + File.separator + BasicSourceFileNames.DIRECTORY_MEDIA);
+		mediaDirectory = new File(outDirectory.getAbsolutePath() + File.separator + SourceFileNames.DIRECTORY_MEDIA);
 		mediaDirectory.mkdirs();
 		
 		createWriters();
 	}
 
 	@Override
-	public BasePropertiesInfo saveBasePropertiesInfo(BasePropertiesInfo baseInfo) throws Exception {
-		this.baseInfo = baseInfo;
-		int total = baseInfo.getAbbreviationsNumber() + baseInfo.getArticlesNumber() + baseInfo.getMediaResourcesNumber();
-		progressInfo.setTotal(total);
+	public BasePropertiesInfo saveBasePropertiesInfo(BasePropertiesInfo inBaseInfo) throws Exception {
+		this.baseInfo = inBaseInfo;
+		
+		// Log base info to debug
+		for (Map.Entry<String, Object> param : baseInfo.getPrimaryParameters().entrySet()) {
+			log.debug(param.getKey() + ": " + param.getValue());
+		}
+		
+		progressInfo.setTotal(baseInfo.getAmraNumber());
 		return this.baseInfo;
 	}
 
@@ -124,7 +132,8 @@ public class BasicSourceBaseWriter implements BaseWriter {
 
 	@Override
 	public void saveArticleInfo(ArticleInfo articleInfo) throws Exception {
-		saveArticleLine(articleInfo.getWordInfo().getWord() + SourceReaderUtils.SOURCE_DELIMITER + articleInfo.getArticle() + "\r\n");
+		String nobrArticle = SourceFormatUtils.removeLineBreaks(articleInfo.getArticle());
+		saveArticleLine(articleInfo.getWordInfo().getWord() + SourceReaderUtils.SOURCE_DELIMITER + nobrArticle + "\r\n");
 	}
 
 	@Override
@@ -135,8 +144,8 @@ public class BasicSourceBaseWriter implements BaseWriter {
 	@Override
 	public void saveBaseResourceInfo(BaseResourceInfo baseResourceInfo) {
 		try {
-			debugWriter.write(baseResourceInfo.getResourceKey() + "  " + new String(baseResourceInfo.getByteArray(), "UTF-8") + "\r\n");
-		} catch (IOException e) {
+			logDebug(baseResourceInfo.getResourceKey() + "  " + new String(baseResourceInfo.getByteArray(), UTF8));
+		} catch (Exception e) {
 			log.error("Error", e);
 		}
 	}
@@ -157,14 +166,18 @@ public class BasicSourceBaseWriter implements BaseWriter {
 
 	@Override
 	public void flush() throws IOException {
-		artWriter.flush();
+		if (artWriter != null) {
+			artWriter.flush();
+		}
 		abbWriter.flush();
 		debugWriter.flush();
 	}
 
 	@Override
 	public void close() throws IOException {
-		artWriter.close();
+		if (artWriter != null) {
+			artWriter.close();
+		}
 		abbWriter.close();
 		debugWriter.close();
 	}
@@ -180,9 +193,9 @@ public class BasicSourceBaseWriter implements BaseWriter {
 	}
 	
 	protected void createWriters() throws Exception {
-		artWriter = createWriter(BasicSourceFileNames.FILE_ARTICLES);
-		abbWriter = createWriter(BasicSourceFileNames.FILE_ABBREVIATIONS);
-		debugWriter = createWriter(BasicSourceFileNames.FILE_DEBUG);
+		artWriter = createWriter(SourceFileNames.FILE_ARTICLES);
+		abbWriter = createWriter(SourceFileNames.FILE_ABBREVIATIONS);
+		debugWriter = createWriter(SourceFileNames.FILE_DEBUG);
 	}
 	
 	protected void saveArticleLine(String inArticleLine) throws Exception {
@@ -210,6 +223,15 @@ public class BasicSourceBaseWriter implements BaseWriter {
 		int current = abbreviationsNumber + articleNumber + mediaResourcesNumber;
 		progressInfo.setCurrent(current);
 		progressInfo.notifyObservers();
+	}
+	
+	protected void logDebug(String text) {
+		try {
+			debugWriter.write(text + "\r\n");
+			debugWriter.flush();
+		} catch (IOException e) {
+			log.error("Error", e);
+		}
 	}
 	
 }
