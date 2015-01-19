@@ -5,7 +5,7 @@
 # To remove images from any FDB/ZD base:
 #
 # 1. Convert the base to SOURCE
-# 2. Run this script at articles.txt as remove-article-images.pl
+# 2. Run this script from the same directory where articles.txt is located
 # 3. After the script is done, remove the old articles.txt, and rename articles-new.txt to articles.txt
 # 4. Convert the base back from SOURCE to FDB or ZD
 #
