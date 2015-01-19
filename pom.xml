@@ -15,8 +15,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.compiler.plugin.version>3.1</maven.compiler.plugin.version>
 		<maven.surefire.plugin.version>2.16</maven.surefire.plugin.version>
-		<compiler.source.version>1.6</compiler.source.version>
-		<compiler.target.version>1.6</compiler.target.version>
+		<compiler.source.version>1.7</compiler.source.version>
+		<compiler.target.version>1.7</compiler.target.version>
 	</properties>
   
 	<dependencies>
