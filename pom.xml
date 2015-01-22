@@ -6,7 +6,7 @@
 	<groupId>info.softex.dictionary</groupId>
 	<artifactId>dictan-core</artifactId>
 	<packaging>jar</packaging>
-	<version>4.5</version>
+	<version>4.6</version>
   
   	<properties>
 		<sqlite.jdbc.version>3.7.2</sqlite.jdbc.version>
