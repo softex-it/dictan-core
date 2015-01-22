@@ -36,6 +36,7 @@ import java.util.TimeZone;
  * @modified version 3.9, 12/05/2013
  * @modified version 4.0, 02/02/2014
  * @modified version 4.5, 03/29/2014
+ * @modified version 4.6, 01/19/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -72,6 +73,10 @@ public class BasePropertiesInfo implements Cloneable {
 		INFO_COMPILATION_CREATOR_NAME("info.compilation.creator.name"),
 		INFO_COMPILATION_PROGRAM_NAME("info.compilation.program.name"),
 		INFO_COMPILATION_PROGRAM_VERSION("info.compilation.program.version"),
+		INFO_COMPILATION_SDK_NAME("info.compilation.sdk.name"),
+		INFO_COMPILATION_SDK_VERSION("info.compilation.sdk.version"),
+		INFO_COMPILATION_OS_NAME("info.compilation.os.name"),
+		INFO_COMPILATION_OS_VERSION("info.compilation.os.version"),
 		INFO_COMPILATION_DATE("info.compilation.date");
 		
 		private String key = null;
@@ -361,12 +366,28 @@ public class BasePropertiesInfo implements Cloneable {
 		return (String) primaryParams.get(PrimaryKeys.INFO_COMPILATION_CREATOR_NAME.getKey());
 	}
 	
-	public void setCompilationProgramsName(String name) {
+	public void setCompilationProgramName(String name) {
 		primaryParams.put(PrimaryKeys.INFO_COMPILATION_PROGRAM_NAME.getKey(), name);
 	}
 	
-	public void setCompilationProgramsVersion(String version) {
+	public void setCompilationProgramVersion(String version) {
 		primaryParams.put(PrimaryKeys.INFO_COMPILATION_PROGRAM_VERSION.getKey(), version);
+	}
+	
+	public void setCompilationSdkName(String name) {
+		primaryParams.put(PrimaryKeys.INFO_COMPILATION_SDK_NAME.getKey(), name);
+	}
+	
+	public void setCompilationSdkVersion(String version) {
+		primaryParams.put(PrimaryKeys.INFO_COMPILATION_SDK_VERSION.getKey(), version);
+	}
+	
+	public void setCompilationOsName(String name) {
+		primaryParams.put(PrimaryKeys.INFO_COMPILATION_OS_NAME.getKey(), name);
+	}
+	
+	public void setCompilationOsVersion(String version) {
+		primaryParams.put(PrimaryKeys.INFO_COMPILATION_OS_VERSION.getKey(), version);
 	}
 	
 //	public String getBaseDescription() {
