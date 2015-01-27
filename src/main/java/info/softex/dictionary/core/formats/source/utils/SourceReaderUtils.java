@@ -124,7 +124,7 @@ public class SourceReaderUtils {
 				pointerData.add(raf.getFilePointer());
 				
 			} else {
-				log.warn("Line {} is empty or inconsistent, skipping", i, line);
+				log.warn("Line {} is empty or inconsistent, skipping: {}", i, line);
 			}
 
 		}
