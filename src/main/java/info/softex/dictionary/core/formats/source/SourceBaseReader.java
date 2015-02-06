@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -37,18 +37,21 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Source base reader which mainly follows the ZD source syntax.
  * 
- * @since version 3.4, 07/02/2012
+ * @since version 3.4,		07/02/2012
  * 
- * @modified version 3.5, 08/06/2012
- * @modified version 4.0, 08/06/2012
- * @modified version 4.2, 03/06/2014
+ * @modified version 3.5,	08/06/2012
+ * @modified version 4.0,	08/06/2012
+ * @modified version 4.2,	03/06/2014
+ * @modified version 4.6,	01/26/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -70,6 +73,7 @@ public class SourceBaseReader implements BaseReader {
 	protected SourceFileReader abbrevReader;
 	
 	protected List<String> words;
+	
 	protected Set<String> abbrevKeys;
 	protected Set<String> mediaResources;
 	
@@ -123,7 +127,7 @@ public class SourceBaseReader implements BaseReader {
 
 	@Override
 	public BasePropertiesInfo loadBasePropertiesInfo() throws BaseFormatException, Exception {
-		
+
 		baseInfo = new BasePropertiesInfo();
 		
 		// Words & Articles
@@ -224,6 +228,11 @@ public class SourceBaseReader implements BaseReader {
 	public List<String> getWords() throws BaseFormatException {
 		return words;
 	}
+	
+	@Override
+	public Map<Integer, Integer> getWordRedirects() throws BaseFormatException {
+		return null;
+	}
 
 	@Override
 	public ArticleInfo getArticleInfo(WordInfo wordInfo) throws BaseFormatException {
@@ -250,6 +259,11 @@ public class SourceBaseReader implements BaseReader {
 			return articleInfo;
 		}
 		return null;
+	}
+	
+	@Override
+	public ArticleInfo getAdaptedArticleInfo(WordInfo wordInfo) throws BaseFormatException {
+		return getRawArticleInfo(wordInfo);
 	}
 	
 	protected List<String> loadWords() throws BaseFormatException, Exception {

@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * FDB (Free Dictionary Base) base reader.
  * 
  * @since version 2.6, 08/21/2011
  * 
@@ -55,6 +56,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 3.4, 07/04/2012
  * @modified version 3.9, 01/25/2014
  * @modified version 4.0, 02/08/2014
+ * @modified version 4.6, 01/28/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -137,6 +139,11 @@ public class FDBBaseReader implements BaseReader {
 		ArticleInfo articleInfo = getBaseForArticle(wordInfo.getId()).getRawArticleInfo(wordInfo);
 		return articleInfo;
 	}
+	
+	@Override
+	public ArticleInfo getAdaptedArticleInfo(WordInfo wordInfo) throws BaseFormatException {
+		return getRawArticleInfo(wordInfo);
+	}
 		
 	@Override
 	public void load() throws BaseFormatException {
@@ -215,6 +222,11 @@ public class FDBBaseReader implements BaseReader {
 	@Override
 	public List<String> getWords() {
 		return mainBase.getWords();
+	}
+	
+	@Override
+	public Map<Integer, Integer> getWordRedirects() throws BaseFormatException {
+		return mainBase.getWordRedirects();
 	}
 	
 	@Override

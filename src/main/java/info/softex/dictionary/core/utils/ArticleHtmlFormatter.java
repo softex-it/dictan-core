@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 3.5, 08/01/2012
  * @modified version 4.0, 02/06/2014
  * @modified version 4.1, 02/25/2014 
+ * @modified version 4.6, 02/01/2015 
  * 
  * @author Dmitry Viktorov
  *
@@ -239,7 +240,7 @@ public class ArticleHtmlFormatter {
 			return article;
 		} else { // Auto mode
 			
-			log.info("Word injection is auto, searching for the word in the article");
+			log.debug("Word injection is auto, searching for the word in the article");
 
 			// If (Article.length() > 0) is not pointed, charAt causes the StringIndexOutOfBoundsException.
 			// It happens because String.indexOf() returns 0 of length=0 - Android bug
@@ -332,8 +333,6 @@ public class ArticleHtmlFormatter {
 
 	    return sb.toString();
 	}
-	
-	
 	
 	/**
 	 * Replace All Ignore Case

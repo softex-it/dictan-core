@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -20,8 +20,8 @@
 package info.softex.dictionary.core.formats.source.utils;
 
 import info.softex.dictionary.core.attributes.KeyValueInfo;
-import info.softex.dictionary.core.formats.source.BufferedRandomAccessFile;
 import info.softex.dictionary.core.formats.source.SourceKeyValueInfo;
+import info.softex.dictionary.core.io.BufferedRandomAccessFile;
 
 import java.io.IOException;
 import java.nio.MappedByteBuffer;
@@ -34,7 +34,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * @since version 4.2, 03/07/2014
+ * @since version 4.2,		03/07/2014
+ * 
+ * @modified version 4.6,	01/27/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -55,7 +57,7 @@ public class SourceReaderUtils {
 	 *			true - if the KeyValueInfo has been populated
 	 *			false - if the string couldn't be parsed, so the KeyValueInfo is untouched
 	 */
-	public static <T extends KeyValueInfo<String>> boolean parseSourceLine(T inKeyValueInfo, String inLine) {
+	public static <T extends KeyValueInfo<String, String>> boolean parseSourceLine(T inKeyValueInfo, String inLine) {
 		
 		if (inLine != null) {
 			
@@ -99,10 +101,11 @@ public class SourceReaderUtils {
 		pointerData.add(raf.getFilePointer());
 		
 		// Line container
-		SourceKeyValueInfo kvInfo = new SourceKeyValueInfo();
+		SourceKeyValueInfo<String> kvInfo = new SourceKeyValueInfo<String>();
 		
 		String line = null;
-		while ((line = readLineUTF(raf)) != null) {
+		while ((line = raf.readLineUTF()) != null) {
+//		while ((line = readLineUTF(raf)) != null) {
 			
 //			if (line.length() > 500000) {
 //				log.info("Long line found! Key: {}, Length: {}", key, line.length());
@@ -135,31 +138,26 @@ public class SourceReaderUtils {
 		
 		MappedByteBuffer articleBuffer = fc.map(MapMode.READ_ONLY, start, length);
 		
-		//System.out.println(start + " | " + length);
-		
 		articleBuffer.load().get(contentBuffer, 0, length);
 
 		return new String(contentBuffer, 0, length, UTF8);
 		
 	}
 	
-	/**
-	 * It's important to return string buffer because the String transferred 
-	 * to StringBuffer by the compiler may cause OOM in the loop.
-	 * 
-	 * @param raf
-	 * @return
-	 * @throws IOException
-	 */
-	private static String readLineUTF(BufferedRandomAccessFile raf) throws IOException {
-
-		byte[] lineBuffer = raf.readLineBuffer();
-		if (lineBuffer == null) {
-			return null;
-		}
-
-		return new String(lineBuffer, UTF8);
-		
-	}
-
+//	/**
+//	 * It's important to return string buffer because the String transferred 
+//	 * to StringBuffer by the compiler may cause OOM in the loop.
+//	 * 
+//	 * @param raf
+//	 * @return
+//	 * @throws IOException
+//	 */
+//	private static String readLineUTF(BufferedRandomAccessFile raf) throws IOException {
+//		byte[] lineBuffer = raf.readLineBuffer();
+//		if (lineBuffer == null) {
+//			return null;
+//		}
+//		return new String(lineBuffer, UTF8);
+//	}
+	
 }

@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -25,6 +25,7 @@ package info.softex.dictionary.core.formats.fdb;
  * 
  * @modified version 3.9, 01/29/2014
  * @modified version 4.0, 02/06/2014
+ * @modified version 4.6, 01/28/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -34,6 +35,13 @@ public class FDBSQLWriteStatements {
 	public static final String CREATE_TABLE_WORDS =
 		"CREATE TABLE " + FDBTables.words +
 		" (word_id INTEGER PRIMARY KEY, word TEXT UNIQUE NOT NULL)";
+
+	public static final String CREATE_TABLE_WORDS_REDIRECTS =
+		"CREATE TABLE " + FDBTables.words_redirects +
+		" (word_id INTEGER PRIMARY KEY, redirect_to_word_id INTEGER NOT NULL)";
+	
+	public static final String CREATE_INDEX_WORDS_REDIRECTS_REDIRECT_TO_WORD_ID =
+		"CREATE INDEX words_redirects_redirect_to_word_id_idx ON " + FDBTables.words_redirects + "(redirect_to_word_id)";
 	
 	public static final String CREATE_TABLE_ARTICLE_BLOCKS =
 		"CREATE TABLE " + FDBTables.article_blocks +
@@ -76,6 +84,9 @@ public class FDBSQLWriteStatements {
 	public static final String INSERT_WORD =
 		"INSERT INTO " + FDBTables.words + " (word_id, word) VALUES(?, ?)";
 
+	public static final String INSERT_WORD_REDIRECT =
+		"INSERT INTO " + FDBTables.words_redirects + " (word_id, redirect_to_word_id) VALUES(?, ?)";
+	
 	public static final String INSERT_ARTICLE =
 		"INSERT INTO " + FDBTables.article_blocks + 
 		" (article_block_id, article_block) VALUES(?, ?)";

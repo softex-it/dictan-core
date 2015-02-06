@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -29,6 +29,7 @@ import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
 import info.softex.dictionary.core.attributes.ProgressInfo;
+import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.database.DatabaseConnectionFactory;
 import info.softex.dictionary.core.formats.api.BaseWriter;
 
@@ -51,6 +52,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 2.9, 11/19/2011
  * @modified version 3.4, 07/02/2012
  * @modified version 4.5, 03/29/2014
+ * @modified version 4.6, 02/01/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -87,6 +89,8 @@ public class FDBBaseWriter implements BaseWriter {
 	
 	protected int curArticlesNumber = 0;
 	protected int curMediaResourcesNumber = 0;
+	
+	protected boolean isClosed = false;
 	
 	public FDBBaseWriter(String inBaseFilePath, DatabaseConnectionFactory inConFactory, Map<String, String> params) throws SQLException, IOException {
 		if (params != null) {
@@ -156,7 +160,8 @@ public class FDBBaseWriter implements BaseWriter {
 			saveArticlesBlockIdStart4BaseIndex(activeBase.getBaseIndex());
 		}
 		
-		mainBase.saveWord(articleInfo.getWordInfo().getWord().trim(), wordsNumber);
+		WordInfo wordInfo = articleInfo.getWordInfo();
+		mainBase.saveWord(wordInfo.getWord().trim(), wordsNumber, wordInfo.getRedirectToId());
 		boolean isFlashed = activeBase.saveArticle(articleInfo.getArticle().trim(), wordsNumber++);
 		
 		updateProgress();
@@ -207,11 +212,18 @@ public class FDBBaseWriter implements BaseWriter {
 		return mainBase.getLanguageDirectionsInfo();
 	}
 
+	/**
+	 * Flush everything and clodse the writer
+	 */
 	@Override
 	public void close() throws Exception {
-		for (int i = 0; i < dbs.size(); i++) {
-			dbs.get(i).close();
+		if (!isClosed) {
+			flush();
+			for (int i = 0; i < dbs.size(); i++) {
+				dbs.get(i).close();
+			}
 		}
+		isClosed = true;
 	}
 	
 	@Override
@@ -300,8 +312,10 @@ public class FDBBaseWriter implements BaseWriter {
 	
 	@Override
 	public void flush() throws Exception {
-		flushArticles();
-		flushMediaResources();
+		if (!isClosed) {
+			flushArticles();
+			flushMediaResources();
+		}
 	}
 
 	// Protected -----------------------------------

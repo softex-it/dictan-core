@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -46,6 +46,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +57,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @modified version 4.0, 02/04/2014
  * @modified version 4.2, 03/05/2014
+ * @modified version 4.6, 01/28/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -72,6 +74,8 @@ public class FDBBaseReadUnit {
 	protected final Connection connection;
 	
 	protected List<String> words = null;
+	protected TreeMap<Integer, Integer> wordRedirects = null;
+	
 	protected Map<String, String> abbreviations = null;
 	protected Set<String> mediaResources = null; // Initialized only when getMediaResourceKeys is called
 	
@@ -218,7 +222,7 @@ public class FDBBaseReadUnit {
 			throw new BaseFormatException("Couldn't parse language data: " + e.getMessage());
 		} catch (Exception e) {
 			log.error("Error", e);
-			throw new BaseFormatException("Unexpected error: " + e.getMessage());
+			throw new BaseFormatException("Unexpected error: " + e.getClass().getName() + ", " + e.getMessage());
 		}
 		
 		return this.langDirections;
@@ -246,11 +250,19 @@ public class FDBBaseReadUnit {
 			long s3 = System.currentTimeMillis();
 			log.debug("LanguageDirectionsInfo loaded, time: {}", s3 - s2); 
 	
+			// Create dynamic list for words
 		    words = new FDBDynamicListSet(
 		    		baseInfo.getArticlesNumber(), 
 		    		wordListBlockSize,
 		    		connection
 		    	);
+		    
+			// Create dynamic list for words
+//		    redirects = new FDBDynamicListSet(
+//		    		baseInfo.getArticlesNumber(), 
+//		    		wordListBlockSize,
+//		    		connection
+//		    	);
 		    
 			long s4 = System.currentTimeMillis();
 			log.debug("Word list created, time: {}", s4 - s3); 
@@ -334,8 +346,8 @@ public class FDBBaseReadUnit {
 				int segmentNumber = resourceId - resRS.getInt(1);
 				
 				resourceData = readSegmentBytesFromStream(
-						new SmartInflaterInputStream(new ByteArrayInputStream(resRS.getBytes(2))), segmentNumber
-					);
+					new SmartInflaterInputStream(new ByteArrayInputStream(resRS.getBytes(2))), segmentNumber
+				);
 				
 			} else {
 				resRS.close();
@@ -366,6 +378,34 @@ public class FDBBaseReadUnit {
 	
 	public List<String> getWords() {
 		return words;
+	}
+	
+	/**
+	 * Redirects are returned lazy way because they are mainly 
+	 * required at conversions.
+	 * 
+	 * @return Map of word IDs for redirects
+	 */
+	public Map<Integer, Integer> getWordRedirects() throws BaseFormatException {
+		if (wordRedirects == null) {
+			wordRedirects = new TreeMap<Integer, Integer>();
+			try {
+				
+				Statement statement = connection.createStatement();
+				ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_WORDS_REDIRECTS);
+				
+				// Populate the redirects map
+				while (rs.next()) {
+					wordRedirects.put(rs.getInt(1), rs.getInt(2));
+				}
+				rs.close();
+				
+			} catch (Exception e) {
+				log.error("Error", e);
+				throw new BaseFormatException("Couldn't load redirects: " + e.getMessage());
+			}
+		} 
+		return wordRedirects;
 	}
 	
 	public BasePropertiesInfo getBasePropertiesInfo() {

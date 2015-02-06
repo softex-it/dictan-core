@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -21,7 +21,9 @@ package info.softex.dictionary.core.formats.fdb;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import info.softex.dictionary.core.attributes.ArticleInfo;
+import info.softex.dictionary.core.attributes.ArticleInfo.RT;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
@@ -42,102 +44,104 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * @since version 2.6, 08/27/2011
+ * @since version 2.6, 		08/27/2011
  * 
- * @modified version 3.2, 04/20/2013
- * @modified version 4.5, 03/26/2014
+ * @modified version 3.2,	04/20/2013
+ * @modified version 4.5,	03/26/2014
+ * @modified version 4.6,	01/28/2015
  * 
  * @author Dmitry Viktorov
  *
  */
 public class FDBReadWriteTest {
 	
-	private final Logger log = LoggerFactory.getLogger(getClass());
+	private final static Logger log = LoggerFactory.getLogger(FDBReadWriteTest.class);
 	
-	public static final String BASE_NAME = "Best Base";
-	public static final String BASE_PATH = "../dicts";
-	public static final String BASE_FILE = "new_dictionary.fdb";
+	public final static String BASE_NAME = "Best Base";
+	public final static String BASE_PATH = "../dicts";
+	public final static String BASE_FILE = "new_dictionary.fdb";
+	
+	public final static int REDIRECT_TO_ID = 123;
+	public final static String REDIRECT_TO_WORD = "sample word 4000 redirect to " + REDIRECT_TO_ID;
+	
+	public final static File file = new File(BASE_PATH, BASE_FILE);
 	
 	@Test
-	public void testFDBBase() throws ClassNotFoundException {
+	public void testFDBBaseWrite() throws Exception {
 		
-		// Connection connection = null;
-		try {
+		log.info("FDB write test started");
 			
-			new File(BASE_PATH).mkdirs();
-			
-			File file = new File(BASE_PATH, BASE_FILE);
-			
-			if (file.exists()) {
-				file.delete();
-			}
-			
-			BaseWriter writer = new FDBBaseWriter(file.getAbsolutePath(), new BasicSQLiteConnectionFactory(), null);
-			writer.createBase();
-			
-			BasePropertiesInfo info = new BasePropertiesInfo();
-			info.setBaseFullName(BASE_NAME);
-			info.setBaseVersion(10,11);
-			//info.setBaseLocale(new Locale("RU"));
-			//info.setBaseDescription("Very good dictionary");
-			
-			//info.setArticleFormattingEnabled(false);
-			
-			info.setFormatVersion(1);
-			info.setFormatName("FDB");
-			
-			writer.saveBasePropertiesInfo(info);
-			
-			
-			LanguageDirectionsInfo dirs = new LanguageDirectionsInfo();
-			dirs.setDefaultCollationProperties(CollationRulesFactory.createDefaultCollationProperties().getCollationRules(), null, 10);
-			int ver = 0;
-			SimpleCollationProperties props = CollationRulesFactory.createLocaleAppendixCollationProperties(new Locale("ru"));
-			dirs.addDirection("ru", "en", props.getCollationRules(), "", Collator.PRIMARY, Collator.CANONICAL_DECOMPOSITION, ver, props.isCollationIndependent());
-			SimpleCollationProperties props2 = CollationRulesFactory.createLocaleAppendixCollationProperties(new Locale("en"));
-			dirs.addDirection("en", "ru", props2.getCollationRules(), "", Collator.PRIMARY, Collator.CANONICAL_DECOMPOSITION, ver, props2.isCollationIndependent());	
-			
-			writer.saveLanguageDirectionsInfo(dirs);
-			
+		new File(BASE_PATH).mkdirs();
+		
+		if (file.exists()) {
+			file.delete();
+		}
+		
+		BaseWriter writer = new FDBBaseWriter(file.getAbsolutePath(), new BasicSQLiteConnectionFactory(), null);
+		writer.createBase();
+		
+		BasePropertiesInfo info = new BasePropertiesInfo();
+		info.setBaseFullName(BASE_NAME);
+		info.setBaseVersion(10,11);
+		
+		//info.setBaseLocale(new Locale("RU"));
+		//info.setBaseDescription("Very good dictionary");
+		//info.setArticleFormattingEnabled(false);
+		//info.setFormatVersion(FDBConstants.CURRENT_FDB_VERSION);
+		//info.setFormatName(FDBConstants."FDB");
+		
+		writer.saveBasePropertiesInfo(info);
+		
+		LanguageDirectionsInfo dirs = new LanguageDirectionsInfo();
+		dirs.setDefaultCollationProperties(CollationRulesFactory.createDefaultCollationProperties().getCollationRules(), null, 10);
+		int ver = 0;
+		SimpleCollationProperties props = CollationRulesFactory.createLocaleAppendixCollationProperties(new Locale("ru"));
+		dirs.addDirection("ru", "en", props.getCollationRules(), "", Collator.PRIMARY, Collator.CANONICAL_DECOMPOSITION, ver, props.isCollationIndependent());
+		SimpleCollationProperties props2 = CollationRulesFactory.createLocaleAppendixCollationProperties(new Locale("en"));
+		dirs.addDirection("en", "ru", props2.getCollationRules(), "", Collator.PRIMARY, Collator.CANONICAL_DECOMPOSITION, ver, props2.isCollationIndependent());	
+		
+		writer.saveLanguageDirectionsInfo(dirs);
 
-			
-			//-------------------------------
-			
-			pushSampleToWriter(writer, 10, 400);
-			
-			//-------------------------------
-			
-			writer.flush();
-			
-			
-			log.info("Base is populated!");
-			
-			FDBBaseReader r = new FDBBaseReader(file, new BasicSQLiteConnectionFactory(), null, new BasicCollatorFactory());
-			
-			r.load();
-			BasePropertiesInfo dictInfo = r.getBasePropertiesInfo();
-			
-			assertEquals(BASE_NAME, dictInfo.getBaseFullName());
-			
-			int id = r.searchWordIndex("sample word 148", true);
-			log.info("ID: {}", id);
+		//-------------------------------
+		
+		int lastId = pushSampleToWriter(writer, 10, 400);
+		
+		pushRedirectedWordToWriter(writer, lastId, REDIRECT_TO_ID);
+		
+		//-------------------------------
+		
+		writer.close();
+		
+		log.info("FDB write is completed!");
+		
+	}
+	
+	@Test
+	public void testFDBBaseRead() throws Exception {
+		
+		log.info("FDB read test started");
+		
+		FDBBaseReader r = new FDBBaseReader(file, new BasicSQLiteConnectionFactory(), null, new BasicCollatorFactory());
+		r.load();
+		
+        assertTrue(r.isLoaded());
 
-			int rusId = r.searchWordIndex("текст 50", true);
-			log.info("ID Rus: {}", rusId);
-			
-			
-			List<String> words = r.getWords();
-			
-			assertNotNull(words);
-			
-			String word = words.get(0);
-			log.info("Word 0: {}", word);
+		BasePropertiesInfo baseInfo = r.getBasePropertiesInfo();
+		assertEquals(BASE_NAME, baseInfo.getBaseFullName());
+		assertEquals("FDB", baseInfo.getFormatName());
+		assertEquals(FDBConstants.CURRENT_FDB_VERSION, baseInfo.getFormatVersion());
+		
+		List<String> words = r.getWords();
+		assertNotNull(words);
+		
+		String word = words.get(0);
+		log.info("Word 0: {}", word);
 
-			String word2 = words.get(15);
-			log.info("Word 1: {}", word2);
-			
-			String word3 = words.get(155);
-			log.info("Word 2: {}", word3);
+		String word2 = words.get(15);
+		log.info("Word 1: {}", word2);
+		
+		String word3 = words.get(155);
+		log.info("Word 2: {}", word3);
 
 //			ArticleInfo article = r.getArticleInfo(new WordInfo(null, 0));
 //			log.info("{}, {}", article, article.getArticle());
@@ -159,34 +163,55 @@ public class FDBReadWriteTest {
 //
 //			ArticleInfo article4 = r.getArticleInfo(new WordInfo(null, 2055));
 //			log.info("{}, {}", article4, article4.getArticle());
-			
-			for (int i = 0; i < words.size(); i++) {
-				ArticleInfo article2 = r.getArticleInfo(new WordInfo(i));
-				log.info(i + " {}, {}", article2, article2.getArticle());
-			}
-			
-		} catch (Exception e) {
-			log.error("Error", e);
+		
+		for (int i = 0; i < words.size(); i++) {
+			ArticleInfo article2 = r.getArticleInfo(new WordInfo(i));
+			assertEquals(RT.STRONG, article2.getReferenceType());
+			assertNotNull(article2.getArticle());
 		}
+		
+		// Test redirect
+		int redirWID = r.searchWordIndex(REDIRECT_TO_WORD, false);
+		log.info("ID Redir: {}", redirWID);
+		assertTrue("Word indext must be positive", redirWID >= 0);
+		assertEquals(REDIRECT_TO_WORD, words.get(redirWID));
+		
+		// Test word search
+		int engWID = r.searchWordIndex("sample word 148", true);
+		log.info("ID Eng: {}", engWID);
+		assertEquals(148, engWID);
+
+		int rusWID = r.searchWordIndex("текст 50", false);
+		log.info("ID Rus: {}", rusWID);
+		assertEquals(-4002, rusWID);
+		
+		r.close();
 		
 	}
 	
-	private void pushSampleToWriter(BaseWriter writer, int mlp, int packSize) throws Exception {
+	private static int pushSampleToWriter(BaseWriter writer, int mlp, int packSize) throws Exception {
 
-		for (int i = 0; i < mlp; i++) {
+		int count = 0;
+		for (;count < mlp; count++) {
 			
 			//log.info("Starting MLP {}", i);
-			int offset = i * packSize;
+			int offset = count * packSize;
 			
 			for (int j = 0; j < packSize; j++) {
-				int num = j + offset;
-				writer.saveArticleInfo(new ArticleInfo(new WordInfo(num, "sample word " + num), "simple text string is used as an article " + num));
+				int wordId = j + offset;
+				writer.saveArticleInfo(new ArticleInfo(new WordInfo(wordId, "sample word " + wordId), "simple text string is used as an article " + wordId));
 			}
 			
-			log.info("Pushing MLP: {}", i);
+			//log.info("Pushing MLP: {}", count);
 			
 		}
 		
+		return count;
+		
+	}
+	
+	private static void pushRedirectedWordToWriter(BaseWriter writer, int wordId, int redirectToWordId) throws Exception {
+		writer.saveArticleInfo(new ArticleInfo(new WordInfo(wordId, "sample word 4000 redirect to " + redirectToWordId, redirectToWordId), ""));
 	}
 	
 }

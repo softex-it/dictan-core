@@ -17,42 +17,48 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.source;
+package info.softex.dictionary.core.formats.dsl.testutils;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import info.softex.dictionary.core.formats.api.BaseReader;
+import static org.junit.Assert.assertTrue;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 
 import java.io.File;
 import java.net.URL;
-
-import org.junit.Test;
+import java.util.List;
 
 /**
  * 
- * @since version 4.5, 04/05/2014
+ * @since version 4.6, 02/04/2015
  * 
  * @author Dmitry Viktorov
- *
+ * 
  */
-public class SourceBaseReaderTest {
-	
-	private final static String PATH_BASE_SOURCE_FULL = "/info/softex/dictionary/core/formats/source/testbasefull";
-	
-	@Test
-	public void testSourceBaseFull() throws Exception {
-		URL url = getClass().getResource(PATH_BASE_SOURCE_FULL);
-		BaseReader srcReader = new SourceBaseReader(new File(url.getPath()));
-		srcReader.load();
-		
-		assertNotNull(srcReader.getWords());
-		assertEquals(4, srcReader.getWords().size());
-		
-		assertNotNull(srcReader.getAbbreviationKeys());
-		assertEquals(2, srcReader.getAbbreviationKeys().size());
-		
-		assertNotNull(srcReader.getMediaResourceKeys());
-		assertEquals(1, srcReader.getMediaResourceKeys().size());
-	}
+public class DSLBaseReaderTestFactory {
 
+	public static DSLBaseReaderWrapper createAndAssertDSLBaseReader(String resourcePath) throws Exception {
+		
+		assertNotNull(resourcePath);
+		URL resource = DSLBaseReaderTestFactory.class.getResource(resourcePath);
+		assertNotNull(resource);
+			
+		DSLBaseReaderWrapper reader = new DSLBaseReaderWrapper(new File(resource.getPath()));
+		reader.load();
+		
+		assertTrue(reader.isLoaded());
+		
+		BasePropertiesInfo baseInfo = reader.getBasePropertiesInfo();
+		
+		assertNotNull(baseInfo);
+		
+		List<String> words = reader.getWords();
+		List<Long> pointers = reader.getLinePointers();
+		
+		assertNotNull(words);
+		assertNotNull(pointers);
+		
+		return reader;
+		
+	}
+	
 }

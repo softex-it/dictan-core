@@ -17,42 +17,47 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.source;
+package info.softex.dictionary.core.formats.dsl.testutils;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.formats.api.BaseReader;
+import info.softex.dictionary.core.formats.dsl.DSLBaseReader;
 
 import java.io.File;
-import java.net.URL;
-
-import org.junit.Test;
+import java.util.List;
 
 /**
+ * Test for main functionality of DSL base reader.
  * 
- * @since version 4.5, 04/05/2014
+ * @since version 4.6, 02/01/2015
  * 
  * @author Dmitry Viktorov
- *
+ * 
  */
-public class SourceBaseReaderTest {
+public class DSLConverter {
 	
-	private final static String PATH_BASE_SOURCE_FULL = "/info/softex/dictionary/core/formats/source/testbasefull";
-	
-	@Test
-	public void testSourceBaseFull() throws Exception {
-		URL url = getClass().getResource(PATH_BASE_SOURCE_FULL);
-		BaseReader srcReader = new SourceBaseReader(new File(url.getPath()));
-		srcReader.load();
+	public static void main(String[] args) throws Exception {
 		
-		assertNotNull(srcReader.getWords());
-		assertEquals(4, srcReader.getWords().size());
+		//URL url = getClass().getResource(PATH_BASE_DSL_FULL);
+		BaseReader reader = new DSLBaseReader(new File("/Volumes/Media/ln/convoxford"));
+		reader.load();
 		
-		assertNotNull(srcReader.getAbbreviationKeys());
-		assertEquals(2, srcReader.getAbbreviationKeys().size());
+		BasePropertiesInfo baseInfo = reader.getBasePropertiesInfo();
 		
-		assertNotNull(srcReader.getMediaResourceKeys());
-		assertEquals(1, srcReader.getMediaResourceKeys().size());
+		System.out.println("Header: " + baseInfo.getHeaderComments());
+		
+		List<String> words = reader.getWords();
+		
+		assertNotNull(words);
+		//assertEquals(2200000, words.size());
+		
+		System.out.println("Redirects: " + reader.getWordRedirects());
+		
+		
+		System.out.println("Words Number: " + words.size());
+		
+		
 	}
 
 }

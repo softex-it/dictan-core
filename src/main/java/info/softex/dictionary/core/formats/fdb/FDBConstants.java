@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -21,10 +21,11 @@ package info.softex.dictionary.core.formats.fdb;
 
 /**
  * 
- * @since version 2.6, 08/28/2011
+ * @since version 2.6,		08/28/2011
  * 
- * @modified version 4.0, 02/02/2014
- * @modified version 4.5, 03/29/2014
+ * @modified version 4.0,	02/02/2014
+ * @modified version 4.5,	03/29/2014
+ * @modified version 4.6,	01/28/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -33,8 +34,9 @@ public class FDBConstants {
 	
 	public static final int FDB_VERSION_1 = 1;
 	public static final int FDB_VERSION_2 = 2;
+	public static final int FDB_VERSION_3 = 3;
 	
-	public static final int CURRENT_FDB_VERSION = FDB_VERSION_2;
+	public static final int CURRENT_FDB_VERSION = FDB_VERSION_3;
 	
 	
 	public static final String PARAM_KEY_WORD_LIST_BLOCK_SIZE = "wordListBlockSize";

@@ -1,8 +1,30 @@
+/*
+ *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
+ *	
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *	
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU Lesser General Public License (LGPL) as 
+ *  published by the Free Software Foundation, either version 3 of the License, 
+ *  or any later version.
+ *	
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *  GNU Lesser General Public License for more details.
+ *	
+ *  You should have received a copy of the GNU Lesser General Public License
+ *  along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package info.softex.dictionary.core.utils;
+
+import info.softex.dictionary.core.io.UnicodeInputStream;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -14,6 +36,8 @@ import java.util.Map;
 /**
  * 
  * @since version 4.5, 03/30/2014
+ * 
+ * @modified version 4.6, 02/01/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -86,6 +110,24 @@ public class FileUtils {
 		} else {
 			return fileName.trim();
 		}
+	}
+	
+	/**
+	 * Verifies the Unicode encoding of a file is UTF8 or undefined. Otherwise throws exception.
+	 * 
+	 * @param file - File to verify
+	 * @throws IOException - If Unicode encoding is defined and it's not UTF8
+	 */
+	public static void verifyUnicodeEncodingUndefinedOrUTF8(File file) throws IOException {
+		
+		// Check BOM to see the encoding is UTF-8 or undefined (supposed to be UTF-8)
+		UnicodeInputStream uis = new UnicodeInputStream(new FileInputStream(file));
+		uis.close();
+		if (!uis.isUnicodeEncodingUndefinedOrUTF8()) {
+			throw new IOException("Only UTF-8 encoding is supported. The detected encoding is " + 
+				uis.getUnicodeEncoding() + ". Please consider the iconv utility to convert it to UTF-8.");
+		}
+		
 	}
 
 }

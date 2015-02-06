@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -25,19 +25,20 @@ import java.lang.ref.SoftReference;
 
 /**
  * 
- * @since version 1.4, 01/09/2011
+ * @since version 1.4,		01/09/2011
  * 
- * @modified version 1.7, 01/24/2011
- * @modified version 1.10, 02/24/2011
- * @modified version 2.5, 07/24/2011
- * @modified version 2.6, 09/20/2011
- * @modified version 4.0, 02/02/2014
- * @modified version 4.2, 03/07/2014
+ * @modified version 1.7,	01/24/2011
+ * @modified version 1.10,	02/24/2011
+ * @modified version 2.5,	07/24/2011
+ * @modified version 2.6,	09/20/2011
+ * @modified version 4.0,	02/02/2014
+ * @modified version 4.2,	03/07/2014
+ * @modified version 4.6,	02/01/2015
  * 
  * @author Dmitry Viktorov
  *
  */
-public class ArticleInfo implements Cloneable, KeyValueInfo<String> {
+public class ArticleInfo implements Cloneable, KeyValueInfo<String, String> {
 	
 	public static enum RT {
 		STRONG,
@@ -60,6 +61,10 @@ public class ArticleInfo implements Cloneable, KeyValueInfo<String> {
 
 	public WordInfo getWordInfo() {
 		return wordInfo;
+	}
+	
+	public RT getReferenceType() {
+		return referenceType;
 	}
 
 	public void setWordInfo(WordInfo inWordInfo) {

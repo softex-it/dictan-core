@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -44,22 +44,26 @@ import java.text.ParseException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * ZD base reader. ZD is an open dictionary base format with its
+ * specification of html-like markup.
  * 
- * @since version 1.0, 09/23/2010
+ * @since version 1.0,		09/23/2010
  * 
- * @modified version 2.0, 03/06/2011
- * @modified version 2.4, 06/10/2011
- * @modified version 2.5, 08/02/2011
- * @modified version 2.6, 09/02/2011
- * @modified version 2.7, 10/23/2011
- * @modified version 3.7, 06/11/2013
- * @modified version 4.0, 02/04/2014
+ * @modified version 2.0,	03/06/2011
+ * @modified version 2.4,	06/10/2011
+ * @modified version 2.5,	08/02/2011
+ * @modified version 2.6,	09/02/2011
+ * @modified version 2.7,	10/23/2011
+ * @modified version 3.7,	06/11/2013
+ * @modified version 4.0,	02/04/2014
+ * @modified version 4.6,	02/01/2015
  *  
  * @author Dmitry Viktorov
  * 
@@ -112,6 +116,11 @@ public class ZDBaseReader implements BaseReader {
 	public List<String> getWords() {
 		return zdReader.getWords();
 	}
+	
+	@Override
+	public Map<Integer, Integer> getWordRedirects() throws BaseFormatException {
+		return null;
+	}
 
 	public ArticleInfo getArticleInfo(WordInfo wordInfo) throws BaseFormatException {
 		return getArticleInfo(wordInfo, false);
@@ -119,6 +128,11 @@ public class ZDBaseReader implements BaseReader {
 	
 	public ArticleInfo getRawArticleInfo(WordInfo wordInfo) throws BaseFormatException {
 		return getArticleInfo(wordInfo, true);
+	}
+	
+	@Override
+	public ArticleInfo getAdaptedArticleInfo(WordInfo wordInfo) throws BaseFormatException {
+		return getRawArticleInfo(wordInfo);
 	}
 	
 	protected ArticleInfo getArticleInfo(WordInfo wordInfo, boolean isRaw) throws BaseFormatException {

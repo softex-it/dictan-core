@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -22,16 +22,21 @@ package info.softex.dictionary.core.formats.source;
 import info.softex.dictionary.core.attributes.KeyValueInfo;
 
 /**
+ * The storage for key-value pairs. Key is expected to be String, 
+ * and value is parameterized.
  * 
  * @since version 4.2, 03/07/2014
+ * 
+ * @modified version 4.6, 01/27/2015
  * 
  * @author Dmitry Viktorov
  *
  */
-public class SourceKeyValueInfo implements KeyValueInfo<String> {
+public class SourceKeyValueInfo<V> implements KeyValueInfo<String, V> {
 
 	private String key;
-	private String value;
+	
+	private V value;
 	
 	@Override
 	public String getKey() {
@@ -44,12 +49,12 @@ public class SourceKeyValueInfo implements KeyValueInfo<String> {
 	}
 
 	@Override
-	public String getValue() {
+	public V getValue() {
 		return value;
 	}
 
 	@Override
-	public void setValue(String inValue) {
+	public void setValue(V inValue) {
 		this.value = inValue;
 	}
 	

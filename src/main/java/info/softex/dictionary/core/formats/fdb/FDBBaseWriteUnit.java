@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -55,12 +55,13 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * @since version 2.9, 11/19/2011
+ * @since version 2.9, 		11/19/2011
  * 
- * @modified version 3.5, 08/07/2012
- * @modified version 3.9, 01/29/2014
- * @modified version 4.0, 02/02/2014
- * @modified version 4.5, 03/29/2014
+ * @modified version 3.5,	08/07/2012
+ * @modified version 3.9,	01/29/2014
+ * @modified version 4.0,	02/02/2014
+ * @modified version 4.5,	03/29/2014
+ * @modified version 4.6,	01/28/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -82,6 +83,7 @@ public class FDBBaseWriteUnit {
 	protected final int maxBatchSize = 1000;
 	
 	protected int curWordsBatchSize = 0;
+	protected int curWordRedirectsBatchSize = 0;
 	protected int curMediaResourcesBatchSize = 0;
 	
 	protected int basePropertiesRowsNumber = 0;
@@ -99,6 +101,7 @@ public class FDBBaseWriteUnit {
 	protected LinkedList<byte[]> mediaResourcesBuffer = new LinkedList<byte[]>();
 	
 	protected PreparedStatement insWordSt;
+	protected PreparedStatement insWordRedirectSt;
 	protected PreparedStatement insArticleSt;
 	protected PreparedStatement insBasePropertySt;
 	protected PreparedStatement insBaseResourceSt;
@@ -133,6 +136,10 @@ public class FDBBaseWriteUnit {
 		if (baseIndex == 1) {
 			
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_WORDS);
+			
+			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_WORDS_REDIRECTS);
+			st.executeUpdate(FDBSQLWriteStatements.CREATE_INDEX_WORDS_REDIRECTS_REDIRECT_TO_WORD_ID);
+			
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_ARTICLE_BLOCKS);
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_ABBREVIATIONS);
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_BASE_PROPERTIES);
@@ -146,6 +153,7 @@ public class FDBBaseWriteUnit {
 			
 			// Create prepared statements
 			insWordSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_WORD);
+			insWordRedirectSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_WORD_REDIRECT);
 			insArticleSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_ARTICLE);
 			
 			insMediaResourceKeySt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_MEDIA_RESOURCE_KEY);
@@ -344,7 +352,9 @@ public class FDBBaseWriteUnit {
 	}
 	
 	
-	public boolean saveWord(String word, int wordsNumber) throws Exception {
+	public void saveWord(String word, int wordsNumber, int redirectToWordId) throws Exception {
+		
+		// Insert word
 		insWordSt.setInt(1, wordsNumber);
 		insWordSt.setString(2, word);
 		insWordSt.addBatch();
@@ -354,10 +364,36 @@ public class FDBBaseWriteUnit {
 			insWordSt.executeBatch();
 			insWordSt.clearBatch();
 			curWordsBatchSize = 0;
-			return true;
 		}
-		return false;
+		
+		// Save redirect
+		saveRedirect(wordsNumber, redirectToWordId);
+
 	}
+	
+	protected void saveRedirect(int wordsNumber, int redirectToWordId) throws Exception {
+		
+		// Don't insert negative redirects
+		if (redirectToWordId < 0) {
+			return;
+		}
+		
+		insWordRedirectSt.setInt(1, wordsNumber);
+		insWordRedirectSt.setInt(2, redirectToWordId);
+		insWordRedirectSt.addBatch();
+		
+		curWordRedirectsBatchSize++;
+		if (curWordRedirectsBatchSize == maxBatchSize) {
+			insWordRedirectSt.executeBatch();
+			insWordRedirectSt.clearBatch();
+			curWordRedirectsBatchSize = 0;
+		}
+
+	}
+	
+//	public boolean saveWord(String word, int wordsNumber) throws Exception {
+//		return saveWord(word, wordsNumber, -1);
+//	}
 	
 	public boolean saveArticle(String article, int articleNumber) throws Exception {
 		byte[] articleData = article.getBytes(UTF8);
@@ -383,10 +419,18 @@ public class FDBBaseWriteUnit {
 
 	public void flushArticles(int curArticlesNumber) throws SQLException, UnsupportedEncodingException, IOException {
 
+		// Flush words
 		if (curWordsBatchSize != 0) {
 			insWordSt.executeBatch();
 			insWordSt.clearBatch();
 		}
+		
+		// Flush word redirects
+		if (curWordRedirectsBatchSize != 0) {
+			insWordRedirectSt.executeBatch();
+			insWordRedirectSt.clearBatch();
+		}
+		
 		insertBlockBatch(insArticleSt, articlesBuffer, curArticlesNumber, curArticleBlockMemSize);
 		articlesBuffer = new LinkedList<byte[]>();
 		curArticleBlockMemSize = 0;

@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -28,16 +28,18 @@ import info.softex.dictionary.core.attributes.MediaResourceInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * 
- * @since version 1.0, 09/23/2010
+ * @since version 1.0,		09/23/2010
  * 
- * @modified version 2.0, 03/10/2011
- * @modified version 2.5, 07/13/2011
- * @modified version 2.6, 08/21/2011
- * @modified version 4.2, 03/06/2014
+ * @modified version 2.0,	03/10/2011
+ * @modified version 2.5,	07/13/2011
+ * @modified version 2.6,	08/21/2011
+ * @modified version 4.2,	03/06/2014
+ * @modified version 4.6,	02/01/2015
  *  
  * @author Dmitry Viktorov
  * 
@@ -111,7 +113,27 @@ public interface BaseReader {
 //	public int getWordIndex(String word) throws BaseFormatException;
 	
 	public List<String> getWords() throws BaseFormatException;
+	public Map<Integer, Integer> getWordRedirects() throws BaseFormatException;	
+	
+	/**
+	 * Returns the full formatted article
+	 */
 	public ArticleInfo getArticleInfo(WordInfo wordInfo) throws BaseFormatException;
+	
+	/**
+	 * Returns the article with the basic set of rules applied. The method is mainly 
+	 * needed to speed up rendering, e.g. it can transfer a specific formatting to HTML.
+	 * If no adaptation should be done, the method should simply delegate to 
+	 * <code>getRawArticleInfo</code>. 
+	 * 
+	 * If the method is defined, the writer is supposed to have the rules to convert 
+	 * the article back to its raw view. Otherwise the original markup can be lost.
+	 */
+	public ArticleInfo getAdaptedArticleInfo(WordInfo wordInfo) throws BaseFormatException;
+	
+	/**
+	 * Returns the raw article as is, w/o any explicit forrmatting
+	 */
 	public ArticleInfo getRawArticleInfo(WordInfo wordInfo) throws BaseFormatException;
 	
 }

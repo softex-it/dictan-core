@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -17,7 +17,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.source;
+package info.softex.dictionary.core.io;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -27,17 +27,27 @@ import java.io.RandomAccessFile;
 /**
  * A <code>BufferedRandomAccessFile</code> is like a
  * <code>RandomAccessFile</code>, but it uses a private buffer so that most
- * operations do not require a disk access.
- * <P>
+ * operations do not require a disk access. In addition, it exposes the methods
+ * to read a line starting from current pointer to a byte buffer or to a UTF-8 
+ * string. 
  * 
- * Note: The operations on this class are unmonitored. Also, the correct
+ * <p>Note: The operations on this class are unmonitored. Also, the correct
  * functioning of the <code>RandomAccessFile</code> methods that are not
  * overridden here relies on the implementation of those methods in the
- * superclass.
+ * superclass.</p>
+ * 
+ * @since version 3.6,		04/20/2013
+ * 
+ * @modified version 4.6,	01/26/2015
+ * 
+ * @author Dmitry Viktorov
+ * 
  */
 public class BufferedRandomAccessFile extends RandomAccessFile {
 	
-	private static final int BUFFER_SIZE = 64 * 1024; // 64K buffer
+	private final static String UTF8 = "UTF-8";
+	
+	private final static int BUFFER_SIZE = 64 * 1024; // 64K buffer
 
 	private final String path;
 
@@ -325,6 +335,12 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
 	
 	// Custom methods -----------------------------------------------
 	
+	/**
+	 * Reads the current string to the buffer.
+	 * 
+	 * @return
+	 * @throws IOException
+	 */
     public byte[] readLineBuffer() throws IOException {
     	
     	ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -355,6 +371,20 @@ public class BufferedRandomAccessFile extends RandomAccessFile {
 		    return null;
 		}
 		return baos.toByteArray();
+    }
+    
+    /**
+     * Reads the current string as UTF8.
+     * 
+     * @return
+     * @throws IOException
+     */
+    public String readLineUTF() throws IOException {
+		byte[] lineBuffer = readLineBuffer();
+		if (lineBuffer == null) {
+			return null;
+		}
+		return new String(lineBuffer, UTF8);
     }
     
     /**

@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -22,10 +22,11 @@ package info.softex.dictionary.core.attributes;
 
 /**
  * 
- * @since version 1.4, 01/09/2011
+ * @since version 1.4,		01/09/2011
  * 
- * @modified version 1.10, 02/24/2011
- * @modified version 2.5, 07/24/2011
+ * @modified version 1.10,	02/24/2011
+ * @modified version 2.5,	07/24/2011
+ * @modified version 4.6,	01/28/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -38,6 +39,8 @@ public class WordInfo implements Cloneable {
 	
 	private int id = UNKNOWN_ID;
 	
+	private int redirectToId = UNKNOWN_ID;
+	
 	public WordInfo(String word) {
 		setWord(word);
 	}
@@ -49,6 +52,12 @@ public class WordInfo implements Cloneable {
 	public WordInfo(int index, String word) {
 		setId(index);
 		setWord(word);
+	}
+	
+	public WordInfo(int index, String word, int redirectToIndex) {
+		setId(index);
+		setWord(word);
+		setRedirectToId(redirectToIndex);
 	}
 
 	public String getWord() {
@@ -81,6 +90,10 @@ public class WordInfo implements Cloneable {
 		return this.id >= 0;
 	}
 	
+	public boolean hasRedirect() {
+		return this.redirectToId >= 0;
+	}
+	
 	@Override
 	public String toString() {
 		return "WordInfo: " + word + ", " + id;
@@ -101,6 +114,14 @@ public class WordInfo implements Cloneable {
 		}
 		String lcWord = word.toLowerCase();
 		return lcWord.startsWith("http") || lcWord.startsWith("https");
+	}
+	
+	public int getRedirectToId() {
+		return redirectToId;
+	}
+	
+	public void setRedirectToId(int inRedirectToId) {
+		this.redirectToId = inRedirectToId;
 	}
 
 }

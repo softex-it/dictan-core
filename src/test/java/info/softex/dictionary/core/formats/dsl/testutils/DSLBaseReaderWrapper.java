@@ -17,21 +17,33 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.attributes;
+package info.softex.dictionary.core.formats.dsl.testutils;
+
+import info.softex.dictionary.core.formats.dsl.DSLBaseReader;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * 
- * @since version 4.2, 03/07/2014
+ * @since version 4.6, 02/01/2015
  * 
- * @modified version 4.6, 01/27/2015
- *
+ * @author Dmitry Viktorov
+ * 
  */
-public interface KeyValueInfo<K, V> {
+public class DSLBaseReaderWrapper extends DSLBaseReader {
+
+	public DSLBaseReaderWrapper(File inSourceDirectory) throws IOException {
+		super(inSourceDirectory);
+	}
 	
-	public K getKey();
-	public void setKey(K key);
+	public List<Long> getLinePointers() {
+		return dslArticleReader.getLinePointers();
+	}
 	
-	public V getValue();
-	public void setValue(V value);
-	
+	public long getLinesRead() {
+		return dslArticleReader.getLinesRead();
+	}
+
 }

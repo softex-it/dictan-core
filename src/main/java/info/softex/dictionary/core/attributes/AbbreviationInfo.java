@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -25,11 +25,12 @@ package info.softex.dictionary.core.attributes;
  * 
  * @modified version 2.6, 10/15/2011
  * @modified version 4.2, 03/07/2014
+ * @modified version 4.6, 01/27/2015
  * 
  * @author Dmitry Viktorov
  *
  */
-public class AbbreviationInfo implements KeyValueInfo<String> {
+public class AbbreviationInfo implements KeyValueInfo<String, String> {
 
 	private String abbreviation = null;
 	private String definition = null;

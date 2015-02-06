@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -25,6 +25,7 @@ package info.softex.dictionary.core.formats.source;
  *
  * @modified version 4.4, 03/17/2014
  * @modified version 4.5, 04/02/2014
+ * @modified version 4.6, 01/26/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -34,6 +35,7 @@ public class SourceFileNames {
 	public final static String DIRECTORY_MEDIA = "media";
 	public final static String DIRECTORY_ARTICLES_HTML = "articles_html";
 	public final static String FILE_ARTICLES = "articles.txt";
+	public final static String FILE_ARTICLES_DSL = "articles.dsl";
 	public final static String FILE_ABBREVIATIONS = "abbreviations.txt";
 	public final static String FILE_DEBUG = "debug.txt";
 	

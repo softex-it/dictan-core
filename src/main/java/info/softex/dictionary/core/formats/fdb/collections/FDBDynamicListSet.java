@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -49,11 +49,11 @@ public class FDBDynamicListSet extends AbstractDynamicListSet<String> {
 	
 	private PreparedStatement wordsRangeSt = null;
 
-	public FDBDynamicListSet(int maxSize, int blockSize, Connection connection) throws SQLException {
+	public FDBDynamicListSet(int maxSize, int blockSize, Connection inConnection) throws SQLException {
 		
 		super(maxSize, blockSize, CacheBlockReferenceTypes.SOFT);
 		
-		this.connection = connection;
+		this.connection = inConnection;
 		
 		wordsRangeSt = this.connection.prepareStatement(FDBSQLReadStatements.SELECT_WORDS_IN_RANGE);
 		

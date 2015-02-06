@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -51,6 +51,7 @@ public class BasePropertiesInfo implements Cloneable {
 		BASE_VERSION("base.version"),
 		BASE_TYPE("base.type"),
 		BASE_DATE("base.date"),
+		BASE_HEADER_COMMENTS("base.header.comments"),
 		BASE_NAME_SHORT("base.name.short"),
 		BASE_NAME_FULL("base.name.full"),
 		BASE_PARTS_CURRENT_NUMBER("base.parts.current.number"),
@@ -58,6 +59,8 @@ public class BasePropertiesInfo implements Cloneable {
 		BASE_PARTS_MAIN_SIZE_MIN("base.parts.main.size.min"),
 		BASE_PARTS_SECONDARY_SIZE_MIN("base.parts.secondary.size.min"),
 		BASE_SECURITY_PROPERTIES_MD5("base.security.properties.md5"),
+		
+		WORDS_REDIRECTS_NUMBER("words.redirects.number"),
 		
 		ARTICLES_NUMBER("articles.number"),
 		ARTICLES_FORMATTING_MODE("articles.formatting.mode"),
@@ -112,7 +115,8 @@ public class BasePropertiesInfo implements Cloneable {
 	public enum ArticlesFormattingMode {
 		DISABLED, 
 		FULL,
-		BASIC
+		BASIC,
+		DSL
 	}
 	
 	public enum ArticlesFormattingInjectWordMode { 
@@ -124,7 +128,8 @@ public class BasePropertiesInfo implements Cloneable {
 	public enum AbbreviationsFormattingMode {
 		DISABLED,
 		FULL,
-		BASIC
+		BASIC,
+		DSL
 	}
 	
 	public enum BaseTypes {
@@ -202,6 +207,14 @@ public class BasePropertiesInfo implements Cloneable {
 
 	public void setFormatName(String formatName) {
 		primaryParams.put(PrimaryKeys.FORMAT_NAME.getKey(), formatName);
+	}
+	
+	public String getHeaderComments() {
+		return (String) primaryParams.get(PrimaryKeys.BASE_HEADER_COMMENTS.getKey());
+	}
+	
+	public void setHeaderComments(String comments) {
+		primaryParams.put(PrimaryKeys.BASE_HEADER_COMMENTS.getKey(), comments);
 	}
 	
 	public String getBaseFullName() {
@@ -324,6 +337,11 @@ public class BasePropertiesInfo implements Cloneable {
 		return result > 0 ? result : 0;
 	}
 	
+	public int getWordsRedirectsNumber() {
+		int result = getIntValue(PrimaryKeys.WORDS_REDIRECTS_NUMBER.getKey());
+		return result > 0 ? result : 0;
+	}
+	
 	/**
 	 * @return - Total number of articles, media resources, and abbreviations
 	 */
@@ -333,6 +351,10 @@ public class BasePropertiesInfo implements Cloneable {
 
 	public void setArticlesNumber(int articlesNumber) {
 		primaryParams.put(PrimaryKeys.ARTICLES_NUMBER.getKey(), articlesNumber);
+	}
+	
+	public void setWordsRedirectsNumber(int redirectsNumber) {
+		primaryParams.put(PrimaryKeys.WORDS_REDIRECTS_NUMBER.getKey(), redirectsNumber);
 	}
 
 	public int getAbbreviationsNumber() {

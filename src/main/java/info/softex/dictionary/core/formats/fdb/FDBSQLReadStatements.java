@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -24,6 +24,7 @@ package info.softex.dictionary.core.formats.fdb;
  * @since version 2.6, 09/15/2011
  * 
  * @modified version 4.2, 03/05/2014
+ * @modified version 4.6, 02/01/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -35,6 +36,9 @@ public class FDBSQLReadStatements {
 	
 	public static final String SELECT_WORDS_NUMER =
 		"SELECT MAX(word_id)+1 FROM " + FDBTables.words;
+	
+	public static final String SELECT_ALL_WORDS_REDIRECTS =
+		"SELECT word_id, redirect_to_word_id FROM " + FDBTables.words_redirects;
 
 	public static final String SELECT_ABBREVIATIONS =
 		"SELECT abbreviation_id, abbreviation, definition FROM " + FDBTables.abbreviations;

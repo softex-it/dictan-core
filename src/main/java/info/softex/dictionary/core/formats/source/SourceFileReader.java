@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -22,6 +22,8 @@ package info.softex.dictionary.core.formats.source;
 import info.softex.dictionary.core.attributes.KeyValueInfo;
 import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.source.utils.SourceReaderUtils;
+import info.softex.dictionary.core.io.BufferedRandomAccessFile;
+import info.softex.dictionary.core.utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,7 +38,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * @since version 4.2, 03/07/2014
+ * @since version 4.2,		03/07/2014
+ *
+ * @modified version 4.6,	01/27/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -45,19 +49,22 @@ public class SourceFileReader {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
-	private final int initialListSize = 10000;
-	private byte[] contentBuffer = null; 
+	protected final static int INIT_LIST_SIZE = 10000;
+	protected byte[] contentBuffer = null; 
 	
-	private final File file;
-	private final BufferedRandomAccessFile raf;
-	private final FileChannel fileChannel;
-	private final long fileSize;
+	protected final File file;
+	protected final BufferedRandomAccessFile raf;
+	protected final FileChannel fileChannel;
+	protected final long fileSize;
 	
-	private final List<String> lineKeys;
-	private final List<Long> linePointers;
-	private Map<String, Integer> lineMapper;
+	protected final List<String> lineKeys;
+	protected final List<Long> linePointers;
+	protected Map<String, Integer> lineMapper;
 	
 	public SourceFileReader(File inFile, int inBufferSize) throws IOException {
+		
+		// Check BOM to see the encoding is UTF-8 or undefined	
+		FileUtils.verifyUnicodeEncodingUndefinedOrUTF8(inFile);
 		
 		this.file = inFile;
 		this.raf = new BufferedRandomAccessFile(file, "r");
@@ -66,12 +73,12 @@ public class SourceFileReader {
 		
 		this.contentBuffer = new byte[inBufferSize];
 		
-		this.lineKeys = new ArrayList<String>(initialListSize);
-		this.linePointers = new ArrayList<Long>(initialListSize);
+		this.lineKeys = new ArrayList<String>(INIT_LIST_SIZE);
+		this.linePointers = new ArrayList<Long>(INIT_LIST_SIZE);
 		
 	}
 	
-	public void load(boolean isMapperActive) throws IOException {
+	public void load(boolean isMapperActive) throws IOException, BaseFormatException {
 		
 		SourceReaderUtils.loadSourceKeys(raf, lineKeys, linePointers);
 		
@@ -84,7 +91,7 @@ public class SourceFileReader {
 		
 	}
 
-	public boolean readLine(KeyValueInfo<String> inKeyValueInfo, String key) throws BaseFormatException {
+	public boolean readLine(KeyValueInfo<String, String> inKeyValueInfo, String key) throws BaseFormatException {
 		Integer pointer = getLineMapper().get(key);
 		if (pointer == null) {
 			return false;
@@ -92,7 +99,7 @@ public class SourceFileReader {
 		return readLine(inKeyValueInfo, pointer);
 	}
 	
-	public boolean readLine(KeyValueInfo<String> inKeyValueInfo, int inLineNum) throws BaseFormatException {
+	public boolean readLine(KeyValueInfo<String, String> inKeyValueInfo, int inLineNum) throws BaseFormatException {
 		
 		int nextLineNum = inLineNum + 1;
 		int lineByteLength = 0; 
