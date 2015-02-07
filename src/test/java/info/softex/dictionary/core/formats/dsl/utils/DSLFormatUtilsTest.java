@@ -47,7 +47,7 @@ import org.junit.Test;
  */
 public class DSLFormatUtilsTest {
 
-	private final static String PATH_BASE_DSL_LAYOUTS = "/info/softex/dictionary/core/formats/dsl/basevariouslayouts";
+	private final static String PATH_BASE_DSL_LAYOUTS = "/info/softex/dictionary/core/formats/dsl/bases/layouts";
 	private final static String PATH_BASE_DSL_ARTICLE = "/info/softex/dictionary/core/formats/dsl/articles/dsl.article.alltags.txt";
 	private final static String DSL_ADAPTED_ARTICLE_FILE_NAME = "dsl.article.alltags.adapted.html";
 

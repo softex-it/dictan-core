@@ -41,10 +41,10 @@ import org.junit.Test;
  */
 public class DSLBaseReaderTest {
 	
-	private final static String PATH_BASE_DSL_FULL = "/info/softex/dictionary/core/formats/dsl/dslbasefull";
+	private final static String PATH_BASE_DSL_FULL = "/info/softex/dictionary/core/formats/dsl/bases/syntax";
 	
 	@Test
-	public void testValidFDBBaseSizes() throws Exception {
+	public void testDSLBaseReader() throws Exception {
 	
 		DSLBaseReaderWrapper reader = DSLBaseReaderTestFactory.createAndAssertDSLBaseReader(PATH_BASE_DSL_FULL);
 		

@@ -73,7 +73,7 @@ public class DSLFileReader {
 			BaseFormatException {
 
 		// Iterate via any empty lines
-		tlr.readEmptyLines("Epmty line found at the beggining of file is found. Please consider removing it.");
+		tlr.readEmptyLines("Epmty line found at the beggining of file. Please consider removing it.");
 
 		headers = DSLReaderUtils.loadDSLHeaders(tlr);
 
@@ -85,8 +85,7 @@ public class DSLFileReader {
 
 	}
 
-	protected void readWords(boolean isMapperActive) throws IOException,
-			BaseFormatException {
+	protected void readWords(boolean isMapperActive) throws IOException, BaseFormatException {
 
 		words = DSLReaderUtils.readDSLWords(tlr, linePointers, wordRedirects);
 
@@ -107,8 +106,7 @@ public class DSLFileReader {
 		return wordRedirects;
 	}
 
-	public boolean readArticleInfo(ArticleInfo articleInfo)
-			throws BaseFormatException {
+	public boolean readArticleInfo(ArticleInfo articleInfo) throws BaseFormatException {
 
 		WordInfo wordInfo = articleInfo.getWordInfo();
 
@@ -132,18 +130,15 @@ public class DSLFileReader {
 
 			tlr.readLine(pointer);
 
-			// System.out.println("ART: " + article + " W " +
-			// tlr.getLastLine());
+			// System.out.println("ART: " + article + " W " + tlr.getLastLine());
 
-			String article = DSLReaderUtils.readDSLArticle(tlr, wordId,
-					linePointers, words, wordRedirects);
+			String article = DSLReaderUtils.readDSLArticle(tlr, wordId, linePointers, words, wordRedirects);
 			articleInfo.setArticle(article);
 
 		} catch (IOException e) {
 			throw new BaseFormatException(
 					"Couldn't read the article for word ID " + wordId
-							+ ". Article: " + articleInfo + ". Error: "
-							+ e.getMessage());
+						+ ". Article: " + articleInfo + ". Error: " + e.getMessage());
 		}
 
 		//System.out.println("Pointer: " + pointer);

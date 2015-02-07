@@ -31,7 +31,7 @@ import info.softex.dictionary.core.utils.StringUtils;
 public class DSLFormatUtils {
 
 	/**
-	 * Converts DSL markup into HTML. 
+	 * Converts DSL markup into adapted HTML. 
 	 * See http://lingvo.helpmax.net/en/troubleshooting/dsl-compiler/dsl-tags/
 	 */
 	public static String convertDSLToAdaptedHtml(String s) {
@@ -106,7 +106,7 @@ public class DSLFormatUtils {
 		s = s.replaceAll("\\[trn\\]", "<trn>");
 		s = s.replaceAll("\\[/trn\\]", "</trn>");
 		
-		// Full translation zone mode tags. These ones are wrapped into <trnf> 
+		// Full translation zone mode tags. These ones are wrapped into <trf> 
 		// and can be later processed by the viewer if needed. 
 		s = s.replaceAll("\\[\\*\\]", "<trf>");
 		s = s.replaceAll("\\[/\\*\\]", "</trf>");
@@ -129,8 +129,8 @@ public class DSLFormatUtils {
 		s = s.replaceAll("\\\\ ", "&nbsp;");   // "\ "
 		s = s.replaceAll("\\\\\\[", "&#91;");  // "\["
 		s = s.replaceAll("\\\\\\]", "&#93;");  // "\]"
-		s = s.replaceAll("\\\\\\{", "&#123;"); // "\["
-		s = s.replaceAll("\\\\\\}", "&#125;"); // "\]"
+		s = s.replaceAll("\\\\\\{", "&#123;"); // "\{"
+		s = s.replaceAll("\\\\\\}", "&#125;"); // "\}"
 		s = s.replaceAll("\\\\\\@", "&#64;");  // "\@"	At-sign: \@ [b]Note:[/b] Sub-entries
 		
 		
