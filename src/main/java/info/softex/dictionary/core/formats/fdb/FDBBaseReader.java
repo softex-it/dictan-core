@@ -81,6 +81,8 @@ public class FDBBaseReader implements BaseReader {
 	
 	protected final int wordListBlockSize;
 	
+	protected boolean hasRelations = false;
+	
 	public FDBBaseReader(File fdbFile, DatabaseConnectionFactory conFactory, Map<String, ?> inParams, AbstractCollatorFactory collatorFactory) throws SQLException {
 		dbParams = new HashMap<String, String>();
 		dbParams.put(DatabaseConnectionFactory.DB_NO_LOCALIZED_COLLATORS, "true");
@@ -113,13 +115,13 @@ public class FDBBaseReader implements BaseReader {
 		if (articleInfo != null) {
 			BasePropertiesInfo baseInfo = mainBase.getBasePropertiesInfo();
 			String article = ArticleHtmlFormatter.prepareArticle(
-					wordInfo.getWord(),
-					articleInfo.getArticle(), getAbbreviationKeys(), 
-					baseInfo.getArticlesFormattingMode(), 
-					baseInfo.getArticlesFormattingInjectWordMode(),
-					baseInfo.getAbbreviationsFormattingMode(),
-					baseInfo.getMediaResourcesNumber() != 0
-				);
+				wordInfo.getWord(),
+				articleInfo.getArticle(), getAbbreviationKeys(), 
+				baseInfo.getArticlesFormattingMode(),
+				baseInfo.getArticlesFormattingInjectWordMode(),
+				baseInfo.getAbbreviationsFormattingMode(),
+				baseInfo.getMediaResourcesNumber() != 0
+			);
 			articleInfo.setArticle(article);
 		}
 		return articleInfo;
@@ -136,6 +138,11 @@ public class FDBBaseReader implements BaseReader {
 		} else if (wordInfo.getWord() == null) {
 			wordInfo.setWord(getWords().get(wordInfo.getId()));
 		}
+		
+		if (hasRelations) {
+			mainBase.getWordRedirect(wordInfo);
+		}
+		
 		ArticleInfo articleInfo = getBaseForArticle(wordInfo.getId()).getRawArticleInfo(wordInfo);
 		return articleInfo;
 	}
@@ -179,6 +186,7 @@ public class FDBBaseReader implements BaseReader {
 	
 	@Override
 	public BasePropertiesInfo loadBasePropertiesInfo() throws BaseFormatException {
+		
 		BasePropertiesInfo props = mainBase.loadBasePropertiesInfo();
 
 		long size = props.getBaseFileSize();
@@ -209,6 +217,9 @@ public class FDBBaseReader implements BaseReader {
 			throw new BaseFormatException("Couldn't find the following parts of the base: " + missingPartsString, BaseFormatException.ERROR_CANT_FIND_BASE_PARTS);
 		}
 		
+		// Define the flag of redirects to speed up requests
+		hasRelations = props.getWordsRelationsNumber() > 0 ? true : false;
+		
 		props.setBaseFileSize(size);
 
 		return props;
@@ -225,8 +236,13 @@ public class FDBBaseReader implements BaseReader {
 	}
 	
 	@Override
-	public Map<Integer, Integer> getWordRedirects() throws BaseFormatException {
-		return mainBase.getWordRedirects();
+	public Map<Integer, Integer> getWordsRedirects() throws BaseFormatException {
+		return mainBase.getWordsRedirects();
+	}
+	
+	@Override
+	public Map<Integer, String> getWordsMappings() throws BaseFormatException {
+		return null;
 	}
 	
 	@Override

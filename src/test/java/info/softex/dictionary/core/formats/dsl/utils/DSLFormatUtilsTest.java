@@ -19,24 +19,24 @@
 
 package info.softex.dictionary.core.formats.dsl.utils;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
-import info.softex.dictionary.core.formats.dsl.testutils.DSLBaseReaderTestFactory;
+import info.softex.dictionary.core.formats.dsl.testutils.DSLBaseLayoutsContent;
+import info.softex.dictionary.core.formats.dsl.testutils.DSLBaseReaderFactory;
 import info.softex.dictionary.core.formats.dsl.testutils.DSLBaseReaderWrapper;
 import info.softex.dictionary.core.testutils.TestUtils;
 import info.softex.dictionary.core.utils.StringUtils;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * 
@@ -47,52 +47,64 @@ import org.junit.Test;
  */
 public class DSLFormatUtilsTest {
 
-	private final static String PATH_BASE_DSL_LAYOUTS = "/info/softex/dictionary/core/formats/dsl/bases/layouts";
-	private final static String PATH_BASE_DSL_ARTICLE = "/info/softex/dictionary/core/formats/dsl/articles/dsl.article.alltags.txt";
-	private final static String DSL_ADAPTED_ARTICLE_FILE_NAME = "dsl.article.alltags.adapted.html";
-
+	private final Logger log = LoggerFactory.getLogger(getClass());
+	
 	@Test
 	public void testDSLFormatting() throws Exception {
 		
-		DSLBaseReaderWrapper reader = DSLBaseReaderTestFactory.createAndAssertDSLBaseReader(PATH_BASE_DSL_LAYOUTS);
+		DSLBaseReaderWrapper readerOrig = DSLBaseReaderFactory.createAndAssertLayoutsDSLBaseReader();
+		DSLBaseReaderWrapper readerAdapted = DSLBaseReaderFactory.createAndAssertLayoutsAdaptedDSLBaseReader();
 		
-		List<String> words = reader.getWords();
-
-		for (int i = 0; i < words.size(); i++) {
-			ArticleInfo artInfo = reader.getRawArticleInfo(new WordInfo(i));
-			processTestArticle(artInfo.getWordInfo().getWord(), artInfo.getArticle());
+		List<String> wordsOrig = readerOrig.getWords();
+		List<String> wordsAdapted = readerAdapted.getWords();
+		
+		log.info("Number of words. Original: {}. Adapted: {}", wordsOrig.size(), wordsAdapted.size());
+		
+		// Verify readers have the same words
+		assertEquals(DSLBaseLayoutsContent.WORDS_NUMBER, wordsOrig.size());
+		assertEquals(DSLBaseLayoutsContent.WORDS_NUMBER, wordsAdapted.size());
+		assertEquals(wordsOrig, wordsAdapted);
+		
+		// Verify readers have the same redirects
+		Map<Integer, Integer> redirectsOrig = readerOrig.getWordsRedirects();
+		Map<Integer, Integer> redirectsAdapted = readerAdapted.getWordsRedirects();		
+		assertEquals(DSLBaseLayoutsContent.REDIRECTS_NUMBER, redirectsOrig.size());
+		assertEquals(DSLBaseLayoutsContent.REDIRECTS_NUMBER, redirectsAdapted.size());
+		assertEquals(redirectsOrig, redirectsAdapted);
+		
+		for (int i = 0; i < wordsOrig.size(); i++) {
+			ArticleInfo artInfoOrig = readerOrig.getRawArticleInfo(new WordInfo(i));
+			ArticleInfo artInfoAdapted = readerAdapted.getRawArticleInfo(new WordInfo(i));
+			processTestArticle(
+				artInfoOrig.getWordInfo().getWord(), artInfoOrig.getArticle(),
+				artInfoAdapted.getWordInfo().getWord(), artInfoAdapted.getArticle()
+			);
 		}
 		
 	}
 	
-	private void processTestArticle(String word, String article) throws IOException {
-		String adaptedArticle = DSLFormatUtils.convertDSLToAdaptedHtml(article);
-		assertFalse(StringUtils.isBlank(adaptedArticle));
+	private void processTestArticle(final String word, final String article,
+			final String wordAdapted, final String articleAdaptedExpected) throws IOException {
 		
-		String htmlArticle = DSLFormatUtils.convertDSLAdaptedHtmlToHtml(adaptedArticle);
-		Files.write(TestUtils.getMavenTestPath(word + ".html"), htmlArticle.getBytes());
+		assertEquals(word, wordAdapted);
 		
-	}
-	
-	@Test
-	public void testValidFDBBaseSizes() throws IOException, URISyntaxException {
+		String articleAdaptedActual = DSLReadFormatUtils.convertDSLToAdaptedHtml(article);
+		assertFalse(StringUtils.isBlank(articleAdaptedActual));
 		
-		URL url = getClass().getResource(PATH_BASE_DSL_ARTICLE);
+		String dslArticle = DSLWriteFormatUtils.convertAdaptedHtmlToDSL(articleAdaptedActual);
 		
-		List<String> lines = Files.readAllLines(Paths.get(url.toURI()), Charset.forName("UTF-8"));
-		assertNotNull(lines);
+		String htmlArticle = DSLReadFormatUtils.convertDSLAdaptedHtmlToHtml(articleAdaptedActual);
 		
-		String article = StringUtils.join(lines, "\r\n");
-		assertFalse(StringUtils.isBlank(article));
+		//String outArticle = articleAdaptedActual;
+		String outArticle = htmlArticle;
 		
-		String adaptedArticle = DSLFormatUtils.convertDSLToAdaptedHtml(article);
-		assertFalse(StringUtils.isBlank(adaptedArticle));
+		Files.write(TestUtils.getMavenTestPath(word + ".html"), outArticle.getBytes());
 		
-		//System.out.println(adaptedArticle);
+		// Check the original article and the one after adaptation-deadaptation are equal
+		assertEquals(article, dslArticle);
 		
-		String htmlArticle = DSLFormatUtils.convertDSLAdaptedHtmlToHtml(adaptedArticle);
-		
-		Files.write(TestUtils.getMavenTestPath(DSL_ADAPTED_ARTICLE_FILE_NAME), htmlArticle.getBytes());
+		// Check the expected and actual adapted articles are the same
+		assertEquals(articleAdaptedExpected, articleAdaptedActual);
 		
 	}
 

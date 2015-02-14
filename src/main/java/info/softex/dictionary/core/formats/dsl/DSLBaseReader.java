@@ -21,10 +21,11 @@ package info.softex.dictionary.core.formats.dsl;
 
 import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.ArticleInfo;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.formats.api.BaseFormatException;
-import info.softex.dictionary.core.formats.dsl.utils.DSLFormatUtils;
+import info.softex.dictionary.core.formats.dsl.utils.DSLReadFormatUtils;
 import info.softex.dictionary.core.formats.source.SourceBaseReader;
 import info.softex.dictionary.core.formats.source.SourceFileNames;
 
@@ -33,7 +34,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
  * The DSL Base Reader enables reading the DSL (Dictionary Specification Language)
@@ -51,8 +51,6 @@ public class DSLBaseReader extends SourceBaseReader {
 
 	protected final List<String> headers = new ArrayList<String>();
 	
-	protected TreeMap<Integer, Integer> wordRedirects;
-	
 	protected DSLFileReader dslArticleReader;
 	protected DSLFileReader dslAbbrevReader;
 	
@@ -66,8 +64,13 @@ public class DSLBaseReader extends SourceBaseReader {
 	}
 	
 	@Override
-	public Map<Integer, Integer> getWordRedirects() throws BaseFormatException {
-		return wordRedirects;
+	public Map<Integer, Integer> getWordsRedirects() throws BaseFormatException {
+		return dslArticleReader.getWordRedirects();
+	}
+	
+	@Override
+	public Map<Integer, String> getWordsMappings() throws BaseFormatException {
+		return dslArticleReader.getWordsMappings();
 	}
 	
 	@Override
@@ -86,9 +89,7 @@ public class DSLBaseReader extends SourceBaseReader {
 			baseInfo.setHeaderComments(strHeaders.trim());
 		}
 		
-		wordRedirects = dslArticleReader.getWordRedirects();
-		
-		return dslArticleReader.getLineKeys();
+		return dslArticleReader.getWords();
 	}
 	
 	@Override
@@ -104,7 +105,7 @@ public class DSLBaseReader extends SourceBaseReader {
 	public ArticleInfo getAdaptedArticleInfo(WordInfo wordInfo) throws BaseFormatException {
 		ArticleInfo articleInfo = getRawArticleInfo(wordInfo);
 		if (articleInfo != null) {
-			String adaptedArticle = DSLFormatUtils.convertDSLToAdaptedHtml(articleInfo.getArticle());
+			String adaptedArticle = DSLReadFormatUtils.convertDSLToAdaptedHtml(articleInfo.getArticle());
 			articleInfo.setArticle(adaptedArticle);
 		}
 		return articleInfo;
@@ -119,6 +120,13 @@ public class DSLBaseReader extends SourceBaseReader {
 		if (dslAbbrevReader != null) {
 			dslAbbrevReader.close();
 		}
+	}
+	
+	@Override
+	public BasePropertiesInfo loadBasePropertiesInfo() throws BaseFormatException, Exception {
+		super.loadBasePropertiesInfo();
+		baseInfo.setArticlesActualNumber(words.size() - getWordsRedirects().size());
+		return baseInfo;
 	}
 
 }

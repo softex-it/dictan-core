@@ -82,12 +82,16 @@ public class FDBBaseWriter implements BaseWriter {
 
 	protected int abbreviationsNumber = 0;
 	protected int wordsNumber = 0;
+	protected int wordsMappingsNumber = 0;
+	protected int wordsRelationsNumber = 0;
 	protected int mediaResourcesNumber = 0;
+	
+	protected int articlesActualNumber = 0;
 	
 	protected int lastPartWordsNumber = 0;
 	protected int lastPartMediaResourcesNumber = 0;
-	
-	protected int curArticlesNumber = 0;
+	 
+	protected int curWordsNumber = 0;
 	protected int curMediaResourcesNumber = 0;
 	
 	protected boolean isClosed = false;
@@ -98,7 +102,7 @@ public class FDBBaseWriter implements BaseWriter {
 			// Secondary base size
 			String secBaseSizeLimit = params.get(FDBConstants.PARAM_KEY_BASE_SECONDARY_SIZE_LIMIT);
 			if (secBaseSizeLimit != null) {
-				if (FDBConstants.PARAM_VALUE_DEFAULT.equalsIgnoreCase(secBaseSizeLimit.toString())) {
+				if (FDBConstants.PARAM_VALUE_DEFAULT.equalsIgnoreCase(secBaseSizeLimit)) {
 					//minSecondaryBaseSize = 3800000000L; // 4 294 967 295
 					//minSecondaryBaseSize = 20000000;
 					//minSecondaryBaseSize = 1073741824L; // 1 GB
@@ -138,8 +142,7 @@ public class FDBBaseWriter implements BaseWriter {
 	
 	@Override
 	public BasePropertiesInfo saveBasePropertiesInfo(BasePropertiesInfo baseInfo) throws SQLException, NoSuchAlgorithmException {
-		int total = baseInfo.getAbbreviationsNumber() + baseInfo.getArticlesNumber() + baseInfo.getMediaResourcesNumber();
-		progressInfo.setTotal(total);
+		progressInfo.setTotal(baseInfo.getWmraNumber());
 		return mainBase.saveBasePropertiesInfo(baseInfo, FORMAT_INFO);
 	}
 	
@@ -161,7 +164,27 @@ public class FDBBaseWriter implements BaseWriter {
 		}
 		
 		WordInfo wordInfo = articleInfo.getWordInfo();
-		mainBase.saveWord(wordInfo.getWord().trim(), wordsNumber, wordInfo.getRedirectToId());
+		mainBase.saveWord(wordInfo.getWord().trim(), wordsNumber);
+		
+		boolean isActualArticle = true;
+		
+		// Save redirect only if it's 0 or positive
+		if (wordInfo.getRedirectToId() >= 0) {
+			mainBase.saveRelation(wordsRelationsNumber, wordsNumber, wordInfo.getRedirectToId(), FDBConstants.RELATION_REDIRECT_NORMAL);
+			wordsRelationsNumber++;
+			isActualArticle = false;
+		}
+		
+		// Save redirect only if it's not null
+		if (wordInfo.getWordMapping() != null) {
+			mainBase.saveWordMapping(wordsNumber, wordInfo.getWordMapping(), null);
+			wordsMappingsNumber++;
+		}
+
+		if (isActualArticle) {
+			articlesActualNumber++;
+		}
+		
 		boolean isFlashed = activeBase.saveArticle(articleInfo.getArticle().trim(), wordsNumber++);
 		
 		updateProgress();
@@ -188,6 +211,7 @@ public class FDBBaseWriter implements BaseWriter {
 			flushMediaResources();
 			reviseBaseFiles();
 		}
+		
 	}
 	
 	@Override
@@ -213,7 +237,7 @@ public class FDBBaseWriter implements BaseWriter {
 	}
 
 	/**
-	 * Flush everything and clodse the writer
+	 * Flush everything and close the writer
 	 */
 	@Override
 	public void close() throws Exception {
@@ -327,12 +351,19 @@ public class FDBBaseWriter implements BaseWriter {
 	}
 	
 	protected void flushArticles() throws UnsupportedEncodingException, IOException, SQLException {
-		mainBase.flushArticles(curArticlesNumber);
+		mainBase.flushArticles(curWordsNumber);
 		if (activeBase != mainBase) {
-			activeBase.flushArticles(curArticlesNumber);
+			activeBase.flushArticles(curWordsNumber);
 		}
+		
+		// Only for partial compatibility with old viewers
 		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.ARTICLES_NUMBER.getKey(), Integer.toString(wordsNumber));
-		curArticlesNumber = wordsNumber;
+		
+		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.WORDS_NUMBER.getKey(), Integer.toString(wordsNumber));
+		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.WORDS_MAPPINGS_NUMBER.getKey(), Integer.toString(wordsMappingsNumber));
+		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.WORDS_RELATIONS_NUMBER.getKey(), Integer.toString(wordsRelationsNumber));
+		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.ARTICLES_ACTUAL_NUMBER.getKey(), Integer.toString(articlesActualNumber));
+		curWordsNumber = wordsNumber;
 	}
 	
 	protected void flushMediaResources() throws UnsupportedEncodingException, IOException, SQLException {

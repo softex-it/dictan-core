@@ -37,8 +37,9 @@ public class FDBSQLReadStatements {
 	public static final String SELECT_WORDS_NUMER =
 		"SELECT MAX(word_id)+1 FROM " + FDBTables.words;
 	
-	public static final String SELECT_ALL_WORDS_REDIRECTS =
-		"SELECT word_id, redirect_to_word_id FROM " + FDBTables.words_redirects;
+	public static final String SELECT_ALL_RELATIONS_REDIRECTS =
+		"SELECT word_id, to_word_id, relation_type FROM " + FDBTables.words_relations + 
+		" WHERE relation_type IN (1,2)";
 
 	public static final String SELECT_ABBREVIATIONS =
 		"SELECT abbreviation_id, abbreviation, definition FROM " + FDBTables.abbreviations;
@@ -54,7 +55,11 @@ public class FDBSQLReadStatements {
 	
 	public static final String SELECT_WORD_ID_BY_WORD =	
 		"SELECT word_id FROM " + FDBTables.words + " WHERE word=(?)";
-
+	
+	public static final String SELECT_RELATION_REDIRECT_AND_TO_WORD_ID_BY_WORD_ID =
+		"SELECT r.to_word_id, w.word FROM " + FDBTables.words_relations + " r, " + 
+		FDBTables.words + " w WHERE r.word_id=(?) AND r.to_word_id = w.word_id AND relation_type IN (1,2)";
+			
 	public static final String SELECT_ARTICLE_BLOCK_BY_ID =
 		"SELECT article_block_id, article_block FROM " + FDBTables.article_blocks +
 		" WHERE article_block_id=(SELECT MAX(article_block_id) FROM " +
@@ -79,6 +84,11 @@ public class FDBSQLReadStatements {
 		"SELECT from_locale,to_locale,base_resource,data_1,data_2,data_3,info_1,info_2,info_3,info_4,info_5,info_6 FROM " + 
 		FDBTables.language_directions + "," + FDBTables.base_resources + 
 		" WHERE base_resource_key=\"collation.rules.\"||from_locale";
+	
+	// SQLite Meta Info ---------------------------------------------------------
+	
+	public static final String CHECK_TABLE_WORDS_RELATIONS_EXISTS =
+		"SELECT count(*) FROM sqlite_master WHERE name='" + FDBTables.words_relations + "'";
 	
 	
 }

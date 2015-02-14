@@ -33,11 +33,15 @@ import java.util.HashMap;
  * @modified version 3.7, 06/14/2013
  * @modified version 3.9, 12/05/2013
  * @modified version 4.0, 02/09/2014
+ * @modified version 4.6, 02/08/2015
  *  
  * @author Dmitry Viktorov
  * 
  */
 public class BaseInfoHtmlBuilder {
+	
+	protected final static DecimalFormat FORMATTER_SIZE = new DecimalFormat("#.##");
+	protected final static DecimalFormat FORMATTER_NUMBER = new DecimalFormat("#,###");
 	
 	protected enum StringKey {
 		FORMAT_VERSION,
@@ -48,6 +52,8 @@ public class BaseInfoHtmlBuilder {
 		BASE_SIZE,
 		BASE_PARTS_NUMBER,
 		NUMBER_OF_WORDS,
+		NUMBER_OF_ARTICLES,
+		NUMBER_OF_REDIRECTS,
 		NUMBER_OF_ABBREVIATIONS,
 		NUMBER_OF_RESOURCES,
 		ARTICLES_FORMATTING,
@@ -70,6 +76,8 @@ public class BaseInfoHtmlBuilder {
 			put(BASE_SIZE, "Base Size");
 			put(BASE_PARTS_NUMBER, "Number of Base Parts");
 			put(NUMBER_OF_WORDS, "Number of Words");
+			put(NUMBER_OF_ARTICLES, "Number of Articles");
+			put(NUMBER_OF_REDIRECTS, "Number of Redirects");
 			put(NUMBER_OF_ABBREVIATIONS, "Number of Abbreviations");
 			put(NUMBER_OF_RESOURCES, "Number of Resources");
 			put(ARTICLES_FORMATTING, "Articles Formatting");
@@ -91,6 +99,8 @@ public class BaseInfoHtmlBuilder {
 			put(BASE_PARTS_NUMBER, "Количество Частей Базы");
 			put(NUMBER_OF_ABBREVIATIONS, "Количество Сокращений");
 			put(NUMBER_OF_WORDS, "Количество Слов");
+			put(NUMBER_OF_ARTICLES, "Количество Статей");
+			put(NUMBER_OF_REDIRECTS, "Количество Редиректов");
 			put(NUMBER_OF_RESOURCES, "Количество Ресурсов");
 			put(ARTICLES_FORMATTING, "Формат Статей");
 			put(ARTICLES_FORMATTING_INJECT_WORDS, "Префикс Статей Словами");
@@ -124,10 +134,10 @@ public class BaseInfoHtmlBuilder {
 		
 		String baseVersion = wrapRow(getString(StringKey.BASE_VERSION, lang), combinedVersion, true);
 
-		String baseSize = getString(StringKey.BASE_SIZE, lang) + ": <dvl>" + getConvertedSize(baseInfo.getBaseFileSize()) + "</dvl>";
+		String baseSize = getString(StringKey.BASE_SIZE, lang) + ": <dvl>" + formatSize(baseInfo.getBaseFileSize()) + "</dvl>";
 		String basePartsNumber = wrapRow(getString(StringKey.BASE_PARTS_NUMBER, lang), baseInfo.getBasePartsTotalNumber(), baseInfo.getBasePartsTotalNumber() > 1);
 		
-		String wordsNumber = getString(StringKey.NUMBER_OF_WORDS, lang) + ": <dvl>" + baseInfo.getArticlesNumber() + "</dvl>";
+		String wordsNumber = getString(StringKey.NUMBER_OF_WORDS, lang) + ": <dvl>" + formatNumber(baseInfo.getWordsNumber()) + "</dvl>";
 		
 		String artFormat = wrapRow(getString(StringKey.ARTICLES_FORMATTING, lang), baseInfo.getArticlesFormattingMode(), true);
 		String artFormatIWM = wrapRow(getString(StringKey.ARTICLES_FORMATTING_INJECT_WORDS, lang), baseInfo.getArticlesFormattingInjectWordMode(), true);
@@ -158,9 +168,9 @@ public class BaseInfoHtmlBuilder {
 		String media = "";
 		if (baseInfo.isMediaBaseSeparate()) {
 			if (baseInfo.getMediaResourcesNumber() != 0) {
-				String resNumber = getString(StringKey.NUMBER_OF_RESOURCES, lang) + ": <dvl>" + baseInfo.getMediaResourcesNumber() + "</dvl>";
+				String resNumber = getString(StringKey.NUMBER_OF_RESOURCES, lang) + ": <dvl>" + formatNumber(baseInfo.getMediaResourcesNumber()) + "</dvl>";
 				//String mediaFormat = getString(StringKey.FORMAT_VERSION, lang) + ": <dvl>" + baseInfo.getMediaFormatVersion() + "</dvl>";
-				String mediaFileSize = getString(StringKey.BASE_SIZE, lang) + ": <dvl>" + getConvertedSize(baseInfo.getBaseFileSize()) + "</dvl>";
+				String mediaFileSize = getString(StringKey.BASE_SIZE, lang) + ": <dvl>" + formatSize(baseInfo.getBaseFileSize()) + "</dvl>";
 				
 				media = "<tr><th class=\"subHeader1\">" + getString(StringKey.MEDIA_BASE, lang) + ": " + baseInfo.getMediaFormatName() + " (" + getString(StringKey.FORMAT_VERSION, lang) + " " + baseInfo.getMediaFormatVersion() + ")</th></tr>";
 				media += "<tr><td>" + resNumber + "</td></tr>";
@@ -175,27 +185,37 @@ public class BaseInfoHtmlBuilder {
 			"<tr><th class=\"subHeader1\">" + getString(StringKey.DICTIONARY_BASE, lang) + ": " + baseInfo.getFormatName() + " (" + getString(StringKey.FORMAT_VERSION, lang) + " " + baseInfo.getFormatVersion() + ")</th></tr>" +
 			"<tr><td>" + wordsNumber + "</td></tr>";
 		
-			if (baseInfo.getAbbreviationsNumber() > 0) {
-				String abbrevNumber = getString(StringKey.NUMBER_OF_ABBREVIATIONS, lang) + ": <dvl>" + baseInfo.getAbbreviationsNumber() + "</dvl>";
-				html += "<tr><td>" + abbrevNumber + "</td></tr>";
-			}
-			
-			if (!baseInfo.isMediaBaseSeparate() && baseInfo.getMediaResourcesNumber() > 0) {
-				String resNumber = getString(StringKey.NUMBER_OF_RESOURCES, lang) + ": <dvl>" + baseInfo.getMediaResourcesNumber() + "</dvl>";
-				html += "<tr><td>" + resNumber + "</td></tr>";
-			}
-			
-			html += langDirections +
-				artFormat +
-				artFormatIWM +
-				abbrFormat +
-				baseVersion +
-				codePage +
-				createdBy +
-				compDate + 
-				basePartsNumber +
-				"<tr><td>" + baseSize + "<br/><br/></td></tr>" +
-				media + "</table>";
+		if (baseInfo.getArticlesActualNumber() > 0 && baseInfo.getArticlesActualNumber() != baseInfo.getWordsNumber()) {
+			String articlesNumber = getString(StringKey.NUMBER_OF_ARTICLES, lang) + ": <dvl>" + formatNumber(baseInfo.getArticlesActualNumber()) + "</dvl>";
+			html += "<tr><td>" + articlesNumber + "</td></tr>";
+		}
+		
+		if (baseInfo.getWordsRelationsNumber() > 0) {
+			String redirectsNumber = getString(StringKey.NUMBER_OF_REDIRECTS, lang) + ": <dvl>" + formatNumber(baseInfo.getWordsRelationsNumber()) + "</dvl>";
+			html += "<tr><td>" + redirectsNumber + "</td></tr>";
+		}
+		
+		if (baseInfo.getAbbreviationsNumber() > 0) {
+			String abbrevNumber = getString(StringKey.NUMBER_OF_ABBREVIATIONS, lang) + ": <dvl>" + baseInfo.getAbbreviationsNumber() + "</dvl>";
+			html += "<tr><td>" + abbrevNumber + "</td></tr>";
+		}
+		
+		if (!baseInfo.isMediaBaseSeparate() && baseInfo.getMediaResourcesNumber() > 0) {
+			String resNumber = getString(StringKey.NUMBER_OF_RESOURCES, lang) + ": <dvl>" + formatNumber(baseInfo.getMediaResourcesNumber()) + "</dvl>";
+			html += "<tr><td>" + resNumber + "</td></tr>";
+		}
+		
+		html += langDirections +
+			artFormat +
+			artFormatIWM +
+			abbrFormat +
+			baseVersion +
+			codePage +
+			createdBy +
+			compDate + 
+			basePartsNumber +
+			"<tr><td>" + baseSize + "<br/><br/></td></tr>" +
+			media + "</table>";
 		
 		return html;
 	}
@@ -223,12 +243,16 @@ public class BaseInfoHtmlBuilder {
 		return result;
 	}
 	
-	private static String getConvertedSize(long l) {
-		if (l > 1073741824) {
-			return (new DecimalFormat("#.##")).format((double) l / 1073741824D) + " GB (" +l + " B)";
+	private static String formatSize(long size) {
+		if (size > 1073741824) {
+			return (FORMATTER_SIZE).format((double) size / 1073741824D) + " GB (" +size + " B)";
 		} else {
-			return (new DecimalFormat("#.##")).format((double) l / 1048576D) + " MB (" + l + " B)";
+			return (FORMATTER_SIZE).format((double) size / 1048576D) + " MB (" + size + " B)";
 		}
+	}
+	
+	private static String formatNumber(long num) {
+		return (FORMATTER_NUMBER).format(num);
 	}
 	
 	private static String formatCPString(String cp) {

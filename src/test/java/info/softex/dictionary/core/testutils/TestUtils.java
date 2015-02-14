@@ -34,6 +34,7 @@ public class TestUtils {
 	
 	protected final static String MVN_TARGET_SUBPATH = "../../target/";
 	protected final static String MVN_TEST_FILES_SUBPATH = MVN_TARGET_SUBPATH + "test-files/";
+	protected final static String MVN_TEST_DICTS_SUBPATH = MVN_TARGET_SUBPATH + "test-dicts/";
 	
 	protected static File getCodeSourceRelevantDirectory(String subPath) {
 		String relPath = TestUtils.class.getProtectionDomain().getCodeSource().getLocation().getFile();
@@ -52,16 +53,24 @@ public class TestUtils {
 	}
 	
 	public static File getMavenTestFile(String fileName) throws IOException {
-		File testFilesDir = getCodeSourceRelevantDirectory(MVN_TEST_FILES_SUBPATH);
+		return getMavenTestFile(MVN_TEST_FILES_SUBPATH, fileName);
+	}
+	
+	public static File getMavenTestDictFile(String fileName) throws IOException {
+		return getMavenTestFile(MVN_TEST_DICTS_SUBPATH, fileName);
+	}
+	
+	public static Path getMavenTestPath(String filePath) throws IOException {
+		return getMavenTestFile(filePath).toPath();
+	}
+	
+	protected static File getMavenTestFile(String directory, String fileName) throws IOException {
+		File testFilesDir = getCodeSourceRelevantDirectory(directory);
 		String relPath = testFilesDir.getCanonicalPath();
 		if (!relPath.endsWith(File.separator)) {
 			relPath += File.separator;
 		}
 		return new File(relPath + fileName);
-	}
-	
-	public static Path getMavenTestPath(String filePath) throws IOException {
-		return getMavenTestFile(filePath).toPath();
 	}
 
 }

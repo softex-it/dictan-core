@@ -17,32 +17,37 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.fdb;
+package info.softex.dictionary.core.formats.dsl.utils;
+
+import info.softex.dictionary.core.utils.StringUtils;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Enum of all DB tables at FDB format. 
  * 
- * @since version 2.6, 		08/27/2011
- * 
- * @modified version 4.6,	01/28/2015
+ * @since version 4.6, 02/07/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
-public enum FDBTables {
+public class DSLReadValidator {
 	
-	words,
-	words_mappings,
-	words_relations,
-	article_blocks,
-	abbreviations,
-	language_directions,
+	protected final static Pattern EMPTY_BRACKETS = Pattern.compile("[(.+?)]");
 	
-	media_resource_keys,
-	media_resource_blocks,
-	
-	base_properties,
-	base_resources;
-	
-}
+	public static boolean isValidDSL(String s) {
+		
+		// Check for empty brackets [ ]
+		Matcher matcher = EMPTY_BRACKETS.matcher(s);
+		while (matcher.find()) {
+			String body = matcher.group(1);
+			if (body != null && StringUtils.isBlank(body)) {
+				return false;
+			}
+		}
 
+		return true;
+	        
+	}
+
+}

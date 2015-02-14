@@ -22,9 +22,9 @@ package info.softex.dictionary.core.formats.dsl;
 import static org.junit.Assert.assertEquals;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
-import info.softex.dictionary.core.formats.dsl.testutils.DSLBaseFullContent;
-import info.softex.dictionary.core.formats.dsl.testutils.DSLBaseReaderTestFactory;
+import info.softex.dictionary.core.formats.dsl.testutils.DSLBaseReaderFactory;
 import info.softex.dictionary.core.formats.dsl.testutils.DSLBaseReaderWrapper;
+import info.softex.dictionary.core.formats.dsl.testutils.DSLBaseSyntaxContent;
 
 import java.util.List;
 import java.util.Map;
@@ -41,33 +41,37 @@ import org.junit.Test;
  */
 public class DSLBaseReaderTest {
 	
-	private final static String PATH_BASE_DSL_FULL = "/info/softex/dictionary/core/formats/dsl/bases/syntax";
-	
 	@Test
 	public void testDSLBaseReader() throws Exception {
 	
-		DSLBaseReaderWrapper reader = DSLBaseReaderTestFactory.createAndAssertDSLBaseReader(PATH_BASE_DSL_FULL);
+		DSLBaseReaderWrapper reader = DSLBaseReaderFactory.createAndAssertSyntaxDSLBaseReader();
 		
 		List<String> words = reader.getWords();
 		List<Long> pointers = reader.getLinePointers();
-		Map<Integer, Integer> redirects = reader.getWordRedirects();
+		Map<Integer, Integer> redirects = reader.getWordsRedirects();
 		
-		System.out.println(words);
-		System.out.println("Redirects: " + redirects);
+		//System.out.println(words);
+		//System.out.println("Redirects: " + redirects);
 		
 		BasePropertiesInfo baseInfo = reader.getBasePropertiesInfo();
-		assertEquals(DSLBaseFullContent.DSL_FULL_BASE_HEADER, baseInfo.getHeaderComments());
+		assertEquals(DSLBaseSyntaxContent.DSL_FULL_BASE_HEADER, baseInfo.getHeaderComments());
 		
 		// Check the number of words and pointers is the same
-		assertEquals(DSLBaseFullContent.DSL_FULL_BASE_WORDS_NUMBER, words.size());
-		assertEquals(DSLBaseFullContent.DSL_FULL_BASE_WORDS_NUMBER, pointers.size());
-
+		assertEquals(DSLBaseSyntaxContent.WORDS_NUMBER, DSLBaseSyntaxContent.WORDS_NUMBER);
+		assertEquals(DSLBaseSyntaxContent.WORDS_NUMBER, words.size());
+		assertEquals(DSLBaseSyntaxContent.WORDS_NUMBER, pointers.size());
+		
+		// Check number of articles
+		assertEquals(DSLBaseSyntaxContent.WORDS_NUMBER, baseInfo.getWordsNumber());
+		assertEquals(DSLBaseSyntaxContent.ARTICLES_NUMBER, baseInfo.getArticlesActualNumber());
+		
 		// Check all lines are read
-		assertEquals(DSLBaseFullContent.DSL_FULL_BASE_LINES_NUMBER, reader.getLinesRead());
+		assertEquals(DSLBaseSyntaxContent.LINES_NUMBER, reader.getLinesRead());
 		
 		// Check redirects
-		Map<Integer, Integer> expectedRedirects = DSLBaseFullContent.DSL_FULL_BASE_REDIRECTS;
-		assertEquals(expectedRedirects.size(), redirects.size());
+		Map<Integer, Integer> expectedRedirects = DSLBaseSyntaxContent.REDIRECTS;
+		assertEquals(DSLBaseSyntaxContent.REDIRECTS_NUMBER, expectedRedirects.size());
+		assertEquals(DSLBaseSyntaxContent.REDIRECTS_NUMBER, redirects.size());
 		
 		for (Integer wordId : redirects.keySet()) {
 			assertEquals(expectedRedirects.get(wordId), redirects.get(wordId));
@@ -75,18 +79,23 @@ public class DSLBaseReaderTest {
 		
 		// Check words match the expected words
 		int countWords = 0;
-		for (String word : DSLBaseFullContent.DSL_FULL_BASE_WORDS.keySet()) {
+		for (String word : DSLBaseSyntaxContent.WORDS_ARTICLES.keySet()) {
 			assertEquals(word , words.get(countWords));			
 			countWords++;
 		}
 		
 		// Check articles match the expected articles
 		int countArt = 0;
-		for (String article : DSLBaseFullContent.DSL_FULL_BASE_WORDS.values()) {
-			System.out.println("Checking " + words.get(countArt) + " " + countArt);
+		for (String article : DSLBaseSyntaxContent.WORDS_ARTICLES.values()) {
+			//System.out.println("Checking " + words.get(countArt) + " " + countArt);
 			assertEquals("Article for word " + words.get(countArt) + " with id " + countArt + " doesn't match.", article , reader.getRawArticleInfo(new WordInfo(countArt)).getArticle());			
 			countArt++;
 		}
+		
+	}
+	
+	@Test
+	public void testDSLToFDBConversion() throws Exception {
 		
 	}
 		

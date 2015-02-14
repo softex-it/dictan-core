@@ -21,6 +21,7 @@ package info.softex.dictionary.core.formats.dsl.utils;
 
 import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.io.TextLineReader;
+import info.softex.dictionary.core.utils.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,6 +32,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * Headwords: Allowed characters: letters of alphabets, numbers, spaces, hyphens, commas and braces {} - to mark the unsorted part of the headword.
+ * 
+ * http://lingvo.helpmax.net/en/troubleshooting/dsl-compiler/inserting-pictures-and-sounds/
+ * Supported image formats:
+BMP, Bitmaps (*.bmp)
+PCX (*.pcx)
+DCX (*.dcx)
+JPEG (*.jpg)
+TIFF (*.tif)
+
+Supported sound formats:
+Wave Sound (*.wav)
+
+To insert a video in a DSL dictionary entry:
+
+In the DSL text of your card, write the name of the video file followed by [s] tags. 
+Ex: [s]movie.avi[/s].
+
  * 
  * @since version 4.6, 02/01/2015
  * 
@@ -46,7 +65,8 @@ public class DSLReaderUtils {
 	/**
 	 * Reads DSL Words. It's supposed to be used at load read mode.
 	 */
-	public static List<String> readDSLWords(TextLineReader tlr, List<Long> linePointers, TreeMap<Integer, Integer> wordRedirects) throws IOException, BaseFormatException {
+	public static List<String> readDSLWords(TextLineReader tlr, List<Long> linePointers, 
+			TreeMap<Integer, Integer> wordRedirects, TreeMap<Integer, String> wordsExtended) throws IOException, BaseFormatException {
 		
 		List<String> words = new ArrayList<String>();
 		
@@ -68,13 +88,15 @@ public class DSLReaderUtils {
 		do {
 			
 			linePointers.add(tlr.getLastPointer());
-			String curKey = tlr.getLastLineTrimmed();			
-			words.add(curKey);
+			String curKey = tlr.getLastLineTrimmed();	
+			
+			// Store the headword
+			storeDSLWord(curKey, words, wordsExtended);
 			
 			int curKeyId = words.size() - 1;
 			
 			// Read article
-			String article = DSLReaderUtils.readDSLArticle(tlr, curKeyId, linePointers, words, wordRedirects);
+			String article = DSLReaderUtils.readDSLArticle(tlr, curKeyId, linePointers, words, wordRedirects, wordsExtended);
 			
 			// Check if the next word already started
 			if (tlr.isLastLineBlank()) {
@@ -103,20 +125,23 @@ public class DSLReaderUtils {
 	 * load to populate words and redirects.
 	 */
 	public static String readDSLArticle(TextLineReader tlr, int wordId, List<Long> linePointers,
-			List<String> words, TreeMap<Integer, Integer> wordRedirects) throws IOException, BaseFormatException {
+			List<String> words, TreeMap<Integer, Integer> wordRedirects, TreeMap<Integer, String> wordsExtended) throws IOException, BaseFormatException {
 		
 		//System.out.println("Current word: " + tlr.getLastLineTrimmed() + " " + wordId);
 		
 		// Read word redirects
-		DSLReaderUtils.readDSLRedirects(tlr, linePointers, words, wordRedirects);
+		DSLReaderUtils.readDSLRedirects(tlr, linePointers, words, wordRedirects, wordsExtended);
 		
-		String article = tlr.getLastLineTrimmed() + "\r\n";
+		String article = tlr.getLastLineLTrimmed() + "\r\n";
 		
-		while (tlr.readLine() != null && tlr.isLastLineNotBlank() && Character.isWhitespace(tlr.getLastLine().charAt(0))) {
-			article += tlr.getLastLineTrimmed() + "\r\n";
+		while (tlr.readLine() != null && tlr.getLastLine().length() > 0 && Character.isWhitespace(tlr.getLastLine().charAt(0))) {
+			article += tlr.getLastLineLTrimmed() + "\r\n";
 		}
 
 		article = article.trim();
+		if (article.endsWith("\\")) {
+			article = article + " ";
+		}
 		//System.out.println("Article: " + article);
 		return article;
 		
@@ -125,7 +150,8 @@ public class DSLReaderUtils {
 	/**
 	 * Reads DSL redirects which go right after the key word.
 	 */
-	protected static void readDSLRedirects(TextLineReader tlr, List<Long> linePointers, List<String> words, TreeMap<Integer, Integer> wordRedirects) throws IOException {
+	protected static void readDSLRedirects(TextLineReader tlr, List<Long> linePointers, 
+			List<String> words, TreeMap<Integer, Integer> wordRedirects, TreeMap<Integer, String> wordsExtended) throws IOException {
 		
 		List<String> redirects = new ArrayList<String>();
 		while (tlr.readLine() != null && tlr.isLastLineNotBlank()) {
@@ -143,7 +169,8 @@ public class DSLReaderUtils {
 			int wordId = words.size() - 1;
 			
 			for (String redirect : redirects) {
-				words.add(redirect);
+				// Store redirected word
+				storeDSLWord(redirect, words, wordsExtended);
 				int curRedirId = words.size() - 1;
 				wordRedirects.put(curRedirId, wordId);
 			}
@@ -174,6 +201,23 @@ public class DSLReaderUtils {
 		
 		return headers;
 		
+	}
+	
+	protected static void storeDSLWord(String word, List<String> words, TreeMap<Integer, String> wordsExtended) {
+		
+		if (StringUtils.isBlank(word)) {
+			throw new IllegalArgumentException("Word can't be blank");
+		}
+		
+		word = word.trim();
+		
+		String indexedWord = DSLReadFormatUtils.convertDSLWordToIndexedWord(word);
+		words.add(indexedWord);
+		
+		// If non-indexed parts are found, add to extended words
+		if (!word.equals(indexedWord)) {
+			wordsExtended.put(words.size() - 1, word);
+		} 
 	}
 	
 

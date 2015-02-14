@@ -36,12 +36,31 @@ public class FDBSQLWriteStatements {
 		"CREATE TABLE " + FDBTables.words +
 		" (word_id INTEGER PRIMARY KEY, word TEXT UNIQUE NOT NULL)";
 
-	public static final String CREATE_TABLE_WORDS_REDIRECTS =
-		"CREATE TABLE " + FDBTables.words_redirects +
-		" (word_id INTEGER PRIMARY KEY, redirect_to_word_id INTEGER NOT NULL)";
+	// Words mappings
+	public static final String CREATE_TABLE_WORDS_MAPPINGS =
+		"CREATE TABLE " + FDBTables.words_mappings + " (word_id INTEGER PRIMARY KEY, word_mapping_1 TEXT DEFAULT NULL, word_mapping_2 TEXT DEFAULT NULL)";
 	
-	public static final String CREATE_INDEX_WORDS_REDIRECTS_REDIRECT_TO_WORD_ID =
-		"CREATE INDEX words_redirects_redirect_to_word_id_idx ON " + FDBTables.words_redirects + "(redirect_to_word_id)";
+	public static final String CREATE_INDEX_WORDS_MAPPINGS_WORD_MAPPINGS_1 =
+		"CREATE INDEX words_mappings_word_mapping_1_idx ON " + FDBTables.words_mappings + "(word_mapping_1)";
+
+	public static final String CREATE_INDEX_WORDS_MAPPINGS_WORD_MAPPINGS_2 =
+		"CREATE INDEX words_mappings_word_mapping_2_idx ON " + FDBTables.words_mappings + "(word_mapping_2)";
+	
+	
+	// Words relations
+	public static final String CREATE_TABLE_WORDS_RELATIONS =
+		"CREATE TABLE " + FDBTables.words_relations +
+		" (relation_id INTEGER PRIMARY KEY, word_id INTEGER NOT NULL, to_word_id INTEGER NOT NULL, relation_type INTEGER NOT NULL)";
+	
+	public static final String CREATE_INDEX_WORDS_RELATIONS_WORD_ID =
+		"CREATE INDEX words_relations_word_id_idx ON " + FDBTables.words_relations + "(word_id)";
+	
+	public static final String CREATE_INDEX_WORDS_RELATIONS_TO_WORD_ID =
+		"CREATE INDEX words_relations_to_word_id_idx ON " + FDBTables.words_relations + "(to_word_id)";
+	
+	public static final String CREATE_INDEX_WORDS_RELATIONS_RELATION_TYPE =
+		"CREATE INDEX words_relations_relation_type_idx ON " + FDBTables.words_relations + "(relation_type)";
+	
 	
 	public static final String CREATE_TABLE_ARTICLE_BLOCKS =
 		"CREATE TABLE " + FDBTables.article_blocks +
@@ -52,29 +71,29 @@ public class FDBSQLWriteStatements {
 		" (language_direction_id INTEGER PRIMARY KEY, from_locale TEXT NOT NULL, to_locale TEXT NOT NULL)";
 
 	public static final String CREATE_TABLE_ABBREVIATIONS =
-		"CREATE TABLE " + FDBTables.abbreviations + 
+		"CREATE TABLE " + FDBTables.abbreviations +
 		" (abbreviation_id INTEGER PRIMARY KEY, abbreviation TEXT UNIQUE NOT NULL, definition BLOB NOT NULL)";
 	
 	public static final String CREATE_TABLE_MEDIA_RESOURCE_KEYS =
-		"CREATE TABLE " + FDBTables.media_resource_keys + 
+		"CREATE TABLE " + FDBTables.media_resource_keys +
 		" (media_resource_id INTEGER PRIMARY KEY, media_resource_key TEXT UNIQUE NOT NULL)";
 	
 	public static final String CREATE_TABLE_MEDIA_RESOURCE_BLOCKS =
-		"CREATE TABLE " + FDBTables.media_resource_blocks + 
+		"CREATE TABLE " + FDBTables.media_resource_blocks +
 		" (media_resource_block_id INTEGER PRIMARY KEY, media_resource_block BLOB NOT NULL)";
 
-	public static final String CREATE_TABLE_BASE_PROPERTIES = 
-		"CREATE TABLE " + FDBTables.base_properties + 
+	public static final String CREATE_TABLE_BASE_PROPERTIES =
+		"CREATE TABLE " + FDBTables.base_properties +
 		" (base_property_id INTEGER PRIMARY KEY, base_property_key TEXT UNIQUE NOT NULL, base_property TEXT)";
 
-	public static final String CREATE_TABLE_BASE_RESOURCES = 
-		"CREATE TABLE " + FDBTables.base_resources + 
+	public static final String CREATE_TABLE_BASE_RESOURCES =
+		"CREATE TABLE " + FDBTables.base_resources +
 		" (base_resource_id INTEGER PRIMARY KEY, base_resource_key TEXT UNIQUE NOT NULL, base_resource BLOB NOT NULL, data_1 BLOB NOT NULL, data_2 BLOB NOT NULL, data_3 BLOB NOT NULL, info_1 TEXT NOT NULL, info_2 TEXT NOT NULL, info_3 TEXT NOT NULL, info_4 TEXT NOT NULL, info_5 TEXT NOT NULL, info_6 TEXT NOT NULL)";
 	
-	public static final String CREATE_INDEX_LANGUAGE_DIRECTIONS_FL = 
+	public static final String CREATE_INDEX_LANGUAGE_DIRECTIONS_FL =
 		"CREATE INDEX index_language_directions_from_locale ON language_directions(from_locale)";
 
-	public static final String CREATE_INDEX_LANGUAGE_DIRECTIONS_TL = 
+	public static final String CREATE_INDEX_LANGUAGE_DIRECTIONS_TL =
 		"CREATE INDEX index_language_directions_to_locale ON language_directions(to_locale)";
 	
 	// INSERT --------------------------------------------------------------------------------------------
@@ -84,8 +103,11 @@ public class FDBSQLWriteStatements {
 	public static final String INSERT_WORD =
 		"INSERT INTO " + FDBTables.words + " (word_id, word) VALUES(?, ?)";
 
-	public static final String INSERT_WORD_REDIRECT =
-		"INSERT INTO " + FDBTables.words_redirects + " (word_id, redirect_to_word_id) VALUES(?, ?)";
+	public static final String INSERT_WORD_MAPPING =
+		"INSERT INTO " + FDBTables.words_mappings + " (word_id, word_mapping_1, word_mapping_2) VALUES(?, ?, ?)";
+	
+	public static final String INSERT_WORD_RELATION =
+		"INSERT INTO " + FDBTables.words_relations + " (relation_id, word_id, to_word_id, relation_type) VALUES(?, ?, ?, ?)";
 	
 	public static final String INSERT_ARTICLE =
 		"INSERT INTO " + FDBTables.article_blocks + 

@@ -118,7 +118,12 @@ public class ZDBaseReader implements BaseReader {
 	}
 	
 	@Override
-	public Map<Integer, Integer> getWordRedirects() throws BaseFormatException {
+	public Map<Integer, Integer> getWordsRedirects() throws BaseFormatException {
+		return null;
+	}
+	
+	@Override
+	public Map<Integer, String> getWordsMappings() throws BaseFormatException {
 		return null;
 	}
 
@@ -403,7 +408,7 @@ public class ZDBaseReader implements BaseReader {
 	}
 	
     private static void populateBasePropertiesInfoFromZDHeader(BasePropertiesInfo dictInfo, ZDHeader zdHeader) {
-    	dictInfo.setArticlesNumber(zdHeader.getWordsNumber());
+    	dictInfo.setWordsNumber(zdHeader.getWordsNumber());
     	dictInfo.setAbbreviationsNumber(zdHeader.getAbbreviationsNumber());
     	dictInfo.setFormatVersion(zdHeader.getFormatVersion());
     	dictInfo.setBaseFileSize(zdHeader.getDictionaryFileSize());

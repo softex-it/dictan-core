@@ -19,45 +19,28 @@
 
 package info.softex.dictionary.core.formats.dsl.testutils;
 
-import static org.junit.Assert.assertNotNull;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo;
-import info.softex.dictionary.core.formats.api.BaseReader;
-import info.softex.dictionary.core.formats.dsl.DSLBaseReader;
-
-import java.io.File;
-import java.util.List;
-
 /**
- * Test for main functionality of DSL base reader.
  * 
- * @since version 4.6, 02/01/2015
+ * Test data for the layouts DSL base.
+ * 
+ * @since version 4.6, 02/09/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
-public class DSLConverter {
-	
-	public static void main(String[] args) throws Exception {
-		
-		//URL url = getClass().getResource(PATH_BASE_DSL_FULL);
-		BaseReader reader = new DSLBaseReader(new File("/Volumes/Media/ln/convoxford"));
-		reader.load();
-		
-		BasePropertiesInfo baseInfo = reader.getBasePropertiesInfo();
-		
-		System.out.println("Header: " + baseInfo.getHeaderComments());
-		
-		List<String> words = reader.getWords();
-		
-		assertNotNull(words);
-		//assertEquals(2200000, words.size());
-		
-		System.out.println("Redirects: " + reader.getWordRedirects());
-		
-		
-		System.out.println("Words Number: " + words.size());
-		
-		
-	}
+public class DSLBaseLayoutsContent {
 
+	public static final int WORDS_NUMBER = 21;
+	public static final int WORDS_UNIQUE_NUMBER = 20;
+	
+	public static final int WORDS_MAPPINGS_NUMBER = 9;
+	public static final int WORDS_MAPPINGS_UNIQUE_NUMBER = 8;
+	
+	public static final int REDIRECTS_NUMBER = 10;
+	public static final int REDIRECTS_UNIQUE_NUMBER = 9;
+	
+	public static final int ARTICLES_ACTAUL_NUMBER = 11;
+	
+	public static final String WORD_NONINDEXED_AE3PE = "-ae3 partially excluded";
+	
 }

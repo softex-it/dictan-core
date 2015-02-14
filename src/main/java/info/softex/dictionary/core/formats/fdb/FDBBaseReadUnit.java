@@ -74,7 +74,7 @@ public class FDBBaseReadUnit {
 	protected final Connection connection;
 	
 	protected List<String> words = null;
-	protected TreeMap<Integer, Integer> wordRedirects = null;
+	protected TreeMap<Integer, Integer> wordsRedirects = null;
 	
 	protected Map<String, String> abbreviations = null;
 	protected Set<String> mediaResources = null; // Initialized only when getMediaResourceKeys is called
@@ -84,6 +84,7 @@ public class FDBBaseReadUnit {
 	protected final int wordListBlockSize;
 	
 	protected PreparedStatement selWordIdByWordSt;
+	protected PreparedStatement selRelationWordIdByWordIdSt;
 	protected PreparedStatement selArticleBlockByIdSt;
 	protected PreparedStatement selMediaResourceIdByKey;
 	protected PreparedStatement selMediaResourceBlockById; 
@@ -100,13 +101,21 @@ public class FDBBaseReadUnit {
 		this.wordListBlockSize = wordListBlockSize;
 		this.collatorFactory = collatorFactory;
 		
-		// Init Prepared Statements
+		// Initialize Prepared Statements
 		if (main) {
 			selWordIdByWordSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_ID_BY_WORD);
 			selMediaResourceIdByKey = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_ID_BY_MEDIA_RESOURCE_KEY);
+			
+			// Initialize statements for FDB version 3 and higher
+			ResultSet rs = connection.createStatement().executeQuery(FDBSQLReadStatements.CHECK_TABLE_WORDS_RELATIONS_EXISTS);
+			if (rs.next() && rs.getInt(1) > 0) {
+    			selRelationWordIdByWordIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_RELATION_REDIRECT_AND_TO_WORD_ID_BY_WORD_ID);
+    			log.info("FDB version 3 or higher is detected");
+			}
 		}
 		selMediaResourceBlockById = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_BY_MEDIA_RESOURCE_ID);
 		selArticleBlockByIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_ARTICLE_BLOCK_BY_ID);
+		
 	}
 	
 	private static final Logger log = LoggerFactory.getLogger(FDBBaseReadUnit.class.getSimpleName());
@@ -123,7 +132,6 @@ public class FDBBaseReadUnit {
 		try {
 			
 			Statement statement = connection.createStatement();
-			
 			ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_BASE_PROPERTIES);
 			
 			while (rs.next()) {
@@ -145,6 +153,15 @@ public class FDBBaseReadUnit {
 			// Set abbreviations formating to disabled if there are no abbreviations
 			if (baseInfo.getAbbreviationsNumber() == 0) {
 				baseInfo.setAbbreviationsFormattingMode(AbbreviationsFormattingMode.DISABLED);
+			}
+			
+			// Below version 3 number of articles instead of number of words was defined.
+			// Setting number of words to number of articles if number of words is 0.
+			if (baseInfo.getWordsNumber() == 0) {
+				baseInfo.setWordsNumber(baseInfo.getArticlesDeprecatedNumber());
+			// If number of words is defined, set the same to the number of articles
+			} else {
+				baseInfo.setArticlesDeprecatedNumber(baseInfo.getWordsNumber());
 			}
 			
 			rs.close();
@@ -252,17 +269,10 @@ public class FDBBaseReadUnit {
 	
 			// Create dynamic list for words
 		    words = new FDBDynamicListSet(
-		    		baseInfo.getArticlesNumber(), 
+		    		baseInfo.getWordsNumber(), 
 		    		wordListBlockSize,
 		    		connection
 		    	);
-		    
-			// Create dynamic list for words
-//		    redirects = new FDBDynamicListSet(
-//		    		baseInfo.getArticlesNumber(), 
-//		    		wordListBlockSize,
-//		    		connection
-//		    	);
 		    
 			long s4 = System.currentTimeMillis();
 			log.debug("Word list created, time: {}", s4 - s3); 
@@ -386,17 +396,17 @@ public class FDBBaseReadUnit {
 	 * 
 	 * @return Map of word IDs for redirects
 	 */
-	public Map<Integer, Integer> getWordRedirects() throws BaseFormatException {
-		if (wordRedirects == null) {
-			wordRedirects = new TreeMap<Integer, Integer>();
+	public Map<Integer, Integer> getWordsRedirects() throws BaseFormatException {
+		if (wordsRedirects == null) {
+			wordsRedirects = new TreeMap<Integer, Integer>();
 			try {
 				
 				Statement statement = connection.createStatement();
-				ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_WORDS_REDIRECTS);
+				ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_RELATIONS_REDIRECTS);
 				
 				// Populate the redirects map
 				while (rs.next()) {
-					wordRedirects.put(rs.getInt(1), rs.getInt(2));
+					wordsRedirects.put(rs.getInt(1), rs.getInt(2));
 				}
 				rs.close();
 				
@@ -405,7 +415,7 @@ public class FDBBaseReadUnit {
 				throw new BaseFormatException("Couldn't load redirects: " + e.getMessage());
 			}
 		} 
-		return wordRedirects;
+		return wordsRedirects;
 	}
 	
 	public BasePropertiesInfo getBasePropertiesInfo() {
@@ -474,27 +484,23 @@ public class FDBBaseReadUnit {
 			throw new IllegalArgumentException("WordInfo must have an index to get an article");
 		}
 		
+		int articleId = wordInfo.getArticleId();
+		
 		try {
-						
-			selArticleBlockByIdSt.setInt(1, wordInfo.getId());
+			
+			selArticleBlockByIdSt.setInt(1, articleId);
 			ResultSet rs = selArticleBlockByIdSt.executeQuery();
-
-//			Statement st = connection.createStatement();			
-//			ResultSet rs = st.executeQuery(
-//				"SELECT article_block_id, article_block FROM " + FDBTables.article_blocks + 
-//				" WHERE article_block_id=(SELECT MAX(article_block_id) FROM " + 
-//				FDBTables.article_blocks + " WHERE article_block_id<=" + wordInfo.getId() + ")");
 
 			if (rs.next()) {
 				
 				int blockId = rs.getInt(1);
 				
-				log.debug("Retrieving article: word_id: {}, article_block_id: {}", wordInfo.getId(), blockId);
-				int segmentNumber = wordInfo.getId() - blockId;
+				log.debug("Retrieving article: word_id: {}, article_block_id: {}", articleId, blockId);
+				int segmentNumber = articleId - blockId;
 				
 				byte[] decompBytes = readSegmentBytesFromStream(
-						new SmartInflaterInputStream(new ByteArrayInputStream(rs.getBytes(2))), segmentNumber
-					);
+					new SmartInflaterInputStream(new ByteArrayInputStream(rs.getBytes(2))), segmentNumber
+				);
 				
 				articleInfo = new ArticleInfo(wordInfo, new String(decompBytes, ENC_UTF8));
 				
@@ -510,10 +516,38 @@ public class FDBBaseReadUnit {
 			throw e;
 		} catch (Exception e) {
 			log.error("Error", e);
-			throw new BaseFormatException("Couldn't retrieve the article: " + e.getMessage());
+			throw new BaseFormatException("Couldn't retrieve the article: " + e.getClass().getName() + ", " + e.getMessage());
 		}
 		
 		return articleInfo;
+		
+	}
+	
+	public void getWordRedirect(WordInfo wordInfo) throws BaseFormatException {
+		
+		if (!wordInfo.hasIndex()) {
+			throw new IllegalArgumentException("WordInfo must have an index to get a redirect");
+		}
+		
+		int redirectToId = wordInfo.getId();
+		
+		try {
+			
+			// Check if redirect is available
+			selRelationWordIdByWordIdSt.setInt(1, redirectToId);
+			ResultSet redirRS = selRelationWordIdByWordIdSt.executeQuery();
+			if (redirRS.next()) {
+				redirectToId = redirRS.getInt(1);
+				wordInfo.setRedirectToId(redirectToId);
+				wordInfo.setRedirectToWord(redirRS.getString(2));
+				log.debug("Relation to word_id={} is found from word_id={}", redirectToId, wordInfo.getId()); 
+			}
+			redirRS.close();
+			
+		} catch (Exception e) {
+			log.error("Error", e);
+			throw new BaseFormatException("Couldn't retrieve the relation: " + e.getClass().getName() + ", " + e.getMessage());
+		}
 		
 	}
 	
@@ -523,6 +557,13 @@ public class FDBBaseReadUnit {
 	
 	public void close() throws Exception {
 		connection.close();
+	}
+	
+	/**
+	 * The method is created for tests
+	 */
+	public Statement createStatement() throws SQLException {
+		return connection.createStatement();
 	}
 
 }

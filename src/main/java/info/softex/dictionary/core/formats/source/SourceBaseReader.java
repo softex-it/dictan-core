@@ -121,7 +121,7 @@ public class SourceBaseReader implements BaseReader {
 		
 		isLoaded = true;
 
-		log.debug("Number of Articles: {}", getBasePropertiesInfo().getArticlesNumber());
+		log.debug("Number of Articles: {}", getBasePropertiesInfo().getWordsNumber());
 		
 	}
 
@@ -145,7 +145,8 @@ public class SourceBaseReader implements BaseReader {
 			baseInfo.setAbbreviationsFormattingMode(AbbreviationsFormattingMode.DISABLED);
 		}
 		
-		baseInfo.setArticlesNumber(words.size());
+		baseInfo.setWordsNumber(words.size());
+		baseInfo.setArticlesActualNumber(words.size());
 		baseInfo.setMediaResourcesNumber(mediaResources.size());
 		
 		return baseInfo;
@@ -230,7 +231,12 @@ public class SourceBaseReader implements BaseReader {
 	}
 	
 	@Override
-	public Map<Integer, Integer> getWordRedirects() throws BaseFormatException {
+	public Map<Integer, Integer> getWordsRedirects() throws BaseFormatException {
+		return null;
+	}
+	
+	@Override
+	public Map<Integer, String> getWordsMappings() throws BaseFormatException {
 		return null;
 	}
 

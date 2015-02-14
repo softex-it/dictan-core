@@ -19,6 +19,8 @@
 
 package info.softex.dictionary.core.utils;
 
+import info.softex.dictionary.core.formats.dsl.utils.DSLReadFormatUtils;
+
 import java.util.Iterator;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -50,9 +52,17 @@ public class ArticleHtmlFormatter {
 			) {
 		
 		long t1 = System.currentTimeMillis();
-		article = applyArticleFormat(article, articleFormatMode, isMediaAvailable);
-		article = applyAbbreviationsFormat(article, abbreviations, abbrFormatMode);
-		article = injectWord(word, article, articleFormatIWM);
+		
+		// DSL Formatting
+		if (BaseConstants.MODE_DSL.equalsIgnoreCase(articleFormatMode)) {
+			article = DSLReadFormatUtils.convertDSLAdaptedHtmlToHtml(article);
+			article = DSLReadFormatUtils.injectDSLWord(word, article);
+		// ZD/HTML Formatting
+		} else {
+			article = applyArticleFormat(article, articleFormatMode, isMediaAvailable);
+			article = applyAbbreviationsFormat(article, abbreviations, abbrFormatMode);
+			article = injectWord(word, article, articleFormatIWM);			
+		}
 		
 		log.debug("Prepare Article | Total time: {} ms", System.nanoTime() - t1);
 		log.debug("Prepare Article | Output: {}", article);

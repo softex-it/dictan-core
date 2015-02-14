@@ -17,32 +17,41 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.fdb;
+package info.softex.dictionary.core.utils;
+
+import static org.junit.Assert.assertEquals;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.junit.Test;
 
 /**
- * Enum of all DB tables at FDB format. 
+ * Tests functionality of StringUtils.
  * 
- * @since version 2.6, 		08/27/2011
- * 
- * @modified version 4.6,	01/28/2015
+ * @since version 4.6, 02/07/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
-public enum FDBTables {
+public class StringUtilsTest {
 	
-	words,
-	words_mappings,
-	words_relations,
-	article_blocks,
-	abbreviations,
-	language_directions,
+	@SuppressWarnings("serial")
+	private final static Map<String, String > STRINGS_LTRIMMED = new HashMap<String, String>() {{
+		put(null, null);
+		put("", "");
+		put(" ", "");
+		put(" \t ", "");
+		put(" some string ", "some string ");
+		put("\t some string \t ", "some string \t ");
+		put("string no spaces", "string no spaces");
+	}};
 	
-	media_resource_keys,
-	media_resource_blocks,
-	
-	base_properties,
-	base_resources;
-	
-}
+	@Test
+	public void testLTrim() throws Exception {
+		for (String input : STRINGS_LTRIMMED.keySet()) {
+			assertEquals(STRINGS_LTRIMMED.get(input), StringUtils.ltrim(input));
+		}
+	}
 
+}

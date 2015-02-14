@@ -56,21 +56,20 @@ public class DSLFileReader {
 	protected final List<Long> linePointers;
 	protected Map<String, Integer> lineMapper;
 
-	protected final TreeMap<Integer, Integer> wordRedirects = new TreeMap<Integer, Integer>();
+	protected final TreeMap<Integer, String> wordsMappings = new TreeMap<Integer, String>();
+	protected final TreeMap<Integer, Integer> wordsRedirects = new TreeMap<Integer, Integer>();
 
 	public DSLFileReader(File inFile, int inBufferSize) throws IOException {
 
 		// Check BOM to see the encoding is UTF-8 or undefined
 		FileUtils.verifyUnicodeEncodingUndefinedOrUTF8(inFile);
 
-		this.tlr = new TextLineReader(inFile,
-				new TextLineReader.InitialBomRemover());
+		this.tlr = new TextLineReader(inFile, new TextLineReader.InitialBomRemover());
 		this.linePointers = new ArrayList<Long>(INIT_LIST_SIZE);
 
 	}
 
-	public void load(boolean isMapperActive) throws IOException,
-			BaseFormatException {
+	public void load(boolean isMapperActive) throws IOException, BaseFormatException {
 
 		// Iterate via any empty lines
 		tlr.readEmptyLines("Epmty line found at the beggining of file. Please consider removing it.");
@@ -87,7 +86,7 @@ public class DSLFileReader {
 
 	protected void readWords(boolean isMapperActive) throws IOException, BaseFormatException {
 
-		words = DSLReaderUtils.readDSLWords(tlr, linePointers, wordRedirects);
+		words = DSLReaderUtils.readDSLWords(tlr, linePointers, wordsRedirects, wordsMappings);
 
 		if (isMapperActive) {
 			lineMapper = new HashMap<String, Integer>();
@@ -102,10 +101,6 @@ public class DSLFileReader {
 		return headers;
 	}
 
-	public TreeMap<Integer, Integer> getWordRedirects() {
-		return wordRedirects;
-	}
-
 	public boolean readArticleInfo(ArticleInfo articleInfo) throws BaseFormatException {
 
 		WordInfo wordInfo = articleInfo.getWordInfo();
@@ -116,7 +111,7 @@ public class DSLFileReader {
 		wordInfo.setWord(words.get(wordId));
 
 		// Check if the word is redirected
-		Integer redirectId = wordRedirects.get(wordInfo.getId());
+		Integer redirectId = wordsRedirects.get(wordInfo.getId());
 		if (redirectId != null) {
 			wordId = redirectId;
 			wordInfo.setRedirectToId(redirectId);
@@ -132,13 +127,13 @@ public class DSLFileReader {
 
 			// System.out.println("ART: " + article + " W " + tlr.getLastLine());
 
-			String article = DSLReaderUtils.readDSLArticle(tlr, wordId, linePointers, words, wordRedirects);
+			String article = DSLReaderUtils.readDSLArticle(tlr, wordId, linePointers, words, wordsRedirects, wordsMappings);
 			articleInfo.setArticle(article);
 
 		} catch (IOException e) {
 			throw new BaseFormatException(
-					"Couldn't read the article for word ID " + wordId
-						+ ". Article: " + articleInfo + ". Error: " + e.getMessage());
+				"Couldn't read the article for word ID " + wordId
+					+ ". Article: " + articleInfo + ". Error: " + e.getMessage());
 		}
 
 		//System.out.println("Pointer: " + pointer);
@@ -147,8 +142,16 @@ public class DSLFileReader {
 
 	}
 
-	public List<String> getLineKeys() {
+	public List<String> getWords() {
 		return words;
+	}
+	
+	public TreeMap<Integer, String> getWordsMappings() {
+		return wordsMappings;
+	}
+	
+	public TreeMap<Integer, Integer> getWordRedirects() {
+		return wordsRedirects;
 	}
 	
 	public List<Long> getLinePointers() {

@@ -83,7 +83,8 @@ public class FDBBaseWriteUnit {
 	protected final int maxBatchSize = 1000;
 	
 	protected int curWordsBatchSize = 0;
-	protected int curWordRedirectsBatchSize = 0;
+	protected int curWordsMappingsBatchSize = 0;
+	protected int curWordsRelationsBatchSize = 0;
 	protected int curMediaResourcesBatchSize = 0;
 	
 	protected int basePropertiesRowsNumber = 0;
@@ -101,7 +102,8 @@ public class FDBBaseWriteUnit {
 	protected LinkedList<byte[]> mediaResourcesBuffer = new LinkedList<byte[]>();
 	
 	protected PreparedStatement insWordSt;
-	protected PreparedStatement insWordRedirectSt;
+	protected PreparedStatement insWordMappingSt;
+	protected PreparedStatement insWordRelationSt;
 	protected PreparedStatement insArticleSt;
 	protected PreparedStatement insBasePropertySt;
 	protected PreparedStatement insBaseResourceSt;
@@ -136,9 +138,15 @@ public class FDBBaseWriteUnit {
 		if (baseIndex == 1) {
 			
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_WORDS);
+
+			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_WORDS_MAPPINGS);
+			st.executeUpdate(FDBSQLWriteStatements.CREATE_INDEX_WORDS_MAPPINGS_WORD_MAPPINGS_1);
+			st.executeUpdate(FDBSQLWriteStatements.CREATE_INDEX_WORDS_MAPPINGS_WORD_MAPPINGS_2);
 			
-			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_WORDS_REDIRECTS);
-			st.executeUpdate(FDBSQLWriteStatements.CREATE_INDEX_WORDS_REDIRECTS_REDIRECT_TO_WORD_ID);
+			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_WORDS_RELATIONS);
+			st.executeUpdate(FDBSQLWriteStatements.CREATE_INDEX_WORDS_RELATIONS_WORD_ID);
+			st.executeUpdate(FDBSQLWriteStatements.CREATE_INDEX_WORDS_RELATIONS_TO_WORD_ID);
+			st.executeUpdate(FDBSQLWriteStatements.CREATE_INDEX_WORDS_RELATIONS_RELATION_TYPE);
 			
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_ARTICLE_BLOCKS);
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_ABBREVIATIONS);
@@ -153,7 +161,8 @@ public class FDBBaseWriteUnit {
 			
 			// Create prepared statements
 			insWordSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_WORD);
-			insWordRedirectSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_WORD_REDIRECT);
+			insWordMappingSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_WORD_MAPPING);
+			insWordRelationSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_WORD_RELATION);
 			insArticleSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_ARTICLE);
 			
 			insMediaResourceKeySt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_MEDIA_RESOURCE_KEY);
@@ -202,9 +211,28 @@ public class FDBBaseWriteUnit {
 				inBaseInfo.setBaseDate(currentDate);
 			}
 			
-			// If articles number is not set, it always must have a value
-			if (inBaseInfo.getArticlesNumber() == 0) {
-				inBaseInfo.setArticlesNumber(0);
+			// If words number is not set, it always must have a value
+			if (inBaseInfo.getWordsNumber() == 0) {
+				inBaseInfo.setWordsNumber(0);
+			}
+			
+			// The property is not used since FDB version 3, so it's defaulted to words number.
+			// Needed only for compatibility with previous viewers
+			inBaseInfo.setArticlesDeprecatedNumber(inBaseInfo.getWordsNumber());
+			
+			// If words mappings number is not set, it always must have a value
+			if (inBaseInfo.getWordsMappingsNumber() == 0) {
+				inBaseInfo.setWordsMappingsNumber(0);
+			}
+			
+			// If relations number is not set, it always must have a value
+			if (inBaseInfo.getWordsRelationsNumber() == 0) {
+				inBaseInfo.setWordsRelationsNumber(0);
+			}
+			
+			// If actual articles number is not set, it always must have a value
+			if (inBaseInfo.getArticlesActualNumber() == 0) {
+				inBaseInfo.setArticlesActualNumber(0);
 			}
 			
 			inBaseInfo.getPrimaryParameters().put(PrimaryKeys.ARTICLES_BLOCKS_SIZE_UNCOMPRESSED_MIN.getKey(), this.minArticleBlockMemSize);
@@ -352,7 +380,7 @@ public class FDBBaseWriteUnit {
 	}
 	
 	
-	public void saveWord(String word, int wordsNumber, int redirectToWordId) throws Exception {
+	public void saveWord(String word, int wordsNumber) throws Exception {
 		
 		// Insert word
 		insWordSt.setInt(1, wordsNumber);
@@ -365,35 +393,41 @@ public class FDBBaseWriteUnit {
 			insWordSt.clearBatch();
 			curWordsBatchSize = 0;
 		}
-		
-		// Save redirect
-		saveRedirect(wordsNumber, redirectToWordId);
 
 	}
 	
-	protected void saveRedirect(int wordsNumber, int redirectToWordId) throws Exception {
+	public void saveRelation(int relationNumber, int wordNumber, int redirectToWordId, int relation) throws Exception {
 		
-		// Don't insert negative redirects
-		if (redirectToWordId < 0) {
-			return;
-		}
+		insWordRelationSt.setInt(1, relationNumber);
+		insWordRelationSt.setInt(2, wordNumber);
+		insWordRelationSt.setInt(3, redirectToWordId);
+		insWordRelationSt.setInt(4, relation);
+		insWordRelationSt.addBatch();
 		
-		insWordRedirectSt.setInt(1, wordsNumber);
-		insWordRedirectSt.setInt(2, redirectToWordId);
-		insWordRedirectSt.addBatch();
-		
-		curWordRedirectsBatchSize++;
-		if (curWordRedirectsBatchSize == maxBatchSize) {
-			insWordRedirectSt.executeBatch();
-			insWordRedirectSt.clearBatch();
-			curWordRedirectsBatchSize = 0;
+		curWordsRelationsBatchSize++;
+		if (curWordsRelationsBatchSize == maxBatchSize) {
+			insWordRelationSt.executeBatch();
+			insWordRelationSt.clearBatch();
+			curWordsRelationsBatchSize = 0;
 		}
 
 	}
 	
-//	public boolean saveWord(String word, int wordsNumber) throws Exception {
-//		return saveWord(word, wordsNumber, -1);
-//	}
+	public void saveWordMapping(int wordNumber, String mapping1, String mapping2) throws Exception {
+		
+		insWordMappingSt.setInt(1, wordNumber);
+		insWordMappingSt.setString(2, mapping1);
+		insWordMappingSt.setString(3, mapping2);
+		insWordMappingSt.addBatch();
+		
+		curWordsMappingsBatchSize++;
+		if (curWordsMappingsBatchSize == maxBatchSize) {
+			insWordMappingSt.executeBatch();
+			insWordMappingSt.clearBatch();
+			curWordsMappingsBatchSize = 0;
+		}
+
+	}
 	
 	public boolean saveArticle(String article, int articleNumber) throws Exception {
 		byte[] articleData = article.getBytes(UTF8);
@@ -409,7 +443,7 @@ public class FDBBaseWriteUnit {
 		return langDirections;
 	}
 	
-	public void close() throws Exception {
+	public void close() throws SQLException {
 		connection.close();
 	}
 	
@@ -425,10 +459,16 @@ public class FDBBaseWriteUnit {
 			insWordSt.clearBatch();
 		}
 		
-		// Flush word redirects
-		if (curWordRedirectsBatchSize != 0) {
-			insWordRedirectSt.executeBatch();
-			insWordRedirectSt.clearBatch();
+		// Flush words mappings
+		if (curWordsMappingsBatchSize != 0) {
+			insWordMappingSt.executeBatch();
+			insWordMappingSt.clearBatch();
+		}
+		
+		// Flush words redirects
+		if (curWordsRelationsBatchSize != 0) {
+			insWordRelationSt.executeBatch();
+			insWordRelationSt.clearBatch();
 		}
 		
 		insertBlockBatch(insArticleSt, articlesBuffer, curArticlesNumber, curArticleBlockMemSize);
@@ -540,7 +580,7 @@ public class FDBBaseWriteUnit {
 	protected void updateBaseProperty(String key, String value) throws SQLException {
 		updBasePropertySt.setString(1, value);
 		updBasePropertySt.setString(2, key);
-		updBasePropertySt.executeUpdate();
+		updBasePropertySt.executeUpdate();		
 	}
 	
 	protected File getBaseFile() {

@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -17,10 +17,12 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.fdb;
+package info.softex.dictionary.core.formats.fdb.testutils;
 
 import info.softex.dictionary.core.database.BasicSQLiteConnectionFactory;
 import info.softex.dictionary.core.database.DatabaseConnectionFactory;
+import info.softex.dictionary.core.formats.fdb.FDBBaseWriter;
+import info.softex.dictionary.core.formats.fdb.FDBConstants;
 
 import java.io.IOException;
 import java.sql.SQLException;

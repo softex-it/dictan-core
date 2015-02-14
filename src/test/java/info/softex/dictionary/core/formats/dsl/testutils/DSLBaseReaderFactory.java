@@ -34,12 +34,16 @@ import java.util.List;
  * @author Dmitry Viktorov
  * 
  */
-public class DSLBaseReaderTestFactory {
-
+public class DSLBaseReaderFactory {
+	
+	protected final static String PATH_BASE_DSL_SYNTAX = "/info/softex/dictionary/core/formats/dsl/bases/syntax";
+	protected final static String PATH_BASE_DSL_LAYOUTS_ORIG = "/info/softex/dictionary/core/formats/dsl/bases/layouts";
+	protected final static String PATH_BASE_DSL_LAYOUTS_ADAPTED = "/info/softex/dictionary/core/formats/dsl/bases/layoutsadapted";
+	
 	public static DSLBaseReaderWrapper createAndAssertDSLBaseReader(String resourcePath) throws Exception {
 		
 		assertNotNull(resourcePath);
-		URL resource = DSLBaseReaderTestFactory.class.getResource(resourcePath);
+		URL resource = DSLBaseReaderFactory.class.getResource(resourcePath);
 		assertNotNull(resource);
 			
 		DSLBaseReaderWrapper reader = new DSLBaseReaderWrapper(new File(resource.getPath()));
@@ -48,7 +52,6 @@ public class DSLBaseReaderTestFactory {
 		assertTrue(reader.isLoaded());
 		
 		BasePropertiesInfo baseInfo = reader.getBasePropertiesInfo();
-		
 		assertNotNull(baseInfo);
 		
 		List<String> words = reader.getWords();
@@ -59,6 +62,18 @@ public class DSLBaseReaderTestFactory {
 		
 		return reader;
 		
+	}
+	
+	public static DSLBaseReaderWrapper createAndAssertSyntaxDSLBaseReader() throws Exception {
+		return DSLBaseReaderFactory.createAndAssertDSLBaseReader(PATH_BASE_DSL_SYNTAX);
+	}
+	
+	public static DSLBaseReaderWrapper createAndAssertLayoutsDSLBaseReader() throws Exception {
+		return DSLBaseReaderFactory.createAndAssertDSLBaseReader(PATH_BASE_DSL_LAYOUTS_ORIG);
+	}
+	
+	public static DSLBaseReaderWrapper createAndAssertLayoutsAdaptedDSLBaseReader() throws Exception {
+		return DSLBaseReaderFactory.createAndAssertDSLBaseReader(PATH_BASE_DSL_LAYOUTS_ADAPTED);
 	}
 	
 }

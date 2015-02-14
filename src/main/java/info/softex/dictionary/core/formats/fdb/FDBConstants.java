@@ -37,8 +37,7 @@ public class FDBConstants {
 	public static final int FDB_VERSION_3 = 3;
 	
 	public static final int CURRENT_FDB_VERSION = FDB_VERSION_3;
-	
-	
+
 	public static final String PARAM_KEY_WORD_LIST_BLOCK_SIZE = "wordListBlockSize";
 	
 	public static final String PARAM_KEY_BASE_MAIN_SIZE_LIMIT = "mainBaseSizeLimit";
@@ -47,5 +46,9 @@ public class FDBConstants {
 	public static final String PARAM_VALUE_DEFAULT = "default";
 	
 	public static final int VALUE_WORD_LIST_BLOCK_SIZE_DEFAULT = 256;
+
+	// Relations
+	public static final int RELATION_REDIRECT_NORMAL = 1;
+	public static final int RELATION_REDIRECT_SUBENTRY = 2;
 	
 }

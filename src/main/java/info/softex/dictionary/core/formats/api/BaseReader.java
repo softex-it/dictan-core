@@ -113,7 +113,8 @@ public interface BaseReader {
 //	public int getWordIndex(String word) throws BaseFormatException;
 	
 	public List<String> getWords() throws BaseFormatException;
-	public Map<Integer, Integer> getWordRedirects() throws BaseFormatException;	
+	public Map<Integer, String> getWordsMappings() throws BaseFormatException;	
+	public Map<Integer, Integer> getWordsRedirects() throws BaseFormatException;	
 	
 	/**
 	 * Returns the full formatted article

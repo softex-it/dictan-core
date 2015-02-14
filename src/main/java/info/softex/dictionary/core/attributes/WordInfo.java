@@ -35,11 +35,12 @@ public class WordInfo implements Cloneable {
 	
 	public static final int UNKNOWN_ID = -1;
 	
-	private String word = null;
-	
 	private int id = UNKNOWN_ID;
+	private String word = null;
+	private String wordMapping = null;
 	
 	private int redirectToId = UNKNOWN_ID;
+	private String redirectToWord = null;
 	
 	public WordInfo(String word) {
 		setWord(word);
@@ -63,6 +64,10 @@ public class WordInfo implements Cloneable {
 	public String getWord() {
 		return word;
 	}
+	
+	public String getArticleWord() {
+		return redirectToWord != null ? redirectToWord : word;
+	}
 
 	public void setWord(String word) {
 		if (word != null) {
@@ -77,6 +82,10 @@ public class WordInfo implements Cloneable {
 
 	public int getId() {
 		return id;
+	}
+	
+	public int getArticleId() {
+		return redirectToId < 0 ? id : redirectToId;
 	}
 
 	public void setId(int id) {
@@ -122,6 +131,18 @@ public class WordInfo implements Cloneable {
 	
 	public void setRedirectToId(int inRedirectToId) {
 		this.redirectToId = inRedirectToId;
+	}
+	
+	public void setRedirectToWord(String inRedirectToWord) {
+		this.redirectToWord = inRedirectToWord;
+	}
+	
+	public String getWordMapping() {
+		return wordMapping;
+	}
+	
+	public void setWordMapping(String wordExtended) {
+		this.wordMapping = wordExtended;
 	}
 
 }

@@ -19,6 +19,8 @@
 
 package info.softex.dictionary.core.attributes;
 
+import info.softex.dictionary.core.utils.StringUtils;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -59,10 +61,15 @@ public class BasePropertiesInfo implements Cloneable {
 		BASE_PARTS_MAIN_SIZE_MIN("base.parts.main.size.min"),
 		BASE_PARTS_SECONDARY_SIZE_MIN("base.parts.secondary.size.min"),
 		BASE_SECURITY_PROPERTIES_MD5("base.security.properties.md5"),
+
+		@Deprecated
+		ARTICLES_NUMBER("articles.number"), // The property is used only at FDB versions 1 and 2
 		
-		WORDS_REDIRECTS_NUMBER("words.redirects.number"),
+		WORDS_NUMBER("words.number"),
+		WORDS_MAPPINGS_NUMBER("words.mappings.number"),
+		WORDS_RELATIONS_NUMBER("words.relations.number"),
 		
-		ARTICLES_NUMBER("articles.number"),
+		ARTICLES_ACTUAL_NUMBER("articles.actual.number"),
 		ARTICLES_FORMATTING_MODE("articles.formatting.mode"),
 		ARTICLES_FORMATTING_INJECT_WORD_MODE("articles.formatting.word.inject.mode"),
 		ARTICLES_BLOCKS_SIZE_UNCOMPRESSED_MIN("articles.blocks.size.uncompressed.min"),
@@ -210,7 +217,7 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public String getHeaderComments() {
-		return (String) primaryParams.get(PrimaryKeys.BASE_HEADER_COMMENTS.getKey());
+		return StringUtils.defaultString((String) primaryParams.get(PrimaryKeys.BASE_HEADER_COMMENTS.getKey()));
 	}
 	
 	public void setHeaderComments(String comments) {
@@ -218,11 +225,11 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public String getBaseFullName() {
-		return (String) primaryParams.get(PrimaryKeys.BASE_NAME_FULL.getKey());
+		return StringUtils.defaultString((String) primaryParams.get(PrimaryKeys.BASE_NAME_FULL.getKey()));
 	}
 	
 	public String getBaseShortName() {
-		return (String) primaryParams.get(PrimaryKeys.BASE_NAME_SHORT.getKey());
+		return StringUtils.defaultString((String) primaryParams.get(PrimaryKeys.BASE_NAME_SHORT.getKey()));
 	}
 
 	public String getBaseType() {
@@ -332,29 +339,64 @@ public class BasePropertiesInfo implements Cloneable {
 		wordsCodepageName = inWordsCodepageName;
 	}
 	
-	public int getArticlesNumber() {
-		int result = getIntValue(PrimaryKeys.ARTICLES_NUMBER.getKey());
+	public int getWordsNumber() {
+		int result = getIntValue(PrimaryKeys.WORDS_NUMBER.getKey());
 		return result > 0 ? result : 0;
 	}
 	
-	public int getWordsRedirectsNumber() {
-		int result = getIntValue(PrimaryKeys.WORDS_REDIRECTS_NUMBER.getKey());
+	public int getArticlesActualNumber() {
+		int result = getIntValue(PrimaryKeys.ARTICLES_ACTUAL_NUMBER.getKey());
 		return result > 0 ? result : 0;
 	}
 	
 	/**
-	 * @return - Total number of articles, media resources, and abbreviations
+	 * Only needed for the old FDB bases. Use <code>getWordsNumber()</code>.
 	 */
-	public int getAmraNumber() {
-		return getArticlesNumber() + getMediaResourcesNumber() + getAbbreviationsNumber();
-	}
-
-	public void setArticlesNumber(int articlesNumber) {
-		primaryParams.put(PrimaryKeys.ARTICLES_NUMBER.getKey(), articlesNumber);
+	@Deprecated
+	public int getArticlesDeprecatedNumber() {
+		int result = getIntValue(PrimaryKeys.ARTICLES_NUMBER.getKey());
+		return result > 0 ? result : 0;
 	}
 	
-	public void setWordsRedirectsNumber(int redirectsNumber) {
-		primaryParams.put(PrimaryKeys.WORDS_REDIRECTS_NUMBER.getKey(), redirectsNumber);
+	/**
+	 * Only needed for the old FDB viewers. Use <code>setWordsNumber()</code>.
+	 */
+	@Deprecated
+	public void setArticlesDeprecatedNumber(int wordsNumber) {
+		primaryParams.put(PrimaryKeys.ARTICLES_NUMBER.getKey(), wordsNumber);
+	}
+	
+	public int getWordsMappingsNumber() {
+		int result = getIntValue(PrimaryKeys.WORDS_MAPPINGS_NUMBER.getKey());
+		return result > 0 ? result : 0;
+	}
+	
+	public int getWordsRelationsNumber() {
+		int result = getIntValue(PrimaryKeys.WORDS_RELATIONS_NUMBER.getKey());
+		return result > 0 ? result : 0;
+	}
+	
+	/**
+	 * @return - Total number of words, media resources, and abbreviations
+	 */
+	public int getWmraNumber() {
+		return getWordsNumber() + getMediaResourcesNumber() + getAbbreviationsNumber();
+	}
+	
+	public void setWordsNumber(int wordsNumber) {
+		primaryParams.put(PrimaryKeys.WORDS_NUMBER.getKey(), wordsNumber);
+	}
+	
+	public void setWordsMappingsNumber(int mappingsNumber) {
+		primaryParams.put(PrimaryKeys.WORDS_MAPPINGS_NUMBER.getKey(), mappingsNumber);
+	}
+	
+	public void setWordsRelationsNumber(int redirectsNumber) {
+		primaryParams.put(PrimaryKeys.WORDS_RELATIONS_NUMBER.getKey(), redirectsNumber);
+	}
+	
+	public void setArticlesActualNumber(int actualNumber) {
+		primaryParams.put(PrimaryKeys.ARTICLES_ACTUAL_NUMBER.getKey(), actualNumber);
 	}
 
 	public int getAbbreviationsNumber() {

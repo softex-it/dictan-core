@@ -115,5 +115,31 @@ public class StringUtils {
 		}
 		return buf.toString();
 	}
+	
+	/**
+	 * Removes the leading white spaces. It repeats the implementation of
+	 * String.trim() but only for the leading white spaces.
+	 * 
+	 * The method also checks for nulls and doesn't process the empty strings.
+	 */
+	public static String ltrim(String s) {
+		int len;
+		if (s == null || (len = s.length()) == 0) {
+			return s;
+		}
+        int st = 0;
+        while ((st < len) && (s.charAt(st) <= ' ')) {
+            st++;
+        }
+        return (st > 0) ? s.substring(st, len) : s;
+    }
+	
+	/**
+	 * <p>Returns either the passed in String, or if the String 
+	 * is {@code null}, an empty String ("").</p>
+	 */
+	public static String defaultString(final String str) {
+		return str == null ? EMPTY : str;
+	}
 
 }

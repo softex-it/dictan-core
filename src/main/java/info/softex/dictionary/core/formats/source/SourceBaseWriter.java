@@ -111,7 +111,7 @@ public class SourceBaseWriter implements BaseWriter {
 			log.debug(param.getKey() + ": " + param.getValue());
 		}
 		
-		progressInfo.setTotal(baseInfo.getAmraNumber());
+		progressInfo.setTotal(baseInfo.getWmraNumber());
 		return this.baseInfo;
 	}
 

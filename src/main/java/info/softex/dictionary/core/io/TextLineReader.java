@@ -19,6 +19,8 @@
 
 package info.softex.dictionary.core.io;
 
+import info.softex.dictionary.core.utils.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -64,6 +66,10 @@ public class TextLineReader {
 	
 	public String getLastLineTrimmed() {
 		return lastLine != null ? lastLine.trim() : null;
+	}
+	
+	public String getLastLineLTrimmed() {
+		return StringUtils.ltrim(lastLine);
 	}
 	
 	public boolean isLastLineBlank() {

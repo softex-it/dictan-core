@@ -19,12 +19,12 @@ d
 	[m1][c gray][trn]■[/c] would[/trn][/m]
 
 	
-lean to
-	[m1][trn]incline or be partial to (a view or position)[/trn][/m]
+lean to  
+	[m1][trn]incline or be partial to (a view or position)[/trn][/m]  
 	[m1][*][trn][ex]I now lean toward accident as the cause of the crash[/ex][/trn][/*][/m]
 	
 myTestKey5
-	simple text to verify
+	simple text to verify   
 	
 myTestKey6
 myTestKey7
