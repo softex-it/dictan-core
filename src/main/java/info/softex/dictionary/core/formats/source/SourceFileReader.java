@@ -23,7 +23,7 @@ import info.softex.dictionary.core.attributes.KeyValueInfo;
 import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.source.utils.SourceReaderUtils;
 import info.softex.dictionary.core.io.BufferedRandomAccessFile;
-import info.softex.dictionary.core.utils.FileUtils;
+import info.softex.dictionary.core.utils.FileConversionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,7 +64,7 @@ public class SourceFileReader {
 	public SourceFileReader(File inFile, int inBufferSize) throws IOException {
 		
 		// Check BOM to see the encoding is UTF-8 or undefined	
-		FileUtils.verifyUnicodeEncodingUndefinedOrUTF8(inFile);
+		FileConversionUtils.verifyUnicodeEncodingUndefinedOrUTF8(inFile);
 		
 		this.file = inFile;
 		this.raf = new BufferedRandomAccessFile(file, "r");

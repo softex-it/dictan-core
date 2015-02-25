@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 2.5, 07/10/2011 
  * @modified version 4.0, 02/03/2014 
  * @modified version 4.1, 02/17/2014 
+ * @modified version 4.6, 02/15/2015 
  * 
  * @author Dmitry Viktorov
  *
@@ -40,21 +41,36 @@ public class ArticleHtmlBuilder {
 	
 	private static final Logger log = LoggerFactory.getLogger(ArticleHtmlBuilder.class.getSimpleName());
 
-	public static String buildHtmlArticle(String article, String inGlobalCSSPath, FontInfo inFontInfo) {
+	/**
+	 * Makes final formatting of the article to be viewed.
+	 * 
+	 * @param article - Body of the article
+	 * @param inFontInfo - Information about the used global font which is used to construct the proper styles
+	 * @param inGlobalCSSPath - Path to global CSS which can be used e.g. to change the theme
+	 * @param inSpecificCSS - Optional CSS which could be dependent on the formatting mode
+	 * @return - Formatted article ready for viewing
+	 */
+	public static String buildHtmlArticle(String article, FontInfo inFontInfo, String inGlobalCSSPath, String inSpecificCSS) {
 
 		String globalCSSLink = "";
-		if (inGlobalCSSPath != null && inGlobalCSSPath.length() > 0) {
+		if (StringUtils.isNotBlank(inGlobalCSSPath)) {
 			globalCSSLink = "<link rel='stylesheet' type='text/css' href='" + inGlobalCSSPath + "' />";
 		}
 		
-		String styles = buildFontStyles(inFontInfo);
+		String specificStyles = "";
+		if (StringUtils.isNotBlank(inSpecificCSS)) {
+			specificStyles = "<style>" + inSpecificCSS + "</style>";
+		}
+		
+		String fontStyles = buildFontStyles(inFontInfo);
 		
     	String articleHtml =
     		"<html><head>" +
     		"<meta http-equiv='content-type' content='text/html'/>" +
     		"<meta charset='UTF-8'>" +
     		globalCSSLink +
-			styles +
+			fontStyles +
+			specificStyles +
 	    	"</head><body>" + article + "</body></html>";
     	
     	return articleHtml;

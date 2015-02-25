@@ -22,9 +22,9 @@ package info.softex.dictionary.core.formats.dsl.testutils;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
+import info.softex.dictionary.core.testutils.TestUtils;
 
 import java.io.File;
-import java.net.URL;
 import java.util.List;
 
 /**
@@ -42,11 +42,9 @@ public class DSLBaseReaderFactory {
 	
 	public static DSLBaseReaderWrapper createAndAssertDSLBaseReader(String resourcePath) throws Exception {
 		
-		assertNotNull(resourcePath);
-		URL resource = DSLBaseReaderFactory.class.getResource(resourcePath);
-		assertNotNull(resource);
+		File srcFile = TestUtils.getCodeSourceRelevantFile(resourcePath);
 			
-		DSLBaseReaderWrapper reader = new DSLBaseReaderWrapper(new File(resource.getPath()));
+		DSLBaseReaderWrapper reader = new DSLBaseReaderWrapper(srcFile);
 		reader.load();
 		
 		assertTrue(reader.isLoaded());

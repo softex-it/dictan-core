@@ -34,23 +34,32 @@ public class StringUtils {
 	public static final String EMPTY = "";
 
 	/**
-	 * <p>Checks if a String is whitespace, empty ("") or null.</p>
+	 * <p>Checks if a CharSequence is whitespace, empty ("") or null.</p>
 	 *
-	 * @param str
-	 *            the String to check, may be null
+	 * @param str - the String to check, may be null
 	 * @return <code>true</code> if the String is null, empty or whitespace
 	 */
-	public static boolean isBlank(String str) {
+	public static boolean isBlank(final CharSequence cs) {
 		int strLen;
-		if (str == null || (strLen = str.length()) == 0) {
+		if (cs == null || (strLen = cs.length()) == 0) {
 			return true;
 		}
 		for (int i = 0; i < strLen; i++) {
-			if ((Character.isWhitespace(str.charAt(i)) == false)) {
+			if ((Character.isWhitespace(cs.charAt(i)) == false)) {
 				return false;
 			}
 		}
 		return true;
+	}
+	
+	/**
+	 * <p>Checks if a CharSequence is not empty (""), not null and not whitespace only.</p>
+	 * 
+	 * @param cs  the CharSequence to check, may be null
+	 * @return <code>true</code> if the CharSequence is not empty and not null and not whitespace
+	 */
+	public static boolean isNotBlank(final CharSequence cs) {
+		return !isBlank(cs);
 	}
 
 	/**

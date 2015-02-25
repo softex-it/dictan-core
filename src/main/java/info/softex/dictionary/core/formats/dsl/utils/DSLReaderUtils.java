@@ -35,21 +35,10 @@ import org.slf4j.LoggerFactory;
  * Headwords: Allowed characters: letters of alphabets, numbers, spaces, hyphens, commas and braces {} - to mark the unsorted part of the headword.
  * 
  * http://lingvo.helpmax.net/en/troubleshooting/dsl-compiler/inserting-pictures-and-sounds/
- * Supported image formats:
-BMP, Bitmaps (*.bmp)
-PCX (*.pcx)
-DCX (*.dcx)
-JPEG (*.jpg)
-TIFF (*.tif)
-
-Supported sound formats:
-Wave Sound (*.wav)
-
-To insert a video in a DSL dictionary entry:
-
-In the DSL text of your card, write the name of the video file followed by [s] tags. 
-Ex: [s]movie.avi[/s].
-
+ * 
+ * Supported image formats: BMP, Bitmaps (*.bmp), PCX (*.pcx), DCX (*.dcx), JPEG (*.jpg), TIFF (*.tif)
+ * Supported sound formats: Wave Sound (*.wav)
+ * To insert a video in a DSL dictionary entry: [s]movie.avi[/s].
  * 
  * @since version 4.6, 02/01/2015
  * 
@@ -58,7 +47,7 @@ Ex: [s]movie.avi[/s].
  */
 public class DSLReaderUtils {
 	
-	protected final static String SYMB_HASH = "#";
+	protected final static String CHAR_HASH = "#";
 	
 	private final static Logger log = LoggerFactory.getLogger(DSLReaderUtils.class);
 	
@@ -108,7 +97,7 @@ public class DSLReaderUtils {
 					". Line num: " + tlr.getLinesRead() + ", Line content: " + tlr.getLastLine());
 			}
 				
-			if (words.size() % 10000 == 0) {
+			if ((words.size() - 1) % 10000 == 0) {
 				log.info("DSL Key No: {}, Pointer: {}, Line: {}", words.size() - 1, tlr.getLastPointer(), tlr.getLinesRead());
 			}
 			
@@ -125,12 +114,12 @@ public class DSLReaderUtils {
 	 * load to populate words and redirects.
 	 */
 	public static String readDSLArticle(TextLineReader tlr, int wordId, List<Long> linePointers,
-			List<String> words, TreeMap<Integer, Integer> wordRedirects, TreeMap<Integer, String> wordsExtended) throws IOException, BaseFormatException {
+			List<String> words, TreeMap<Integer, Integer> wordRedirects, TreeMap<Integer, String> wordsMappings) throws IOException, BaseFormatException {
 		
 		//System.out.println("Current word: " + tlr.getLastLineTrimmed() + " " + wordId);
 		
 		// Read word redirects
-		DSLReaderUtils.readDSLRedirects(tlr, linePointers, words, wordRedirects, wordsExtended);
+		DSLReaderUtils.readDSLRedirects(tlr, linePointers, words, wordRedirects, wordsMappings);
 		
 		String article = tlr.getLastLineLTrimmed() + "\r\n";
 		
@@ -150,8 +139,8 @@ public class DSLReaderUtils {
 	/**
 	 * Reads DSL redirects which go right after the key word.
 	 */
-	protected static void readDSLRedirects(TextLineReader tlr, List<Long> linePointers, 
-			List<String> words, TreeMap<Integer, Integer> wordRedirects, TreeMap<Integer, String> wordsExtended) throws IOException {
+	protected static void readDSLRedirects(TextLineReader tlr, List<Long> linePointers,
+			List<String> words, TreeMap<Integer, Integer> wordRedirects, TreeMap<Integer, String> wordsMappings) throws IOException {
 		
 		List<String> redirects = new ArrayList<String>();
 		while (tlr.readLine() != null && tlr.isLastLineNotBlank()) {
@@ -170,7 +159,7 @@ public class DSLReaderUtils {
 			
 			for (String redirect : redirects) {
 				// Store redirected word
-				storeDSLWord(redirect, words, wordsExtended);
+				storeDSLWord(redirect, words, wordsMappings);
 				int curRedirId = words.size() - 1;
 				wordRedirects.put(curRedirId, wordId);
 			}
@@ -188,10 +177,10 @@ public class DSLReaderUtils {
 		}
 		
 		// Check if it's a header comment
-		if (tlr.getLastLineTrimmed().startsWith(SYMB_HASH)) {
+		if (tlr.getLastLineTrimmed().startsWith(CHAR_HASH)) {
 			headers = new ArrayList<String>();
 			headers.add(tlr.getLastLine());
-			while (tlr.readLine() != null && tlr.getLastLineTrimmed().startsWith(SYMB_HASH)) {
+			while (tlr.readLine() != null && tlr.getLastLineTrimmed().startsWith(CHAR_HASH)) {
 				headers.add(tlr.getLastLine());
 			}
 			if (tlr.getLastLineTrimmed().isEmpty()) {
@@ -203,7 +192,7 @@ public class DSLReaderUtils {
 		
 	}
 	
-	protected static void storeDSLWord(String word, List<String> words, TreeMap<Integer, String> wordsExtended) {
+	protected static void storeDSLWord(String word, List<String> words, TreeMap<Integer, String> wordsMappings) {
 		
 		if (StringUtils.isBlank(word)) {
 			throw new IllegalArgumentException("Word can't be blank");
@@ -214,9 +203,9 @@ public class DSLReaderUtils {
 		String indexedWord = DSLReadFormatUtils.convertDSLWordToIndexedWord(word);
 		words.add(indexedWord);
 		
-		// If non-indexed parts are found, add to extended words
+		// If non-indexed parts are found, add it to the words mappings
 		if (!word.equals(indexedWord)) {
-			wordsExtended.put(words.size() - 1, word);
+			wordsMappings.put(words.size() - 1, word);
 		} 
 	}
 	

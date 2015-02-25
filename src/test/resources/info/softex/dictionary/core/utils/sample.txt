@@ -1,0 +1,8 @@
+some input with Unicode sympols
+
+It may be useful to for file utils tests
+
+Some unicode characters:
+
+☺
+☂

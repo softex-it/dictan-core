@@ -5,7 +5,7 @@ import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.formats.source.SourceBaseWriter;
 import info.softex.dictionary.core.formats.source.SourceFileNames;
-import info.softex.dictionary.core.utils.FileUtils;
+import info.softex.dictionary.core.utils.FileConversionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,8 +32,8 @@ public class HtmlBaseWriter extends SourceBaseWriter {
 	
 	@Override
 	public void saveArticleInfo(ArticleInfo articleInfo) throws Exception {
-		String fileName = FileUtils.title2FileName(articleInfo.getKey());
-		FileUtils.string2File(
+		String fileName = FileConversionUtils.title2FileName(articleInfo.getKey());
+		FileConversionUtils.string2File(
 			outHtmlPath + File.separator + fileName, 
 			articleInfo.getArticle()
 		);

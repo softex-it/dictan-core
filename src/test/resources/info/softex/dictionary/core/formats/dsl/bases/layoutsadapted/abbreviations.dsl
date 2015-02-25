@@ -29,5 +29,7 @@ exclam
 	exclamation
 abbrev
 	abbreviation
+abbr.
+	abbreviation
 ec.
   economy

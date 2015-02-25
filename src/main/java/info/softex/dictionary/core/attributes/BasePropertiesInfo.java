@@ -45,7 +45,7 @@ import java.util.TimeZone;
  */
 public class BasePropertiesInfo implements Cloneable {
 	
-	public enum PrimaryKeys {
+	public static enum PrimaryKey {
 		
 		FORMAT_NAME("format.name"),
 		FORMAT_VERSION("format.version"),
@@ -53,7 +53,6 @@ public class BasePropertiesInfo implements Cloneable {
 		BASE_VERSION("base.version"),
 		BASE_TYPE("base.type"),
 		BASE_DATE("base.date"),
-		BASE_HEADER_COMMENTS("base.header.comments"),
 		BASE_NAME_SHORT("base.name.short"),
 		BASE_NAME_FULL("base.name.full"),
 		BASE_PARTS_CURRENT_NUMBER("base.parts.current.number"),
@@ -91,16 +90,16 @@ public class BasePropertiesInfo implements Cloneable {
 		
 		private String key = null;
 		
-		private PrimaryKeys(String key) {
-			this.key = key;
+		private PrimaryKey(String inKey) {
+			this.key = inKey;
 		}
 		
 		public String getKey() {
 			return this.key;
 		}
 		
-		public static PrimaryKeys valueOfKey(String key) {
-			PrimaryKeys[] values = PrimaryKeys.values();
+		public static PrimaryKey valueOfKey(String key) {
+			PrimaryKey[] values = PrimaryKey.values();
 			for (int i = 0; i < values.length; i++) {
 				if (values[i].getKey().equalsIgnoreCase(key)) {
 					return values[i];
@@ -176,64 +175,56 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public String getBaseVersion() {
-		return (String) primaryParams.get(PrimaryKeys.BASE_VERSION.getKey());
+		return (String) primaryParams.get(PrimaryKey.BASE_VERSION.getKey());
 	}
 
 	public void setBaseVersion(int major, int minor) {
 		String version = major + "." + minor;
-		primaryParams.put(PrimaryKeys.BASE_VERSION.getKey(), version);
+		primaryParams.put(PrimaryKey.BASE_VERSION.getKey(), version);
 	}
 
 	public void setBaseDate(Date date) {
-		primaryParams.put(PrimaryKeys.BASE_DATE.getKey(), dateToString(date));
+		primaryParams.put(PrimaryKey.BASE_DATE.getKey(), dateToString(date));
 	}
 	
 	public void setCompilationDate(Date date) {
-		primaryParams.put(PrimaryKeys.INFO_COMPILATION_DATE.getKey(), dateToString(date));
+		primaryParams.put(PrimaryKey.INFO_COMPILATION_DATE.getKey(), dateToString(date));
 	}
 	
 	public String getCompilationDate() {
-		return (String) primaryParams.get(PrimaryKeys.INFO_COMPILATION_DATE.getKey());
+		return (String) primaryParams.get(PrimaryKey.INFO_COMPILATION_DATE.getKey());
 	}
 	
 	public String getBaseDate() {
-		return (String) primaryParams.get(PrimaryKeys.BASE_DATE.getKey());
+		return (String) primaryParams.get(PrimaryKey.BASE_DATE.getKey());
 	}
 	
 	public int getFormatVersion() {
-		return getIntValue(PrimaryKeys.FORMAT_VERSION.getKey());
+		return getIntValue(PrimaryKey.FORMAT_VERSION.getKey());
 	}
 	
 	public void setFormatVersion(int formatVersion) {
-		primaryParams.put(PrimaryKeys.FORMAT_VERSION.getKey(), formatVersion);
+		primaryParams.put(PrimaryKey.FORMAT_VERSION.getKey(), formatVersion);
 	}
 
 	public String getFormatName() {
-		return (String) primaryParams.get(PrimaryKeys.FORMAT_NAME.getKey());
+		return (String) primaryParams.get(PrimaryKey.FORMAT_NAME.getKey());
 	}
 
 	public void setFormatName(String formatName) {
-		primaryParams.put(PrimaryKeys.FORMAT_NAME.getKey(), formatName);
-	}
-	
-	public String getHeaderComments() {
-		return StringUtils.defaultString((String) primaryParams.get(PrimaryKeys.BASE_HEADER_COMMENTS.getKey()));
-	}
-	
-	public void setHeaderComments(String comments) {
-		primaryParams.put(PrimaryKeys.BASE_HEADER_COMMENTS.getKey(), comments);
+		primaryParams.put(PrimaryKey.FORMAT_NAME.getKey(), formatName);
 	}
 	
 	public String getBaseFullName() {
-		return StringUtils.defaultString((String) primaryParams.get(PrimaryKeys.BASE_NAME_FULL.getKey()));
+		return StringUtils.defaultString((String) primaryParams.get(PrimaryKey.BASE_NAME_FULL.getKey()));
 	}
 	
 	public String getBaseShortName() {
-		return StringUtils.defaultString((String) primaryParams.get(PrimaryKeys.BASE_NAME_SHORT.getKey()));
+		return StringUtils.defaultString((String) primaryParams.get(PrimaryKey.BASE_NAME_SHORT.getKey()));
 	}
 
 	public String getBaseType() {
-		Object baseType = primaryParams.get(PrimaryKeys.BASE_TYPE.getKey());
+		Object baseType = primaryParams.get(PrimaryKey.BASE_TYPE.getKey());
 		if (baseType instanceof String) {
 			return BaseTypes.valueOf(baseType.toString()).name();
 		}
@@ -241,39 +232,42 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 
 	public void setBaseFullName(String fullName) {
-		primaryParams.put(PrimaryKeys.BASE_NAME_FULL.getKey(), fullName);
+		primaryParams.put(PrimaryKey.BASE_NAME_FULL.getKey(), fullName);
 	}
 	
 	public void setBaseShortName(String shortName) {
-		primaryParams.put(PrimaryKeys.BASE_NAME_SHORT.getKey(), shortName);
+		primaryParams.put(PrimaryKey.BASE_NAME_SHORT.getKey(), shortName);
 	}
 
 	public void setBaseType(BaseTypes type) {
-		primaryParams.put(PrimaryKeys.BASE_TYPE.getKey(), type.name());
+		primaryParams.put(PrimaryKey.BASE_TYPE.getKey(), type.name());
 	}
 	
 	public void setArticlesFormattingMode(ArticlesFormattingMode mode) {
-		primaryParams.put(PrimaryKeys.ARTICLES_FORMATTING_MODE.getKey(), mode.name());
+		primaryParams.put(PrimaryKey.ARTICLES_FORMATTING_MODE.getKey(), mode.name());
 	}
 	
 	public void setArticlesFormattingInjectWordMode(ArticlesFormattingInjectWordMode prependMode) {
-		primaryParams.put(PrimaryKeys.ARTICLES_FORMATTING_INJECT_WORD_MODE.getKey(), prependMode.name());
+		primaryParams.put(PrimaryKey.ARTICLES_FORMATTING_INJECT_WORD_MODE.getKey(), prependMode.name());
 	}
 
 	public String getArticlesFormattingMode() {
-		Object mode = primaryParams.get(PrimaryKeys.ARTICLES_FORMATTING_MODE.getKey());
+		return getArticlesFormattingResolved().name();
+	}
+	
+	public ArticlesFormattingMode getArticlesFormattingResolved() {
+		Object mode = primaryParams.get(PrimaryKey.ARTICLES_FORMATTING_MODE.getKey());
 		if (mode instanceof String) {
-			
 			if ("MEDIA".equalsIgnoreCase((String)mode)) { // Except the obsolete MEDIA formatting
-				return ArticlesFormattingMode.BASIC.name();
+				return ArticlesFormattingMode.BASIC;
 			}
-			return ArticlesFormattingMode.valueOf(mode.toString()).name();
+			return ArticlesFormattingMode.valueOf(mode.toString());
 		}
-		return ArticlesFormattingMode.FULL.name();
+		return ArticlesFormattingMode.FULL;
 	}
 	
 	public String getArticlesFormattingInjectWordMode() {
-		Object mode = primaryParams.get(PrimaryKeys.ARTICLES_FORMATTING_INJECT_WORD_MODE.getKey());
+		Object mode = primaryParams.get(PrimaryKey.ARTICLES_FORMATTING_INJECT_WORD_MODE.getKey());
 		if (mode instanceof String) {
 			return ArticlesFormattingInjectWordMode.valueOf(mode.toString()).name();
 		}
@@ -281,7 +275,7 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 
 	public String getAbbreviationsFormattingMode() {
-		Object mode = primaryParams.get(PrimaryKeys.ABBREVIATIONS_FORMATTING_MODE.getKey());
+		Object mode = primaryParams.get(PrimaryKey.ABBREVIATIONS_FORMATTING_MODE.getKey());
 		if (mode instanceof String) {
 			return AbbreviationsFormattingMode.valueOf(mode.toString()).name();
 		}
@@ -289,7 +283,7 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public void setAbbreviationsFormattingMode(AbbreviationsFormattingMode mode) {
-		primaryParams.put(PrimaryKeys.ABBREVIATIONS_FORMATTING_MODE.getKey(), mode.name());
+		primaryParams.put(PrimaryKey.ABBREVIATIONS_FORMATTING_MODE.getKey(), mode.name());
 	}
 	
 	public Map<String, Object> getPrimaryParameters() {
@@ -305,22 +299,22 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public int getBasePartsTotalNumber() {
-		int result = getIntValue(PrimaryKeys.BASE_PARTS_TOTAL_NUMBER.getKey());
+		int result = getIntValue(PrimaryKey.BASE_PARTS_TOTAL_NUMBER.getKey());
 		return result > 0 ? result : 0;
 	}
 	
 	
 	public int getBasePartsArticlesBlockIdStart(int num) {
-		return getIntValue(PrimaryKeys.getBasePartsArticlesBlockIdStartKey(num));
+		return getIntValue(PrimaryKey.getBasePartsArticlesBlockIdStartKey(num));
 	}
 	
 	public int getBasePartsMediaResourcesBlockIdStart(int num) {
-		return getIntValue(PrimaryKeys.getBasePartsMediaResourcesBlockIdStartKey(num));
+		return getIntValue(PrimaryKey.getBasePartsMediaResourcesBlockIdStartKey(num));
 	}
 
 	
 	public void setBasePartsTotalNumber(int number) {
-		primaryParams.put(PrimaryKeys.BASE_PARTS_TOTAL_NUMBER.getKey(), number);
+		primaryParams.put(PrimaryKey.BASE_PARTS_TOTAL_NUMBER.getKey(), number);
 	}
 	
 	public void setArticlesCodepageName(String transCodepageName) {
@@ -340,12 +334,12 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public int getWordsNumber() {
-		int result = getIntValue(PrimaryKeys.WORDS_NUMBER.getKey());
+		int result = getIntValue(PrimaryKey.WORDS_NUMBER.getKey());
 		return result > 0 ? result : 0;
 	}
 	
 	public int getArticlesActualNumber() {
-		int result = getIntValue(PrimaryKeys.ARTICLES_ACTUAL_NUMBER.getKey());
+		int result = getIntValue(PrimaryKey.ARTICLES_ACTUAL_NUMBER.getKey());
 		return result > 0 ? result : 0;
 	}
 	
@@ -354,7 +348,7 @@ public class BasePropertiesInfo implements Cloneable {
 	 */
 	@Deprecated
 	public int getArticlesDeprecatedNumber() {
-		int result = getIntValue(PrimaryKeys.ARTICLES_NUMBER.getKey());
+		int result = getIntValue(PrimaryKey.ARTICLES_NUMBER.getKey());
 		return result > 0 ? result : 0;
 	}
 	
@@ -363,16 +357,16 @@ public class BasePropertiesInfo implements Cloneable {
 	 */
 	@Deprecated
 	public void setArticlesDeprecatedNumber(int wordsNumber) {
-		primaryParams.put(PrimaryKeys.ARTICLES_NUMBER.getKey(), wordsNumber);
+		primaryParams.put(PrimaryKey.ARTICLES_NUMBER.getKey(), wordsNumber);
 	}
 	
 	public int getWordsMappingsNumber() {
-		int result = getIntValue(PrimaryKeys.WORDS_MAPPINGS_NUMBER.getKey());
+		int result = getIntValue(PrimaryKey.WORDS_MAPPINGS_NUMBER.getKey());
 		return result > 0 ? result : 0;
 	}
 	
 	public int getWordsRelationsNumber() {
-		int result = getIntValue(PrimaryKeys.WORDS_RELATIONS_NUMBER.getKey());
+		int result = getIntValue(PrimaryKey.WORDS_RELATIONS_NUMBER.getKey());
 		return result > 0 ? result : 0;
 	}
 	
@@ -384,28 +378,28 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public void setWordsNumber(int wordsNumber) {
-		primaryParams.put(PrimaryKeys.WORDS_NUMBER.getKey(), wordsNumber);
+		primaryParams.put(PrimaryKey.WORDS_NUMBER.getKey(), wordsNumber);
 	}
 	
 	public void setWordsMappingsNumber(int mappingsNumber) {
-		primaryParams.put(PrimaryKeys.WORDS_MAPPINGS_NUMBER.getKey(), mappingsNumber);
+		primaryParams.put(PrimaryKey.WORDS_MAPPINGS_NUMBER.getKey(), mappingsNumber);
 	}
 	
 	public void setWordsRelationsNumber(int redirectsNumber) {
-		primaryParams.put(PrimaryKeys.WORDS_RELATIONS_NUMBER.getKey(), redirectsNumber);
+		primaryParams.put(PrimaryKey.WORDS_RELATIONS_NUMBER.getKey(), redirectsNumber);
 	}
 	
 	public void setArticlesActualNumber(int actualNumber) {
-		primaryParams.put(PrimaryKeys.ARTICLES_ACTUAL_NUMBER.getKey(), actualNumber);
+		primaryParams.put(PrimaryKey.ARTICLES_ACTUAL_NUMBER.getKey(), actualNumber);
 	}
 
 	public int getAbbreviationsNumber() {
-		int result = getIntValue(PrimaryKeys.ABBREVIATIONS_NUMBER.getKey());
+		int result = getIntValue(PrimaryKey.ABBREVIATIONS_NUMBER.getKey());
 		return result > 0 ? result : 0;
 	}
 
 	public void setAbbreviationsNumber(int abbreviationsNumber) {
-		primaryParams.put(PrimaryKeys.ABBREVIATIONS_NUMBER.getKey(), abbreviationsNumber);
+		primaryParams.put(PrimaryKey.ABBREVIATIONS_NUMBER.getKey(), abbreviationsNumber);
 	}
 	
 //	public Locale getBaseLocale() {
@@ -423,44 +417,36 @@ public class BasePropertiesInfo implements Cloneable {
 //	}
 	
 	public void setCompilationCreatorName(String name) {
-		primaryParams.put(PrimaryKeys.INFO_COMPILATION_CREATOR_NAME.getKey(), name);
+		primaryParams.put(PrimaryKey.INFO_COMPILATION_CREATOR_NAME.getKey(), name);
 	}
 	
 	public String getCompilationCreatorName() {
-		return (String) primaryParams.get(PrimaryKeys.INFO_COMPILATION_CREATOR_NAME.getKey());
+		return (String) primaryParams.get(PrimaryKey.INFO_COMPILATION_CREATOR_NAME.getKey());
 	}
 	
 	public void setCompilationProgramName(String name) {
-		primaryParams.put(PrimaryKeys.INFO_COMPILATION_PROGRAM_NAME.getKey(), name);
+		primaryParams.put(PrimaryKey.INFO_COMPILATION_PROGRAM_NAME.getKey(), name);
 	}
 	
 	public void setCompilationProgramVersion(String version) {
-		primaryParams.put(PrimaryKeys.INFO_COMPILATION_PROGRAM_VERSION.getKey(), version);
+		primaryParams.put(PrimaryKey.INFO_COMPILATION_PROGRAM_VERSION.getKey(), version);
 	}
 	
 	public void setCompilationSdkName(String name) {
-		primaryParams.put(PrimaryKeys.INFO_COMPILATION_SDK_NAME.getKey(), name);
+		primaryParams.put(PrimaryKey.INFO_COMPILATION_SDK_NAME.getKey(), name);
 	}
 	
 	public void setCompilationSdkVersion(String version) {
-		primaryParams.put(PrimaryKeys.INFO_COMPILATION_SDK_VERSION.getKey(), version);
+		primaryParams.put(PrimaryKey.INFO_COMPILATION_SDK_VERSION.getKey(), version);
 	}
 	
 	public void setCompilationOsName(String name) {
-		primaryParams.put(PrimaryKeys.INFO_COMPILATION_OS_NAME.getKey(), name);
+		primaryParams.put(PrimaryKey.INFO_COMPILATION_OS_NAME.getKey(), name);
 	}
 	
 	public void setCompilationOsVersion(String version) {
-		primaryParams.put(PrimaryKeys.INFO_COMPILATION_OS_VERSION.getKey(), version);
+		primaryParams.put(PrimaryKey.INFO_COMPILATION_OS_VERSION.getKey(), version);
 	}
-	
-//	public String getBaseDescription() {
-//		return (String)this.primaryParams.get(PrimaryKeys.BASE_DESCRIPTION);
-//	}
-//
-//	public void setBaseDescription(String description) {
-//		this.primaryParams.put(PrimaryKeys.BASE_DESCRIPTION, description);
-//	}
 	
 	@Override
 	public String toString() {
@@ -472,12 +458,12 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public int getMediaResourcesNumber() {
-		int result = getIntValue(PrimaryKeys.MEDIA_RESOURCES_NUMBER.getKey());
+		int result = getIntValue(PrimaryKey.MEDIA_RESOURCES_NUMBER.getKey());
 		return result > 0 ? result : 0;
 	}
 	
 	public void setMediaResourcesNumber(int mediaResourcesNumber) {
-		primaryParams.put(PrimaryKeys.MEDIA_RESOURCES_NUMBER.getKey(), mediaResourcesNumber);
+		primaryParams.put(PrimaryKey.MEDIA_RESOURCES_NUMBER.getKey(), mediaResourcesNumber);
 	}
 	
 	public String getMediaBaseVersion() {

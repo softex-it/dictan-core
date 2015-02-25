@@ -20,20 +20,27 @@
 package info.softex.dictionary.core.formats.dsl;
 
 import info.softex.dictionary.core.annotations.BaseFormat;
+import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
+import info.softex.dictionary.core.attributes.BaseResourceInfo;
+import info.softex.dictionary.core.attributes.BaseResourceKey;
 import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.dsl.utils.DSLReadFormatUtils;
 import info.softex.dictionary.core.formats.source.SourceBaseReader;
 import info.softex.dictionary.core.formats.source.SourceFileNames;
+import info.softex.dictionary.core.utils.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  * The DSL Base Reader enables reading the DSL (Dictionary Specification Language)
@@ -51,8 +58,10 @@ public class DSLBaseReader extends SourceBaseReader {
 
 	protected final List<String> headers = new ArrayList<String>();
 	
-	protected DSLFileReader dslArticleReader;
-	protected DSLFileReader dslAbbrevReader;
+	protected final TreeMap<Integer, String> adaptedWordsMappings = new TreeMap<Integer, String>();
+	
+	protected DSLBaseReadUnit dslArticleReader;
+	protected DSLBaseReadUnit dslAbbrevReader;
 	
 	public DSLBaseReader(File inSourceDirectory) throws IOException {
 		super(inSourceDirectory);
@@ -74,28 +83,76 @@ public class DSLBaseReader extends SourceBaseReader {
 	}
 	
 	@Override
+	public Map<Integer, String> getAdaptedWordsMappings() throws BaseFormatException {
+		return adaptedWordsMappings;
+	}
+	
+	@Override
 	protected List<String> loadWords() throws BaseFormatException, Exception {
-		File articleFile = new File(sourceDirectory + File.separator + SourceFileNames.FILE_ARTICLES_DSL);
-		dslArticleReader = new DSLFileReader(articleFile, BUF_SIZE_ARTICLES);
+		
+		// Load articles
+		dslArticleReader = new DSLBaseReadUnit(sourceDirectory.getAbsolutePath(), SourceFileNames.FILE_DSL_ARTICLES_NO_EXT);
 		dslArticleReader.load(false);
 		
-		// Get headers
-		List<String> headers = dslArticleReader.getHeaders();
-		if (headers != null && !headers.isEmpty()) {
-			String strHeaders = "";
-			for (String head : headers) {
-				strHeaders += head.trim() + "\r\n";
+		// Convert mappings to adapted mappings
+		Map<Integer, String> mappings = getWordsMappings();
+		if (!mappings.isEmpty()) {
+			for (Integer wordId: mappings.keySet()) {
+				adaptedWordsMappings.put(
+					wordId, 
+					DSLReadFormatUtils.convertDSLDesignTagsToHtml(mappings.get(wordId))
+				);
 			}
-			baseInfo.setHeaderComments(strHeaders.trim());
 		}
 		
 		return dslArticleReader.getWords();
 	}
 	
 	@Override
+	protected Set<String> loadAbbreviations() throws IOException, BaseFormatException {
+		Set<String> abbKeys = new HashSet<String>();
+		
+		File abbrevFile = new File(sourceDirectory.getAbsolutePath() + File.separator + 
+			SourceFileNames.FILE_DSL_ABBREVIATIONS_NO_EXT + SourceFileNames.FILE_DSL_EXT_MAIN);
+		
+		if (abbrevFile.exists() && abbrevFile.isFile()) {
+			dslAbbrevReader = new DSLBaseReadUnit(sourceDirectory.getAbsolutePath(), SourceFileNames.FILE_DSL_ABBREVIATIONS_NO_EXT);
+			dslAbbrevReader.load(true);
+			abbKeys = dslAbbrevReader.getLineMapper().keySet();
+		} else {
+			dslAbbrevReader = null;
+		}
+		return abbKeys;
+	}
+	
+	@Override
+	public AbbreviationInfo getAbbreviationInfo(String abbreviationKey) throws BaseFormatException {		
+		AbbreviationInfo abbrevInfo = new AbbreviationInfo(abbreviationKey, null);
+		if (dslAbbrevReader != null && dslAbbrevReader.readEntry(abbrevInfo, abbreviationKey)) {
+			return abbrevInfo;
+		}
+		return null;
+	}
+	
+	@Override
 	public ArticleInfo getRawArticleInfo(WordInfo wordInfo) throws BaseFormatException {
 		ArticleInfo articleInfo = new ArticleInfo(wordInfo, null);
-		if (dslArticleReader.readArticleInfo(articleInfo)) {
+		int wordId = wordInfo.getId();
+		if (dslArticleReader.readEntry(articleInfo, wordId)) {
+			
+			// Set word redirect
+			Integer redirecToId = getWordsRedirects().get(wordId);
+			if (redirecToId != null && redirecToId >=0) {
+				wordInfo.setRedirectToId(redirecToId);
+				wordInfo.setRedirectToWord(words.get(redirecToId));
+			}
+			
+			// Set word mapping
+			String wordMapping = getWordsMappings().get(wordId);
+			if (StringUtils.isNotBlank(wordMapping)) {
+				wordInfo.setWordMapping(wordMapping);
+			}
+			
 			return articleInfo;
 		}
 		return null;
@@ -105,10 +162,51 @@ public class DSLBaseReader extends SourceBaseReader {
 	public ArticleInfo getAdaptedArticleInfo(WordInfo wordInfo) throws BaseFormatException {
 		ArticleInfo articleInfo = getRawArticleInfo(wordInfo);
 		if (articleInfo != null) {
+			
+			// Convert word mapping to adapted HTML
+			String adaptedMapping = adaptedWordsMappings.get(wordInfo.getId());
+			if (StringUtils.isNotBlank(adaptedMapping)) {
+				wordInfo.setWordMapping(adaptedMapping);
+			}
+			
 			String adaptedArticle = DSLReadFormatUtils.convertDSLToAdaptedHtml(articleInfo.getArticle());
 			articleInfo.setArticle(adaptedArticle);
 		}
 		return articleInfo;
+	}
+	
+	@Override
+	public BaseResourceInfo getBaseResourceInfo(String resourceKey) {
+		
+		BaseResourceKey brk = BaseResourceKey.resolveKey(resourceKey);
+		if (brk == null) {
+			return null;
+		}
+		
+		BaseResourceInfo resInfo = null;
+		
+		switch (brk) {
+		
+			case BASE_ARTICLES_META_DSL:
+				resInfo = new BaseResourceInfo(brk, dslArticleReader.getDSLIcon());
+				resInfo.setInfo1(dslArticleReader.getDSLHeadersAsString());
+				resInfo.setInfo2(dslArticleReader.getDSLDescription());
+			break;
+
+			case BASE_ABBREVIATIONS_META_DSL:
+				if (dslAbbrevReader != null) {
+					resInfo = new BaseResourceInfo(brk, dslAbbrevReader.getDSLIcon());
+					resInfo.setInfo1(dslAbbrevReader.getDSLHeadersAsString());
+					resInfo.setInfo2(dslAbbrevReader.getDSLDescription());
+				}
+			break;
+				
+			default:
+				return null;
+		}
+		
+		return resInfo;
+
 	}
 	
 	@Override
@@ -126,6 +224,9 @@ public class DSLBaseReader extends SourceBaseReader {
 	public BasePropertiesInfo loadBasePropertiesInfo() throws BaseFormatException, Exception {
 		super.loadBasePropertiesInfo();
 		baseInfo.setArticlesActualNumber(words.size() - getWordsRedirects().size());
+		baseInfo.setWordsMappingsNumber(getWordsMappings().size());
+		baseInfo.setWordsRelationsNumber(getWordsRedirects().size());
+		
 		return baseInfo;
 	}
 

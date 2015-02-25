@@ -19,47 +19,58 @@
 
 package info.softex.dictionary.core.attributes;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
 /**
  * 
- * @since version 2.6,		09/17/2011
- *
- * @modified version 3.4,	07/08/2012
- * @modified version 4.6,	02/21/2015
+ * @since version 4.6,		02/21/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
-public class MediaResourceInfo {
+public class MediaResourceKey {
 	
-	private MediaResourceKey key;
-	private byte[] byteArray;
+	private int id = -1;
+	private String resourceKey;
 	
-	public MediaResourceInfo(MediaResourceKey key, byte[] byteArray) {
-		this.key = key;
-		this.byteArray = byteArray;
+	public MediaResourceKey(String word) {
+		setResourceKey(word);
 	}
 	
-	public byte[] getByteArray() {
-		return byteArray;
+	public MediaResourceKey(int id) {
+		setId(id);
 	}
 	
-	public void setByteArray(byte[] byteArray) {
-		this.byteArray = byteArray;
+	public MediaResourceKey(int id, String resourceKey) {
+		setId(id);
+		setResourceKey(resourceKey);
 	}
 	
-	public InputStream getInputStream() {
-		return new ByteArrayInputStream(byteArray);
+	public int getId() {
+		return id;
 	}
 	
-	public MediaResourceKey getKey() {
-		return key;
+	public void setId(int id) {
+		this.id = id;
+	}
+	
+	public String getResourceKey() {
+		return resourceKey;
+	}
+	
+	public void setResourceKey(String resourceKey) {
+		this.resourceKey = resourceKey;
+	}
+	
+	public boolean hasIndex() {
+		return this.id >= 0;
+	}
+	
+	@Override
+	protected MediaResourceKey clone() {
+		try {
+			return (MediaResourceKey)super.clone();
+		} catch (CloneNotSupportedException e) {
+			return null;
+		}
 	}
 
-	public void setKey(MediaResourceKey key) {
-		this.key = key;
-	}
-	
 }

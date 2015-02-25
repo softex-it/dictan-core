@@ -21,7 +21,7 @@ package info.softex.dictionary.core.formats.fdb;
 
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo.PrimaryKeys;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo.PrimaryKey;
 import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
@@ -220,6 +220,11 @@ public class FDBBaseWriteUnit {
 			// Needed only for compatibility with previous viewers
 			inBaseInfo.setArticlesDeprecatedNumber(inBaseInfo.getWordsNumber());
 			
+			// If abbreviations number is not set, it always must have a value
+			if (inBaseInfo.getAbbreviationsNumber() == 0) {
+				inBaseInfo.setAbbreviationsNumber(0);
+			}
+			
 			// If words mappings number is not set, it always must have a value
 			if (inBaseInfo.getWordsMappingsNumber() == 0) {
 				inBaseInfo.setWordsMappingsNumber(0);
@@ -235,14 +240,14 @@ public class FDBBaseWriteUnit {
 				inBaseInfo.setArticlesActualNumber(0);
 			}
 			
-			inBaseInfo.getPrimaryParameters().put(PrimaryKeys.ARTICLES_BLOCKS_SIZE_UNCOMPRESSED_MIN.getKey(), this.minArticleBlockMemSize);
-			inBaseInfo.getPrimaryParameters().put(PrimaryKeys.MEDIA_RESOURCES_BLOCKS_SIZE_UNCOMPRESSED_MIN.getKey(), this.minMediaResourceBlockMemSize);
+			inBaseInfo.getPrimaryParameters().put(PrimaryKey.ARTICLES_BLOCKS_SIZE_UNCOMPRESSED_MIN.getKey(), this.minArticleBlockMemSize);
+			inBaseInfo.getPrimaryParameters().put(PrimaryKey.MEDIA_RESOURCES_BLOCKS_SIZE_UNCOMPRESSED_MIN.getKey(), this.minMediaResourceBlockMemSize);
 			
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_SECURITY_PROPERTIES_MD5.getKey(), "");
+			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_SECURITY_PROPERTIES_MD5.getKey(), "");
 			
 			Map<String, Object> params = new HashMap<String, Object>(inBaseInfo.getPrimaryParameters());
 			LinkedHashMap<String, Object> orderedParams = new LinkedHashMap<String, Object>();
-			BasePropertiesInfo.PrimaryKeys[] pkArr = BasePropertiesInfo.PrimaryKeys.values();
+			BasePropertiesInfo.PrimaryKey[] pkArr = BasePropertiesInfo.PrimaryKey.values();
 			for (int i = 0; i < pkArr.length; i++) {
 				orderedParams.put(pkArr[i].getKey(), params.remove(pkArr[i]));
 			}
@@ -257,15 +262,15 @@ public class FDBBaseWriteUnit {
 		
 		
 		} else { // Dependent bases
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_SECURITY_PROPERTIES_MD5.getKey(), "");
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.FORMAT_NAME.getKey(), inBaseInfo.getFormatName());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.FORMAT_VERSION.getKey(), Integer.toString(inBaseInfo.getFormatVersion()));
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_VERSION.getKey(), inBaseInfo.getBaseVersion());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_TYPE.getKey(), inBaseInfo.getBaseType());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_DATE.getKey(), inBaseInfo.getBaseDate());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_NAME_SHORT.getKey(), inBaseInfo.getBaseShortName());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_NAME_FULL.getKey(), inBaseInfo.getBaseFullName());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_PARTS_CURRENT_NUMBER.getKey(), Integer.toString(baseIndex));
+			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_SECURITY_PROPERTIES_MD5.getKey(), "");
+			insertBaseProperty(BasePropertiesInfo.PrimaryKey.FORMAT_NAME.getKey(), inBaseInfo.getFormatName());
+			insertBaseProperty(BasePropertiesInfo.PrimaryKey.FORMAT_VERSION.getKey(), Integer.toString(inBaseInfo.getFormatVersion()));
+			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_VERSION.getKey(), inBaseInfo.getBaseVersion());
+			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_TYPE.getKey(), inBaseInfo.getBaseType());
+			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_DATE.getKey(), inBaseInfo.getBaseDate());
+			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_NAME_SHORT.getKey(), inBaseInfo.getBaseShortName());
+			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_NAME_FULL.getKey(), inBaseInfo.getBaseFullName());
+			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_PARTS_CURRENT_NUMBER.getKey(), Integer.toString(baseIndex));
 		}
 		
 		return this.baseInfo;
@@ -334,7 +339,7 @@ public class FDBBaseWriteUnit {
 		insAbbreviationSt.setString(2, abbreviationInfo.getAbbreviation());
 		insAbbreviationSt.setString(3, abbreviationInfo.getDefinition());
 		insAbbreviationSt.executeUpdate();
-		updateBaseProperty(BasePropertiesInfo.PrimaryKeys.ABBREVIATIONS_NUMBER.getKey(), Integer.toString(abbreviationsNumber));
+		updateBaseProperty(BasePropertiesInfo.PrimaryKey.ABBREVIATIONS_NUMBER.getKey(), Integer.toString(abbreviationsNumber));
 	}
 	
 	public void saveBaseResourceInfo(BaseResourceInfo baseResourceInfo) throws Exception {
@@ -344,8 +349,8 @@ public class FDBBaseWriteUnit {
 		insBaseResourceSt.setBytes(4, new byte[0]);
 		insBaseResourceSt.setBytes(5, new byte[0]);
 		insBaseResourceSt.setBytes(6, new byte[0]);
-		insBaseResourceSt.setString(7, "");
-		insBaseResourceSt.setString(8, "");
+		insBaseResourceSt.setString(7, baseResourceInfo.getInfo1());
+		insBaseResourceSt.setString(8, baseResourceInfo.getInfo2());
 		insBaseResourceSt.setString(9, "");
 		insBaseResourceSt.setString(10, "");
 		insBaseResourceSt.setString(11, "");
@@ -500,7 +505,7 @@ public class FDBBaseWriteUnit {
 		insBasePropertySt.setString(3, value);
 		insBasePropertySt.executeUpdate();
 		
-		if (key.equalsIgnoreCase(BasePropertiesInfo.PrimaryKeys.BASE_SECURITY_PROPERTIES_MD5.getKey())) {
+		if (key.equalsIgnoreCase(BasePropertiesInfo.PrimaryKey.BASE_SECURITY_PROPERTIES_MD5.getKey())) {
 			return;
 		}
 		
@@ -509,7 +514,7 @@ public class FDBBaseWriteUnit {
 		while (rs.next()) {
 			log.debug(rs.getString(1) + " | " + rs.getString(2) + " | " + rs.getString(3));
 			String property = rs.getString(2);
-			if (!property.equalsIgnoreCase(BasePropertiesInfo.PrimaryKeys.BASE_SECURITY_PROPERTIES_MD5.getKey())) {
+			if (!property.equalsIgnoreCase(BasePropertiesInfo.PrimaryKey.BASE_SECURITY_PROPERTIES_MD5.getKey())) {
 				sb.append(property);
 			} 
 		}
@@ -519,7 +524,7 @@ public class FDBBaseWriteUnit {
 		log.debug("MD5 String: {}, {}, {}", new Object[] {sb, sb.length(), secCode});
 		
 		updateBaseProperty(
-				BasePropertiesInfo.PrimaryKeys.BASE_SECURITY_PROPERTIES_MD5.getKey(), 
+				BasePropertiesInfo.PrimaryKey.BASE_SECURITY_PROPERTIES_MD5.getKey(), 
 				secCode
 			);
 		

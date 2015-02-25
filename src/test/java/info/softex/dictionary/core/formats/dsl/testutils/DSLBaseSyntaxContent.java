@@ -37,6 +37,7 @@ public class DSLBaseSyntaxContent {
 	public static final int WORDS_NUMBER = 12;
 	public static final int ARTICLES_NUMBER = 8;
 	public static final int REDIRECTS_NUMBER = 4;
+	public static final int ABBR_NUMBER = 2;
 	
 	public static final int LINES_NUMBER = 39;
 	
@@ -56,8 +57,12 @@ public class DSLBaseSyntaxContent {
 		put("myTestKey11", get("myTestKey8"));
 	}};
 	
-	public static final String DSL_FULL_BASE_HEADER = "#NAME	\"TestDictionary (En-En)\"\r\n#INDEX_LANGUAGE	\"English\"\r\n#CONTENTS_LANGUAGE	\"English\"\r\n#ICON_FILE	\"\\test\\testbase.bmp\"";
-
+	@SuppressWarnings("serial")
+	public static final Map<String, String> ABBREVIATIONS = new LinkedHashMap<String, String>() {{
+		put("abbr.", "Abbreviation");
+		put("adj.", "Adjective");
+	}};
+	
 	@SuppressWarnings("serial")
 	public static final TreeMap<Integer, Integer> REDIRECTS = new TreeMap<Integer, Integer>() {{
 		put(7, 6);
@@ -65,5 +70,8 @@ public class DSLBaseSyntaxContent {
 		put(10, 8);
 		put(11, 8);
 	}};
+	
+	public static final String DSL_ARTICLE_BASE_HEADER = "#NAME	\"TestDictionary (En-En)\"\r\n#INDEX_LANGUAGE	\"English\"\r\n#CONTENTS_LANGUAGE	\"English\"\r\n#ICON_FILE	\"\\test\\testbase.bmp\"";
+
 	
 }

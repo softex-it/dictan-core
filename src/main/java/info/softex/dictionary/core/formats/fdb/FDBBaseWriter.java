@@ -23,7 +23,7 @@ import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo.PrimaryKeys;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo.PrimaryKey;
 import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
  * @author Dmitry Viktorov
  * 
  */
-@BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb"})
+@BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb", ".fdl"})
 public class FDBBaseWriter implements BaseWriter {
 	
 	private static final Logger log = LoggerFactory.getLogger(FDBBaseWriter.class);
@@ -290,17 +290,17 @@ public class FDBBaseWriter implements BaseWriter {
 			
 			if (newBaseIndex > 2) {
 				mainBase.updateBaseProperty(
-					BasePropertiesInfo.PrimaryKeys.BASE_PARTS_TOTAL_NUMBER.getKey(), 
+					BasePropertiesInfo.PrimaryKey.BASE_PARTS_TOTAL_NUMBER.getKey(), 
 					Integer.toString(newBaseIndex)
 				);
 			} else {
-				getBasePropertiesInfo().getPrimaryParameters().put(PrimaryKeys.BASE_PARTS_MAIN_SIZE_MIN.getKey(), minMainBaseSize);
-				getBasePropertiesInfo().getPrimaryParameters().put(PrimaryKeys.BASE_PARTS_SECONDARY_SIZE_MIN.getKey(), minSecondaryBaseSize);
-				mainBase.insertBaseProperty(PrimaryKeys.BASE_PARTS_MAIN_SIZE_MIN.getKey(), Long.toString(minMainBaseSize));
-				mainBase.insertBaseProperty(PrimaryKeys.BASE_PARTS_SECONDARY_SIZE_MIN.getKey(), Long.toString(minSecondaryBaseSize));
-				mainBase.insertBaseProperty(BasePropertiesInfo.PrimaryKeys.BASE_PARTS_CURRENT_NUMBER.getKey(), "1");
+				getBasePropertiesInfo().getPrimaryParameters().put(PrimaryKey.BASE_PARTS_MAIN_SIZE_MIN.getKey(), minMainBaseSize);
+				getBasePropertiesInfo().getPrimaryParameters().put(PrimaryKey.BASE_PARTS_SECONDARY_SIZE_MIN.getKey(), minSecondaryBaseSize);
+				mainBase.insertBaseProperty(PrimaryKey.BASE_PARTS_MAIN_SIZE_MIN.getKey(), Long.toString(minMainBaseSize));
+				mainBase.insertBaseProperty(PrimaryKey.BASE_PARTS_SECONDARY_SIZE_MIN.getKey(), Long.toString(minSecondaryBaseSize));
+				mainBase.insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_PARTS_CURRENT_NUMBER.getKey(), "1");
 				mainBase.insertBaseProperty(
-					BasePropertiesInfo.PrimaryKeys.BASE_PARTS_TOTAL_NUMBER.getKey(), 
+					BasePropertiesInfo.PrimaryKey.BASE_PARTS_TOTAL_NUMBER.getKey(), 
 					Integer.toString(newBaseIndex)
 				);
 			}
@@ -322,14 +322,14 @@ public class FDBBaseWriter implements BaseWriter {
 	
 	protected void saveArticlesBlockIdStart4BaseIndex(int baseIndex) throws IOException, SQLException, NoSuchAlgorithmException {
 		mainBase.insertBaseProperty(
-			BasePropertiesInfo.PrimaryKeys.getBasePartsArticlesBlockIdStartKey(baseIndex),
+			BasePropertiesInfo.PrimaryKey.getBasePartsArticlesBlockIdStartKey(baseIndex),
 			Integer.toString(wordsNumber)
 		);
 	}
 	
 	protected void saveMediaResourcesBlockIdStart4BaseIndex(int baseIndex) throws IOException, SQLException, NoSuchAlgorithmException {
 		mainBase.insertBaseProperty(
-			BasePropertiesInfo.PrimaryKeys.getBasePartsMediaResourcesBlockIdStartKey(baseIndex),
+			BasePropertiesInfo.PrimaryKey.getBasePartsMediaResourcesBlockIdStartKey(baseIndex),
 			Integer.toString(mediaResourcesNumber)
 		);
 	}
@@ -350,6 +350,7 @@ public class FDBBaseWriter implements BaseWriter {
 		progressInfo.notifyObservers();
 	}
 	
+	@SuppressWarnings("deprecation")
 	protected void flushArticles() throws UnsupportedEncodingException, IOException, SQLException {
 		mainBase.flushArticles(curWordsNumber);
 		if (activeBase != mainBase) {
@@ -357,12 +358,12 @@ public class FDBBaseWriter implements BaseWriter {
 		}
 		
 		// Only for partial compatibility with old viewers
-		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.ARTICLES_NUMBER.getKey(), Integer.toString(wordsNumber));
+		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKey.ARTICLES_NUMBER.getKey(), Integer.toString(wordsNumber));
 		
-		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.WORDS_NUMBER.getKey(), Integer.toString(wordsNumber));
-		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.WORDS_MAPPINGS_NUMBER.getKey(), Integer.toString(wordsMappingsNumber));
-		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.WORDS_RELATIONS_NUMBER.getKey(), Integer.toString(wordsRelationsNumber));
-		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.ARTICLES_ACTUAL_NUMBER.getKey(), Integer.toString(articlesActualNumber));
+		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKey.WORDS_NUMBER.getKey(), Integer.toString(wordsNumber));
+		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKey.WORDS_MAPPINGS_NUMBER.getKey(), Integer.toString(wordsMappingsNumber));
+		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKey.WORDS_RELATIONS_NUMBER.getKey(), Integer.toString(wordsRelationsNumber));
+		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKey.ARTICLES_ACTUAL_NUMBER.getKey(), Integer.toString(articlesActualNumber));
 		curWordsNumber = wordsNumber;
 	}
 	
@@ -371,7 +372,7 @@ public class FDBBaseWriter implements BaseWriter {
 		if (activeBase != mainBase) {
 			activeBase.flushMediaResources(curMediaResourcesNumber);
 		}
-		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKeys.MEDIA_RESOURCES_NUMBER.getKey(), Integer.toString(mediaResourcesNumber));
+		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKey.MEDIA_RESOURCES_NUMBER.getKey(), Integer.toString(mediaResourcesNumber));
 		curMediaResourcesNumber = mediaResourcesNumber;
 	}
 	

@@ -8,7 +8,7 @@ import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.source.SourceBaseReader;
 import info.softex.dictionary.core.formats.source.SourceFileNames;
 import info.softex.dictionary.core.formats.source.utils.SourceFormatUtils;
-import info.softex.dictionary.core.utils.FileUtils;
+import info.softex.dictionary.core.utils.FileConversionUtils;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -43,10 +43,10 @@ public class HtmlBaseReader extends SourceBaseReader {
 	@Override
 	public ArticleInfo getRawArticleInfo(WordInfo wordInfo) throws BaseFormatException {
 		int wid = wordInfo.getId();
-		File file = new File(sourceHtmlPath + File.separator + FileUtils.title2FileName(words.get(wid)));
+		File file = new File(sourceHtmlPath + File.separator + FileConversionUtils.title2FileName(words.get(wid)));
 		try {
 			ArticleInfo articleInfo = new ArticleInfo(wordInfo, null);
-			String article = SourceFormatUtils.removeLineBreaks(FileUtils.file2String(file));
+			String article = SourceFormatUtils.removeLineBreaks(FileConversionUtils.file2String(file));
 			articleInfo.setArticle(article);
 			return articleInfo;
 		} catch (IOException e) {
@@ -65,7 +65,7 @@ public class HtmlBaseReader extends SourceBaseReader {
 		File[] htmlFiles = new File(sourceHtmlPath).listFiles(new HtmlFileFilter());
 		ArrayList<String> resultWords = new ArrayList<String>(htmlFiles.length);
 		for (int i = 0; i < htmlFiles.length; i++) {
-			resultWords.add(FileUtils.fileName2Title(htmlFiles[i].getName()));
+			resultWords.add(FileConversionUtils.fileName2Title(htmlFiles[i].getName()));
 		}
 		return resultWords;
 	}

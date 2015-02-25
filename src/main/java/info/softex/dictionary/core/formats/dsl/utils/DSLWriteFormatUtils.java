@@ -40,6 +40,10 @@ public class DSLWriteFormatUtils {
 			return s;
 		}
 		
+		// Remove all artificial line breaks
+		s = s.replaceAll("<br>", "");
+		s = s.replaceAll("<br/>", "");
+		
 		// Italic
 		s = s.replaceAll("<i>", "[i]");
 		s = s.replaceAll("</i>", "[/i]");
@@ -64,62 +68,79 @@ public class DSLWriteFormatUtils {
 		s = s.replaceAll("<!--(.*?)-->", "{{$1}}");
 		
 		// Colored text
-		s = s.replaceAll("<c (.+?)>", "[c $1]");
-		s = s.replaceAll("<c>", "[c]");
-		s = s.replaceAll("</c>", "[/c]");
+		s = s.replaceAll("<span class=\"ca\" style=\"color:(.+?)\">", "[c $1]");
+		s = s.replaceAll("<span class=\"cd\">", "[c]");
+		s = s.replaceAll("</span>", "[/c]");
 		
 		// Stressed vowels in a word. They are usually highlighted.
 		s = s.replaceAll("<v>", "[']");
 		s = s.replaceAll("</v>", "[/']");
 		
-		// The language of the word or phrase.
-		s = s.replaceAll("<ln(.*?)>", "[lang$1]");
-		s = s.replaceAll("</ln>", "[/lang]");
-		
 		// Transcription zone
+		s = s.replaceAll("<t (.*?)>", "[t $1]"); // Space is needed to differ it from [trn]
 		s = s.replaceAll("<t>", "[t]");
 		s = s.replaceAll("</t>", "[/t]");
 		
-		// Abbreviations 
-		s = s.replaceAll("<d>", "[p]");
-		s = s.replaceAll("</d>", "[/p]");
-		
-		// References
-		s = s.replaceAll("<a href=\"(.*?)\"(.*?)>(.*?)</a>", "\\[ref$2\\]$1\\[/ref\\]");
-		s = s.replaceAll("<a class=\"v2\" href=\"(.*?)\"(.*?)>(.*?)</a>", "<<$1>>");
-		
-		// Media resources. Can't reuse s because it's strike in html.
-		s = s.replaceAll("<ss>", "[s]");
-		s = s.replaceAll("</ss>", "[/s]");
+		// The language of the word or phrase.
+		s = s.replaceAll("<l(.*?)>", "[lang$1]");
+		//s = s.replaceAll("<l>", "[lang]");
+		s = s.replaceAll("</l>", "[/lang]");
 		
 		// Examples
-		s = s.replaceAll("<ex>", "[ex]");
-		s = s.replaceAll("</ex>", "[/ex]");
+		s = s.replaceAll("<e(.*?)>", "[ex$1]");
+		//s = s.replaceAll("<e>", "[ex]");
+		s = s.replaceAll("</e>", "[/ex]");
 		
 		// Comments zone
-		s = s.replaceAll("<cm>", "[com]");
-		s = s.replaceAll("</cm>", "[/com]");
+		s = s.replaceAll("<c(.*?)>", "[com$1]");
+		//s = s.replaceAll("<c>", "[com]");
+		s = s.replaceAll("</c>", "[/com]");
 		
 		// Translation zone
-		s = s.replaceAll("<tn>", "[trn]");
-		s = s.replaceAll("</tn>", "[/trn]");
+		s = s.replaceAll("<n>", "[trn]");
+		s = s.replaceAll("</n>", "[/trn]");
 		
 		// Full translation zone
-		s = s.replaceAll("<ft>", "[*]");
-		s = s.replaceAll("</ft>", "[/*]");
+		s = s.replaceAll("<f>", "[*]");
+		s = s.replaceAll("</f>", "[/*]");
+		
+		// No text index zone.
+		s = s.replaceAll("<m>", "[!trs\\]");
+		s = s.replaceAll("</m>", "\\[/!trs\\]");
 		
 		// Left paragraph margins
 		s = s.replaceAll("<div class=\"m(.*?)\">", "[m$1]");
 		s = s.replaceAll("</div>", "[/m]");
 		
-		// Special characters
-		s = s.replaceAll("&nbsp;", "\\\\ ");
+		// References
+		s = s.replaceAll("<a href=\"(.*?)\"(.*?)>(.*?)</a>", "\\[ref$2\\]$1\\[/ref\\]");
+		s = s.replaceAll("<a class=\"v2\" href=\"(.*?)\"(.*?)>(.*?)</a>", "<<$1>>");
+		s = s.replaceAll("<a class=\"v3\" href=\"(.*?)\"(.*?)>(.*?)</a>", "\\[url$2\\]$1\\[/url\\]"); // external links
+		
+		// Abbreviations 
+		s = s.replaceAll("<w>", "[p]");
+		s = s.replaceAll("</w>", "[/p]");
+		
+		// Media resources. Can't reuse s because it's strike in html.
+		s = s.replaceAll("<r>", "[s]");
+		s = s.replaceAll("</r>", "[/s]");
+		
+		// Special characters, first order in back conversion
+		s = s.replaceAll("&#160;", "\\\\ ");     // "\ ", non-breaking space, aka &nbsp;
 		s = s.replaceAll("&#47;",  "\\\\\\\\");  // "\\"
-		s = s.replaceAll("&#91;",  "\\\\["); // "\["
-		s = s.replaceAll("&#93;",  "\\\\]"); // "\]"
-		s = s.replaceAll("&#123;", "\\\\{"); // "\{"
-		s = s.replaceAll("&#125;", "\\\\}"); // "\}"		
-		s = s.replaceAll("&#64;",  "\\\\@"); // "\}"	
+		s = s.replaceAll("&#91;",  "\\\\[");     // "\["
+		s = s.replaceAll("&#93;",  "\\\\]");     // "\]"
+		s = s.replaceAll("&#123;", "\\\\{");     // "\{"
+		s = s.replaceAll("&#125;", "\\\\}");     // "\}"
+		s = s.replaceAll("&#40;",  "\\\\(");     // "\("
+		s = s.replaceAll("&#41;",  "\\\\)");     // "\)"
+		s = s.replaceAll("&#64;",  "\\\\@");     // "\@"
+		s = s.replaceAll("&#126;", "\\\\~");     // "\~"
+		
+		// Special characters, unescaped, last order in back conversion
+		s = s.replaceAll("&#60;",        "<"); // "<"
+		s = s.replaceAll("&#62;",        ">"); // ">"
+		s = s.replaceAll("&#38;",       "&"); // "&", always last
 		
 		return s;
 	}

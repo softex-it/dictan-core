@@ -19,47 +19,48 @@
 
 package info.softex.dictionary.core.attributes;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 
 /**
  * 
- * @since version 2.6,		09/17/2011
- *
- * @modified version 3.4,	07/08/2012
- * @modified version 4.6,	02/21/2015
+ * @since version 4.6,		02/22/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
-public class MediaResourceInfo {
+public enum BaseResourceKey {
 	
-	private MediaResourceKey key;
-	private byte[] byteArray;
+	BASE_DESCRIPTION_SHORT("base.description.short", false),
 	
-	public MediaResourceInfo(MediaResourceKey key, byte[] byteArray) {
-		this.key = key;
-		this.byteArray = byteArray;
+	BASE_ARTICLES_META_DSL("base.articles.meta.dsl", true), // DSL meta headers
+	BASE_ABBREVIATIONS_META_DSL("base.abbreviations.meta.dsl", true), // DSL meta headers
+	
+	;
+	
+	private final String key;
+	private final boolean automatic;
+	
+	private BaseResourceKey(String inKey, boolean inAutomatic) {
+		this.key = inKey;
+		this.automatic = inAutomatic;
 	}
 	
-	public byte[] getByteArray() {
-		return byteArray;
+	public String getKey() {
+		return this.key;
 	}
 	
-	public void setByteArray(byte[] byteArray) {
-		this.byteArray = byteArray;
+	public static BaseResourceKey resolveKey(String key) {
+        if (key != null) {
+    		for (BaseResourceKey brk : BaseResourceKey.values()) {
+    			if (key.equalsIgnoreCase(brk.getKey())) {
+    				return brk;
+    			}
+    		}
+        }
+        return null;	
 	}
 	
-	public InputStream getInputStream() {
-		return new ByteArrayInputStream(byteArray);
-	}
-	
-	public MediaResourceKey getKey() {
-		return key;
+	public boolean isAutomatic() {
+		return automatic;
 	}
 
-	public void setKey(MediaResourceKey key) {
-		this.key = key;
-	}
-	
 }

@@ -72,7 +72,7 @@ public class FDBBaseIOFactory {
 		
 	}
 	
-	public static FDBBaseReaderWrapper createFDBBaseReader(File file) throws SQLException, BaseFormatException {
+	public static FDBBaseReaderWrapper createAndAssertFDBBaseReader(File file) throws SQLException, BaseFormatException {
 		
 		FDBBaseReaderWrapper reader = new FDBBaseReaderWrapper(file, new BasicSQLiteConnectionFactory(), null, new BasicCollatorFactory());
 		reader.load();

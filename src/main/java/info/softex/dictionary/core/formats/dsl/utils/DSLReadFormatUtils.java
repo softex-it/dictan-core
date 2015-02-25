@@ -29,7 +29,20 @@ import info.softex.dictionary.core.utils.StringUtils;
  * 
  */
 public class DSLReadFormatUtils {
-
+	
+	protected final static String TEMP_REPLACEMENT_1 = "79e1f3c7-6cdd-4e3c-8ebf-13a6658d126f";
+	protected final static String TEMP_REPLACEMENT_2 = "95566f0c-7c64-48d7-8d6d-457b3d6a9d25";
+	protected final static String TEMP_REPLACEMENT_3 = "39ba0938-69b1-4fd5-99b9-359bb6f161ce";
+	protected final static String TEMP_REPLACEMENT_4 = "024ddfc8-dd76-4298-ba19-3fefc9e35063";
+	
+	protected final static String CHAR_LT = "&#60;"; // <
+	protected final static String CHAR_GT = "&#62;"; // >
+	
+	protected final static String CHAR_LCBRACE = "&#123;"; // {
+	protected final static String CHAR_RCBRACE = "&#125;"; // }
+	
+	protected final static String HTML_BR = "<br/>";
+	
 	/**
 	 * Converts DSL markup into adapted HTML. 
 	 * See http://lingvo.helpmax.net/en/troubleshooting/dsl-compiler/dsl-tags/
@@ -41,6 +54,85 @@ public class DSLReadFormatUtils {
 			return s;
 		}
 		
+		// Special characters, unescaped, first order
+		s = s.replaceAll("&",        "&#38;");  // "&", always first
+		s = s.replaceAll("<",        CHAR_LT);  // "<"
+		s = s.replaceAll(">",        CHAR_GT);  // ">"
+		
+		// Special characters, escaped, last order
+		s = s.replaceAll("\\\\ ",    "&#160;"); // "\ ", non-breaking space, aka &nbsp;
+		s = s.replaceAll("\\\\\\\\", "&#47;");  // "\\"
+		s = s.replaceAll("\\\\\\[",  "&#91;");  // "\["
+		s = s.replaceAll("\\\\\\]",  "&#93;");  // "\]"
+		s = s.replaceAll("\\\\\\{",  CHAR_LCBRACE); // "\{"
+		s = s.replaceAll("\\\\\\}",  CHAR_RCBRACE); // "\}"
+		s = s.replaceAll("\\\\\\(",  "&#40;"); // "\("
+		s = s.replaceAll("\\\\\\)",  "&#41;"); // "\)"
+		s = s.replaceAll("\\\\\\@",  "&#64;");  // "\@"
+		s = s.replaceAll("\\\\\\~",  "&#126;"); // "\~"
+		
+		// References
+		s = s.replaceAll("\\[ref(.*?)\\](.*?)\\[/ref\\]", "<a href=\"$2\"$1>$2</a>");
+		s = s.replaceAll("&#60;&#60;(.+?)&#62;&#62;", "<a class=\"v2\" href=\"$1\">$1</a>"); // <<link>>,
+		s = s.replaceAll("\\[url(.*?)\\](.*?)\\[/url\\]", "<a class=\"v3\" href=\"$2\"$1>$2</a>"); // external links
+		
+		// Abbreviations (They can be replaced by the viewer directly at the article or linked as pop up window)
+		s = s.replaceAll("\\[p\\]", "<w>");
+		s = s.replaceAll("\\[/p\\]", "</w>");
+		
+		// Media resources. Can't reuse s because it's strike in HTML.
+		s = s.replaceAll("\\[s\\]", "<r>");
+		s = s.replaceAll("\\[/s\\]", "</r>");
+		
+		// Replace all basic tags
+		s = convertDSLDesignTagsToHtml(s);
+		
+		// Invisible comments
+		s = s.replaceAll("\\{\\{(.*?)\\}\\}", "<!--$1-->");
+		
+		// Transcription zone
+		s = s.replaceAll("\\[t (.*?)\\]", "<t $1>"); // Space is needed to differ it from [trn]
+		s = s.replaceAll("\\[t\\]", "<t>");
+		s = s.replaceAll("\\[/t\\]", "</t>");
+		
+		// The language of the word or phrase. These tags are used in cards to mark 
+		// words that are written in a language other than the target language.
+		s = s.replaceAll("\\[lang(.*?)\\]", "<l$1>");
+		s = s.replaceAll("\\[/lang\\]", "</l>");
+		
+		// Examples
+		s = s.replaceAll("\\[ex(.*?)\\]", "<e$1>");
+		s = s.replaceAll("\\[/ex\\]", "</e>");
+		
+		// Comments zone. This zone provides additional information about the translation.
+		s = s.replaceAll("\\[com(.*?)\\]", "<c$1>");
+		s = s.replaceAll("\\[/com\\]", "</c>");
+		
+		// Translation zone. It contains translation of the head word.
+		s = s.replaceAll("\\[trn\\]", "<n>");
+		s = s.replaceAll("\\[/trn\\]", "</n>");
+		
+		// Full translation zone mode tags. They can be later processed by the viewer if needed. 
+		s = s.replaceAll("\\[\\*\\]", "<f>");
+		s = s.replaceAll("\\[/\\*\\]", "</f>");
+		
+		// No text index zone.
+		s = s.replaceAll("\\[!trs\\]", "<m>");
+		s = s.replaceAll("\\[/!trs\\]", "</m>");
+		
+		// Before [/m] is formatted, append artificial breaks to all lines which don't end with [/m]
+		s = addDSLLineBreaks(s);
+		
+		// Left paragraph margins mN where N defines the number of spaces from  left side. 
+		// May vary from [m0] to [m9]. The range used in practice is usually from [m0] to [m4].
+		s = s.replaceAll("\\[m(.*?)\\]", "<div class=\"m$1\">");
+		s = s.replaceAll("\\[/m\\]", "</div>");
+		
+		return s;
+		
+	}
+	
+	public static String convertDSLDesignTagsToHtml(String s) {
 		// Italic
 		s = s.replaceAll("\\[i\\]", "<i>");
 		s = s.replaceAll("\\[/i\\]", "</i>");
@@ -61,119 +153,103 @@ public class DSLReadFormatUtils {
 		s = s.replaceAll("\\[sub\\]", "<sub>");
 		s = s.replaceAll("\\[/sub\\]", "</sub>");
 		
-		// Invisible comments
-		s = s.replaceAll("\\{\\{(.*?)\\}\\}", "<!--$1-->");
-
-		// Colored text. The supported colors are the ones defined at MS Internet Explorer 4.0.
-		s = s.replaceAll("\\[c (.+?)\\]", "<c $1>");
-		s = s.replaceAll("\\[c\\]", "<c>");
-		s = s.replaceAll("\\[/c\\]", "</c>");
+		// Colored text. The supported colors are the ones defined at MS IE 4.0.
+		s = s.replaceAll("\\[c (.*?)\\]", "<span class=\"ca\" style=\"color:$1\">"); // color in attribute
+		s = s.replaceAll("\\[c\\]", "<span class=\"cd\">"); // color by default
+		s = s.replaceAll("\\[/c\\]", "</span>");
 
 		// Stressed vowels in a word. They are usually highlighted.
 		s = s.replaceAll("\\['\\]", "<v>");
 		s = s.replaceAll("\\[/'\\]", "</v>");
-
-		// The language of the word or phrase. These tags are used in cards to mark 
-		// words that are written in a language other than the target language.
-		s = s.replaceAll("\\[lang(.*?)\\]", "<ln$1>");
-		s = s.replaceAll("\\[/lang\\]", "</ln>");
-		
-		// Transcription zone
-		s = s.replaceAll("\\[t\\]", "<t>");
-		s = s.replaceAll("\\[/t\\]", "</t>");
-		
-		// Abbreviations (They can be replaced by the viewer directly at the article or linked as pop up window)
-		s = s.replaceAll("\\[p\\]", "<d>");
-		s = s.replaceAll("\\[/p\\]", "</d>");
-
-		// References
-		s = s.replaceAll("\\[ref(.*?)\\](.*?)\\[/ref\\]", "<a href=\"$2\"$1>$2</a>");
-		s = s.replaceAll("<<(.+?)>>", "<a class=\"v2\" href=\"$1\">$1</a>");
-		
-		// Media resources. Can't reuse s because it's strike in html.
-		s = s.replaceAll("\\[s\\]", "<ss>");
-		s = s.replaceAll("\\[/s\\]", "</ss>");
-		
-		// Examples
-		s = s.replaceAll("\\[ex\\]", "<ex>");
-		s = s.replaceAll("\\[/ex\\]", "</ex>");
-		
-		// Comments zone. This zone provides additional information about the translation.
-		s = s.replaceAll("\\[com\\]", "<cm>");
-		s = s.replaceAll("\\[/com\\]", "</cm>");
-		
-		// No text index zone.
-		s = s.replaceAll("\\[!trs\\]", "<ntrs>");
-		s = s.replaceAll("\\[/!trs\\]", "</ntrs>");
-		
-		// Translation zone. It contains translation of the head word.
-		s = s.replaceAll("\\[trn\\]", "<tn>");
-		s = s.replaceAll("\\[/trn\\]", "</tn>");
-		
-		// Full translation zone mode tags. These ones are wrapped into <trf> 
-		// and can be later processed by the viewer if needed. 
-		s = s.replaceAll("\\[\\*\\]", "<ft>");
-		s = s.replaceAll("\\[/\\*\\]", "</ft>");
-		
-		// Left paragraph margins mN where N defines the number of spaces from  left side. 
-		// May vary from [m0] to [m9]. The range used in practice is usually from [m0] to [m4].
-		s = s.replaceAll("\\[m(.*?)\\]", "<div class=\"m$1\">");
-		s = s.replaceAll("\\[/m\\]", "</div>");
-		
-		// Special characters
-		s = s.replaceAll("\\\\ ",    "&nbsp;"); // "\ "
-		s = s.replaceAll("\\\\\\\\", "&#47;");  // "\\"
-		s = s.replaceAll("\\\\\\[",  "&#91;");  // "\["
-		s = s.replaceAll("\\\\\\]",  "&#93;");  // "\]"
-		s = s.replaceAll("\\\\\\{",  "&#123;"); // "\{"
-		s = s.replaceAll("\\\\\\}",  "&#125;"); // "\}"
-		s = s.replaceAll("\\\\\\@",  "&#64;");  // "\@"
 		
 		return s;
-		
 	}
-	
-	public static String convertDSLAdaptedHtmlToHtml(String s) {
+
+	/**
+	 * Adds HTML line breaks to the DSL markup. It should be called before [/m] is replaced.
+	 */
+	protected static String addDSLLineBreaks(String s) {
 		
-		// Don't process blank string
-		if (StringUtils.isBlank(s)) {
+		// Don't process null values
+		if (s == null) {
 			return s;
 		}
 		
-		// Colors
-		s = s.replaceAll("<c(.*?)>(.*?)</c>", "<span style=\"color:$1\">$2</span>");
+		// Before [/m] is formatted, append artificial breaks to all lines which don't end with [/m]
+		String[] splitLines = s.split("\n", -1); // array will contain empty string as well
+		StringBuffer linesBuffer = new StringBuffer();
+		if (splitLines.length == 1) {
+			String line = splitLines[0];
+			linesBuffer.append(line);
+			if (!line.trim().endsWith("[/m]")) {
+				linesBuffer.append(HTML_BR);
+			}
+		} else {
+			for (int i = 0; i < splitLines.length; i++) {
+				
+				String line = splitLines[i];
+				
+				linesBuffer.append(line);
+				
+				if (i != splitLines.length - 1 || line.trim().length() != 0) {
+					if (i < splitLines.length - 1) {
+						linesBuffer.append("\n");
+					}
+					if (!line.trim().endsWith("[/m]")) {
+						linesBuffer.append(HTML_BR);
+					}
+				}
+
+			}
+		}
 		
-		String outTag = "<div";
+		if (linesBuffer.length() > 0) { // If buffer is not empty return it
+			// Append one more break to always have at least 1 empty line in the bottom
+			linesBuffer.append(HTML_BR);
+			return linesBuffer.toString();		
+		} else { // Otherwise return the original the original string
+			return s;
+		}
 		
-		//s = s.replaceAll("\\[/m\\]", "[/m]<br/>"); // Append break to list items
-		s = s.replaceAll("<div class=\"m0\">", outTag + ">");
-		s = s.replaceAll("<div class=\"m1\">", outTag + " style=\"margin-left:15px\">");
-		s = s.replaceAll("<div class=\"m2\">", outTag + " style=\"margin-left:30px\">");
-		s = s.replaceAll("<div class=\"m3\">", outTag + " style=\"margin-left:45px\">");
-		s = s.replaceAll("<div class=\"m4\">", outTag + " style=\"margin-left:60px\">");
-		
-		s = s.trim();
-		
-		return s;
-	}
-	
-	public static String injectDSLWord(String word, String article) {
-		String fullArticle = "<div class=\"header\">" + word + "</div><br/>" + article;
-		return fullArticle;
 	}
 
 	public static String convertDSLWordToIndexedWord(String word) {
 		String result = word;
+		
 		if (!StringUtils.isBlank(result)) {
-			// First replace the non-indexed parts with spaces at both sides
+			
+			// Temporary replace \{ and \} --------------------------------
+			result = result.replaceAll("\\\\\\{",  TEMP_REPLACEMENT_1);
+			result = result.replaceAll("\\\\\\}",  TEMP_REPLACEMENT_2);
+			
+			// Replace the non-indexed parts with spaces at both sides
 			result = result.replaceAll(" \\{(.*?)\\} ", " ");
 			
 			// Second replace the ones w/o spaces
 			result = result.replaceAll("\\{(.*?)\\}", "");
+			
+			// Return \{ and \} back
+			result = result.replaceAll(TEMP_REPLACEMENT_1, "\\{");
+			result = result.replaceAll(TEMP_REPLACEMENT_2, "\\}");
+			
+			// Temporary replace \( and \) -------------------------------
+			result = result.replaceAll("\\\\\\(",  TEMP_REPLACEMENT_3);
+			result = result.replaceAll("\\\\\\)",  TEMP_REPLACEMENT_4);
+			
+			// Remove all ( and )
+			result = result.replaceAll("\\(", "");
+			result = result.replaceAll("\\)", "");
+			
+			// Replace all temporary replacements with ( and )
+			result = result.replaceAll(TEMP_REPLACEMENT_3, "\\(");
+			result = result.replaceAll(TEMP_REPLACEMENT_4, "\\)");
+			
 		}
+		
 		if (result != null) {
 			result = result.trim();
 		}
+		
 		return result;
 	}
 	

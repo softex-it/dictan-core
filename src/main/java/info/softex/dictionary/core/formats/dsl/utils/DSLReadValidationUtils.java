@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  * @author Dmitry Viktorov
  * 
  */
-public class DSLReadValidator {
+public class DSLReadValidationUtils {
 	
 	protected final static Pattern EMPTY_BRACKETS = Pattern.compile("[(.+?)]");
 	
@@ -47,7 +47,7 @@ public class DSLReadValidator {
 		}
 
 		return true;
-	        
+		
 	}
 
 }

@@ -8,6 +8,20 @@ trivial card
 trivial card with markup
   Trivially simple card. [m3]Very simple.[/m]
   [m2]Two left margin tags[/m][m2] in one line.[/m] and line with no tags.
+  [m2]Math expressions: 5 < 3 < 2, 2 <=> 2[/m]
+  This is [p]abbr.[/p]
+  [c]Text with default highlighted color[/c]
+  [c blue]Text with blue highlighted color[/c]
+  [t]This is transcription[/t]
+  Stress[']e[/']d word
+  [com]This text is a comment[/com]
+  [trn][*]Translation zone line[/*][/trn]
+  [!trs]Don't index this line[/!trs]
+  [ex]Example line[/ex]
+  [ex testatr]Example line with test attribute[/ex]
+  [lang id=1033]Language 1033 line[/lang]
+  [lang]Language line with no id[/lang]
+  Line with braces \(\) \{ \}
   One more line.
   \ 
 specialchars
@@ -38,6 +52,7 @@ specialcharssecond
 		\# (Hash sign)
 		
 	Unescaped:
+	
 	
 		Escape is not shown \
 		Empty square brackets break the view (not included)
@@ -77,6 +92,13 @@ little with subentries, since lingvo x3
 -ae1
 -ae1 {duplicate}
 -ae2 {with the long name in the article}
+-ae2 with \{braces\}
+-ae2 with \{braces\} and {optional part}
+-ae2 with \(parentheses\)
+-ae2(changing)
+-ae2(changing) two (times)
+-ae2(changing) two (times) with {optional \(escaped\)} and \(escaped\) 
+-ae2 {CO[sub]}2{[/sub]}
 -ae3 {with the long name in the article} partially {supposed to be} excluded
         [m1][i][c][trn]suffix[/trn][/c][/i][/m]
         [m1]1) [trn]used in names of animal and plant families and other groups[/trn][/m]
@@ -107,7 +129,7 @@ sample {unsorted part} card 4 {at the end}
 {the }sample headword
    •• [b]Special symbols that might require escaping:[/b]
    1. Tilde: I love this \~. • I love this ~. (The tilde replaces the first headword.)
-   2. At-sign: \@ ([b]Note:[/b] Sub-entires are currently not supported by GoldenDict.)
+   2. At-sign: \@ ([b]Note:[/b] Sub-entries)
    3. Brackets: \[ \] \{ \}
    \ 
    •• [b]Basic formatting:[/b]
@@ -139,7 +161,7 @@ sample {unsorted part} card 4 {at the end}
    •• [b]Links:[/b]
    \<<typcial card\>> • <<typcial card>> • Recommended way to create a hyperlink to another card.
    \[ref\]link1\[/ref\] • [ref]link1[/ref]  • hyperlink to another card, not recommended, deprecated.
-   \[url\]http://goldendict.org/\[/url\] • [url]http://goldendict.org/[/url] • link to a Web page
+   \[url\]http://sample.org/\[/url\] • [url]http://sample.org/[/url] • link to a Web page
    \ 
    •• [b]Colors:[/b]
    \[c blue\]Blue text\[/c\] • [c blue]Blue text[/c]
@@ -289,10 +311,10 @@ typical card
    This is a typical card taken from Lingvo Documentation:
    \ 
    [b]1.[/b] [p]v.[/p]
-   [m1]1) [p][trn]общ.[/p] отказываться [com]([i]от чего-л.[/i])[/com], прекращать [com]([i]что-л., делать что-л.[/i])[/com]; оставлять [com]([i]что-л.[/i])[/com][/trn][/m]
-   [m2][*][ex][lang id=1033]to abandon a Bill[/lang] — отказаться от продвижения законопроекта[/ex][/*][/m]
-   [m2][*][ex][lang id=1033]to abandon a claim \[a right, an action\][/lang] — отказаться от претензий \[от права, от иска\][/ex][/*][/m]
-   [m2][*][ex][lang id=1033]to abandon (all) hope[/lang] — оставить (всякую) надежду[/ex][/*][/m]
+   [m1]1) [p][trn]common.[/p] refuse [com]([i]from something[/i])[/com], stop [com]([i]something, doing something[/i])[/com]; leave [com]([i]something[/i])[/com][/trn][/m]
+   [m2][*][ex][lang id=1033]to abandon a Bill[/lang] — refuse to move with a law project[/ex][/*][/m]
+   [m2][*][ex][lang id=1033]to abandon a claim \[a right, an action\][/lang] — refuse claims \[of rights, of civil actions\][/ex][/*][/m]
+   [m2][*][ex][lang id=1033]to abandon (all) hope[/lang] — leave (any) hope[/ex][/*][/m]
    [m2][*][b]See:[/b][/*][/m]
    [m2][*][com][lang id=1033]abandoned property[/lang][/com][/*][/m]
    [m1]2) [p][trn]ec.[/p] закрывать; консервировать [com]([i]напр., транспортную линию, производство и т. п.[/i])[/com][/trn][/m]
@@ -303,8 +325,8 @@ typical card
    [m2][*][ex][lang id=1033]He abandoned his car and tried to escape on foot.[/lang] — Он бросил машину и попытался ускользнуть пешком.[/ex][/*][/m]
    [m2][*][b]See:[/b][/*][/m]
    [m2][*][ref dict="Marketing (En-Ru)"]abandonment[/ref][/*][/m]
-   [b]2.[/b] [p]сущ.[/p]
-   [m1][p][trn]общ.[/p] импульсивность; развязанность, несдержанность[/trn][/m]
+   [b]2.[/b] [p]noun.[/p]
+   [m1][p][trn]abst.[/p] импульсивность; развязанность, несдержанность[/trn][/m]
    [m2][*][ex][lang id=1033]to do smth. with in complete abandon[/lang] — делать что-л., совершенно забыв обо всем[/ex][/*][/m]
 
 human embryology

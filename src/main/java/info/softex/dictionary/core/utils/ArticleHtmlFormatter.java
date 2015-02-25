@@ -19,7 +19,7 @@
 
 package info.softex.dictionary.core.utils;
 
-import info.softex.dictionary.core.formats.dsl.utils.DSLReadFormatUtils;
+import info.softex.dictionary.core.formats.dsl.utils.DSLViewUtils;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -55,8 +55,9 @@ public class ArticleHtmlFormatter {
 		
 		// DSL Formatting
 		if (BaseConstants.MODE_DSL.equalsIgnoreCase(articleFormatMode)) {
-			article = DSLReadFormatUtils.convertDSLAdaptedHtmlToHtml(article);
-			article = DSLReadFormatUtils.injectDSLWord(word, article);
+			article = DSLViewUtils.convertDSLResourcesToHtml(article);
+			article = DSLViewUtils.convertDSLAbbreviationsToHtml(article);
+			article = DSLViewUtils.injectDSLWord(word, article);
 		// ZD/HTML Formatting
 		} else {
 			article = applyArticleFormat(article, articleFormatMode, isMediaAvailable);
@@ -163,12 +164,12 @@ public class ArticleHtmlFormatter {
 		if (isMediaAvailable) {
 			
 			// Images
-			a = icReplaceAll(a, "<img(.+?)src\\s*=\\s*[\"'](.+?)[\"'](.*?)/{0,1}>", "<img$1src=\"" + BaseConstants.URLSEG_INTERNAL + "/" + BaseConstants.URLSEG_IMAGES + "/$2\"$3/>");
+			a = icReplaceAll(a, "<img(.+?)src\\s*=\\s*[\"'](.+?)[\"'](.*?)/{0,1}>", "<img$1src=\"" + BaseConstants.URLSEG_IMAGES + "/$2\"$3/>");
 			
 			 // Audio (added in HTML5)
 			a = icReplaceAll(a, "<audio(.+?)src\\s*=\\s*[\"'](.+?)[\"'](.*?)>(.*?)</audio>", 
-				"<a href=\"" + BaseConstants.URLSEG_SOUNDS + "/$2\"><img src=\"" + 
-				BaseConstants.URLSEG_EXTERNAL + "/" + BaseConstants.URLSEG_IMAGES + "/" + 
+				"<a href=\"" + BaseConstants.URLSEG_AUDIO + "/$2\"><img src=\"" + 
+				BaseConstants.URLSEG_IMAGES_EXTERNAL + "/" + 
 				BaseConstants.RESOURCE_INT_IMG_SOUND + "\" border=\"0\" style=\"vertical-align:middle\"/></a>"); // audio tag added in HTML5
 		}
 		return a;
@@ -181,7 +182,7 @@ public class ArticleHtmlFormatter {
         t = icReplaceAll(t, "\\Q<t>\\E([^<]+)\\Q</t>\\E", "<b>[ $1 ]</b>");
         
 		if (isMediaAvailable) {
-			t = icReplaceAll(t, "\\Q<wav>\\E(.+)\\Q</wav>\\E", "<br/><a href=\"" + BaseConstants.URLSEG_SOUNDS + "/$1\"><img src=\"" + BaseConstants.URLSEG_EXTERNAL + "/" + BaseConstants.URLSEG_IMAGES + "/" + BaseConstants.RESOURCE_INT_IMG_SOUND + "\" border=\"0\"/></a><br/>");
+			t = icReplaceAll(t, "\\Q<wav>\\E(.+)\\Q</wav>\\E", "<br/><a href=\"" + BaseConstants.URLSEG_AUDIO + "/$1\"><img src=\"" + BaseConstants.URLSEG_IMAGES_EXTERNAL + "/" + BaseConstants.RESOURCE_INT_IMG_SOUND + "\" border=\"0\"/></a><br/>");
 		} else {
 			t = icReplaceAll(t, "\\<img.*?\\>", ""); // Cut out IMG tags
 	        t = icReplaceAll(t, "\\Q<wav>\\E(.+)\\Q</wav>\\E", ""); // Cut out sounds

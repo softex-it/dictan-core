@@ -56,17 +56,20 @@ public class FDBSQLReadStatements {
 	public static final String SELECT_WORD_ID_BY_WORD =	
 		"SELECT word_id FROM " + FDBTables.words + " WHERE word=(?)";
 	
-	public static final String SELECT_RELATION_REDIRECT_AND_TO_WORD_ID_BY_WORD_ID =
+	public static final String SELECT_WORD_RELATION_REDIRECT_BY_WORD_ID =
 		"SELECT r.to_word_id, w.word FROM " + FDBTables.words_relations + " r, " + 
 		FDBTables.words + " w WHERE r.word_id=(?) AND r.to_word_id = w.word_id AND relation_type IN (1,2)";
-			
+
+	public static final String SELECT_WORD_MAPPING_BY_WORD_ID =
+		"SELECT word_mapping_1,word_mapping_2 FROM " + FDBTables.words_mappings + " WHERE word_id=(?)";
+
 	public static final String SELECT_ARTICLE_BLOCK_BY_ID =
 		"SELECT article_block_id, article_block FROM " + FDBTables.article_blocks +
 		" WHERE article_block_id=(SELECT MAX(article_block_id) FROM " +
 		FDBTables.article_blocks + " WHERE article_block_id<=(?))";
 	
 	public static final String SELECT_MEDIA_RESOURCE_ID_BY_MEDIA_RESOURCE_KEY =	
-		"SELECT media_resource_id from " + FDBTables.media_resource_keys + " WHERE media_resource_key=?"; 
+		"SELECT media_resource_id from " + FDBTables.media_resource_keys + " WHERE media_resource_key=(?)";
 	
 	public static final String SELECT_MEDIA_RESOURCE_BLOCK_BY_MEDIA_RESOURCE_ID =	
 		"SELECT media_resource_block_id, media_resource_block FROM " + FDBTables.media_resource_blocks + 

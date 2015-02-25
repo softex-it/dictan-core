@@ -66,7 +66,7 @@ public class WordInfo implements Cloneable {
 	}
 	
 	public String getArticleWord() {
-		return redirectToWord != null ? redirectToWord : word;
+		return wordMapping != null ? wordMapping : word;
 	}
 
 	public void setWord(String word) {
@@ -129,6 +129,10 @@ public class WordInfo implements Cloneable {
 		return redirectToId;
 	}
 	
+	public String getRedirectToWord() {
+		return redirectToWord;
+	}
+	
 	public void setRedirectToId(int inRedirectToId) {
 		this.redirectToId = inRedirectToId;
 	}
@@ -141,8 +145,8 @@ public class WordInfo implements Cloneable {
 		return wordMapping;
 	}
 	
-	public void setWordMapping(String wordExtended) {
-		this.wordMapping = wordExtended;
+	public void setWordMapping(String inWordMapping) {
+		this.wordMapping = inWordMapping;
 	}
 
 }

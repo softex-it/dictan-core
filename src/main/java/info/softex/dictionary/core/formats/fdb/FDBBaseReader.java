@@ -23,9 +23,11 @@ import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
+import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
+import info.softex.dictionary.core.attributes.MediaResourceKey;
 import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.collation.AbstractCollatorFactory;
 import info.softex.dictionary.core.database.DatabaseConnectionFactory;
@@ -61,7 +63,7 @@ import org.slf4j.LoggerFactory;
  * @author Dmitry Viktorov
  * 
  */
-@BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb"})
+@BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb", ".fdl"})
 public class FDBBaseReader implements BaseReader {
 	
 	private static final Logger log = LoggerFactory.getLogger(FDBBaseReader.class.getSimpleName());
@@ -81,7 +83,8 @@ public class FDBBaseReader implements BaseReader {
 	
 	protected final int wordListBlockSize;
 	
-	protected boolean hasRelations = false;
+	protected boolean hasWordsRelations = false;
+	protected boolean hasWordsMappings = false;
 	
 	public FDBBaseReader(File fdbFile, DatabaseConnectionFactory conFactory, Map<String, ?> inParams, AbstractCollatorFactory collatorFactory) throws SQLException {
 		dbParams = new HashMap<String, String>();
@@ -115,7 +118,7 @@ public class FDBBaseReader implements BaseReader {
 		if (articleInfo != null) {
 			BasePropertiesInfo baseInfo = mainBase.getBasePropertiesInfo();
 			String article = ArticleHtmlFormatter.prepareArticle(
-				wordInfo.getWord(),
+				wordInfo.getArticleWord(),
 				articleInfo.getArticle(), getAbbreviationKeys(), 
 				baseInfo.getArticlesFormattingMode(),
 				baseInfo.getArticlesFormattingInjectWordMode(),
@@ -139,8 +142,12 @@ public class FDBBaseReader implements BaseReader {
 			wordInfo.setWord(getWords().get(wordInfo.getId()));
 		}
 		
-		if (hasRelations) {
+		if (hasWordsRelations) {
 			mainBase.getWordRedirect(wordInfo);
+		}
+		
+		if (hasWordsMappings) {
+			mainBase.getWordMapping(wordInfo);
 		}
 		
 		ArticleInfo articleInfo = getBaseForArticle(wordInfo.getId()).getRawArticleInfo(wordInfo);
@@ -217,8 +224,9 @@ public class FDBBaseReader implements BaseReader {
 			throw new BaseFormatException("Couldn't find the following parts of the base: " + missingPartsString, BaseFormatException.ERROR_CANT_FIND_BASE_PARTS);
 		}
 		
-		// Define the flag of redirects to speed up requests
-		hasRelations = props.getWordsRelationsNumber() > 0 ? true : false;
+		// Define the flags of words relations and mappings to speed up requests
+		hasWordsRelations = props.getWordsRelationsNumber() > 0 ? true : false;
+		hasWordsMappings = props.getWordsMappingsNumber() > 0 ? true : false;
 		
 		props.setBaseFileSize(size);
 
@@ -246,6 +254,11 @@ public class FDBBaseReader implements BaseReader {
 	}
 	
 	@Override
+	public Map<Integer, String> getAdaptedWordsMappings() throws BaseFormatException {
+		return getWordsMappings();
+	}
+	
+	@Override
 	public int searchWordIndex(String word, boolean positive) throws BaseFormatException {
 		return mainBase.searchWordIndex(word, positive);
 	}
@@ -260,6 +273,11 @@ public class FDBBaseReader implements BaseReader {
 	@Override
 	public BasePropertiesInfo getBasePropertiesInfo() {
 		return mainBase.getBasePropertiesInfo();		
+	}
+	
+	@Override
+	public BaseResourceInfo getBaseResourceInfo(String resourceKey) {
+		return mainBase.getBaseResourceInfo(resourceKey);
 	}
 	
 	@Override
@@ -288,7 +306,7 @@ public class FDBBaseReader implements BaseReader {
 	}
 	
 	@Override
-	public MediaResourceInfo getMediaResourceInfo(MediaResourceInfo.Key mediaKey) throws BaseFormatException {
+	public MediaResourceInfo getMediaResourceInfo(MediaResourceKey mediaKey) throws BaseFormatException {
 		if (!mediaKey.hasIndex()) {
 			int resourceId = mainBase.searchMediaResourceKeyIndex(mediaKey.getResourceKey());
 			if (resourceId < 0) {

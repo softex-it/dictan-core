@@ -118,8 +118,8 @@ public class ArticleInfo implements Cloneable, KeyValueInfo<String, String> {
 	
 	}
 	
-	public String getFullArticle(String inGlobalCSSPath, FontInfo inFontInfo) {
-		return ArticleHtmlBuilder.buildHtmlArticle(getArticle(), inGlobalCSSPath, inFontInfo);
+	public String getFullArticle(FontInfo inFontInfo, String inGlobalCSSPath, String inSpecificCSS) {
+		return ArticleHtmlBuilder.buildHtmlArticle(getArticle(), inFontInfo, inGlobalCSSPath, inSpecificCSS);
 	}
 	
 	public boolean isStrongTranslationRefernce() {

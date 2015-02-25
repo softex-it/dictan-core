@@ -25,9 +25,11 @@ import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingMode;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo.ArticlesFormattingMode;
+import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
+import info.softex.dictionary.core.attributes.MediaResourceKey;
 import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.collation.AbstractCollatorFactory;
 import info.softex.dictionary.core.collation.CollationRulesFactory;
@@ -126,6 +128,16 @@ public class ZDBaseReader implements BaseReader {
 	public Map<Integer, String> getWordsMappings() throws BaseFormatException {
 		return null;
 	}
+	
+	@Override
+	public Map<Integer, String> getAdaptedWordsMappings() throws BaseFormatException {
+		return null;
+	}
+	
+	@Override
+	public BaseResourceInfo getBaseResourceInfo(String resourceKey) {
+		return null;
+	}
 
 	public ArticleInfo getArticleInfo(WordInfo wordInfo) throws BaseFormatException {
 		return getArticleInfo(wordInfo, false);
@@ -172,7 +184,7 @@ public class ZDBaseReader implements BaseReader {
 		String article = zdReader.getArticle(index);
 		if (!isRaw) {
 			article = ArticleHtmlFormatter.prepareArticle(
-					wordInfo.getWord(),
+					wordInfo.getArticleWord(),
 					zdReader.getArticle(index), getAbbreviationKeys(), 
 					baseInfo.getArticlesFormattingMode(),
 					baseInfo.getArticlesFormattingInjectWordMode(),
@@ -261,7 +273,7 @@ public class ZDBaseReader implements BaseReader {
 	}
 
     @Override
-	public MediaResourceInfo getMediaResourceInfo(MediaResourceInfo.Key mediaKey) {
+	public MediaResourceInfo getMediaResourceInfo(MediaResourceKey mediaKey) {
 		if (zpakReader == null) {
 			log.info(".zpak file is not found. Cannot load resource: {}", mediaKey);
 			return null;

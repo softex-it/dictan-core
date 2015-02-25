@@ -17,49 +17,40 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.attributes;
+package info.softex.dictionary.core.utils;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 
 /**
  * 
- * @since version 2.6,		09/17/2011
- *
- * @modified version 3.4,	07/08/2012
- * @modified version 4.6,	02/21/2015
+ * @since version 4.6.0,	02/17/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
-public class MediaResourceInfo {
-	
-	private MediaResourceKey key;
-	private byte[] byteArray;
-	
-	public MediaResourceInfo(MediaResourceKey key, byte[] byteArray) {
-		this.key = key;
-		this.byteArray = byteArray;
-	}
-	
-	public byte[] getByteArray() {
-		return byteArray;
-	}
-	
-	public void setByteArray(byte[] byteArray) {
-		this.byteArray = byteArray;
-	}
-	
-	public InputStream getInputStream() {
-		return new ByteArrayInputStream(byteArray);
-	}
-	
-	public MediaResourceKey getKey() {
-		return key;
-	}
+public class FileTypeUtilsTest {
 
-	public void setKey(MediaResourceKey key) {
-		this.key = key;
+	@Test
+	public void testImageExtensions() {
+		assertTrue(FileTypeUtils.isImageExtension("jpg"));
+		assertTrue(FileTypeUtils.isImageExtension("jpEg"));	
+		assertTrue(FileTypeUtils.isImageExtension("Tif"));	
+		assertTrue(FileTypeUtils.isImageExtension("Png"));	
+		assertTrue(FileTypeUtils.isImageExtension("bmp"));	
+	}
+	
+	@Test
+	public void testAudioExtensions() {
+		assertTrue(FileTypeUtils.isAudioExtension("waV"));	
+		assertTrue(FileTypeUtils.isAudioExtension("mp3"));
+		assertTrue(FileTypeUtils.isAudioExtension("oGG"));		
+	}
+	
+	@Test
+	public void testVideoExtensions() {
+		assertTrue(FileTypeUtils.isVideoExtension("avi"));
 	}
 	
 }

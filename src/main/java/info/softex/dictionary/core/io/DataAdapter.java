@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,7 +19,8 @@
 
 package info.softex.dictionary.core.io;
 
-import java.io.ByteArrayOutputStream;
+import info.softex.dictionary.core.utils.FileUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -31,6 +32,7 @@ import java.io.InputStream;
  * @since version 2.5, 06/30/2011
  * 
  * @modified version 3.4, 07/07/2012
+ * @modified version 4.6, 02/22/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -46,45 +48,27 @@ public class DataAdapter {
 		this.is = new FileInputStream(file);
 	}
 	
-	public DataAdapter(InputStream is) {
-		this.is = is;
+	public DataAdapter(InputStream inStream) {
+		this.is = inStream;
 	}
 	
 	public File toFile(File tempDir, String name, String prefix) throws IOException {
 		
-		prefix = (prefix == null ? "": prefix);
-		
-		byte buffer[] = new byte[16384];
-		
+		prefix = (prefix == null ? "": prefix);		
 		File file = new File(tempDir.getAbsolutePath() + File.separator + prefix + name);
 		
 	    FileOutputStream fos = new FileOutputStream(file);
-	    int len = 0;
-	    while ((len = is.read(buffer)) >= 0) {
-	    	fos.write(buffer,0,len);
-	    }
-	    
-	    fos.close();
+		FileUtils.copy(is, fos);
 	    is.close();
+	    fos.close();
 		
 		return file;
 	}
 	
 	public byte[] toByteArray() throws IOException {
-		
-		byte buffer[] = new byte[16384];
-
-		int nRead;
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		while ((nRead = is.read(buffer, 0, buffer.length)) >= 0) {
-			baos.write(buffer, 0, nRead);
-		}
-
-		baos.close();
+		byte[] result = FileUtils.toByteArray(is);
 		is.close();
-
-		return baos.toByteArray();
-
+		return result;
 	}
 
 }

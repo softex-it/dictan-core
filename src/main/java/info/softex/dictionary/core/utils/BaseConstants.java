@@ -33,22 +33,24 @@ package info.softex.dictionary.core.utils;
  */
 public class BaseConstants {
 	
-	public static final String URLSEG_ABBREVS = "abbrevs";
-	public static final String URLSEG_IMAGES = "images";
-	public static final String URLSEG_EXTERNAL = "external";
-	public static final String URLSEG_INTERNAL = "internal";
-	//public static final String URLSEG_ARTICLE_WORD = "article-word";
-	public static final String URLSEG_ARTICLE_INDEX = "article-index";
-	public static final String URLSEG_SOUNDS = "sounds";
+	public final static String PATH_SEPARATOR = "/";
 	
-	public static final String RESOURCE_INT_IMG_SOUND = "sound_32";
+	// The segment for images, sounds, videos and other resources
+	public final static String URLSEG_ABBREVS = "abbr";
+	public final static String URLSEG_ARTICLE_INDEX = "word-id";
 	
+	public final static String URLSEG_IMAGES = "img";
+	public final static String URLSEG_IMAGES_EXTERNAL = "img-ext";
+	public final static String URLSEG_AUDIO = "aud";
+	public final static String URLSEG_VIDEO = "vid";
 	
-	protected static final String MODE_DISABLED = "DISABLED";
-	protected static final String MODE_BASIC = "BASIC";
-	protected static final String MODE_FULL = "FULL";
-	protected static final String MODE_DSL = "DSL";
-	protected static final String MODE_AUTO = "AUTO";
-	protected static final String MODE_ALWAYS = "ALWAYS";
+	public final static String RESOURCE_INT_IMG_SOUND = "sound_32";
+	
+	protected final static String MODE_DISABLED = "DISABLED";
+	protected final static String MODE_BASIC = "BASIC";
+	protected final static String MODE_FULL = "FULL";
+	protected final static String MODE_DSL = "DSL";
+	protected final static String MODE_AUTO = "AUTO";
+	protected final static String MODE_ALWAYS = "ALWAYS";
 	
 }

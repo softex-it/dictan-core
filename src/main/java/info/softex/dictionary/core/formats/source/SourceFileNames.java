@@ -35,8 +35,14 @@ public class SourceFileNames {
 	public final static String DIRECTORY_MEDIA = "media";
 	public final static String DIRECTORY_ARTICLES_HTML = "articles_html";
 	public final static String FILE_ARTICLES = "articles.txt";
-	public final static String FILE_ARTICLES_DSL = "articles.dsl";
 	public final static String FILE_ABBREVIATIONS = "abbreviations.txt";
+	
+	public final static String FILE_DSL_ARTICLES_NO_EXT = "articles";
+	public final static String FILE_DSL_ABBREVIATIONS_NO_EXT = "abbreviations";
+	public final static String FILE_DSL_EXT_DESCRIPTION = ".ann";
+	public final static String FILE_DSL_EXT_MAIN = ".dsl";
+	public final static String FILE_DSL_EXT_ICON = ".bmp";
+	
 	public final static String FILE_DEBUG = "debug.txt";
 	
 	public final static String FILE_ARTICLES_KEYS = "articles_keys.txt";

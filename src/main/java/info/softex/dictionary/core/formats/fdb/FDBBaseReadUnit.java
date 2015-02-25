@@ -23,6 +23,7 @@ import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingMode;
+import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.collation.AbstractCollatorFactory;
@@ -40,6 +41,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.Collator;
 import java.text.ParseException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -84,7 +86,9 @@ public class FDBBaseReadUnit {
 	protected final int wordListBlockSize;
 	
 	protected PreparedStatement selWordIdByWordSt;
-	protected PreparedStatement selRelationWordIdByWordIdSt;
+	protected PreparedStatement selWordRedirectByWordIdSt;
+	protected PreparedStatement selWordMappingByWordIdSt;
+	
 	protected PreparedStatement selArticleBlockByIdSt;
 	protected PreparedStatement selMediaResourceIdByKey;
 	protected PreparedStatement selMediaResourceBlockById; 
@@ -109,7 +113,8 @@ public class FDBBaseReadUnit {
 			// Initialize statements for FDB version 3 and higher
 			ResultSet rs = connection.createStatement().executeQuery(FDBSQLReadStatements.CHECK_TABLE_WORDS_RELATIONS_EXISTS);
 			if (rs.next() && rs.getInt(1) > 0) {
-    			selRelationWordIdByWordIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_RELATION_REDIRECT_AND_TO_WORD_ID_BY_WORD_ID);
+    			selWordRedirectByWordIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_RELATION_REDIRECT_BY_WORD_ID);
+    			selWordMappingByWordIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_MAPPING_BY_WORD_ID);
     			log.info("FDB version 3 or higher is detected");
 			}
 		}
@@ -191,6 +196,28 @@ public class FDBBaseReadUnit {
 			resRS.close();
 		}
 		return mediaResources;
+	}
+	
+	public BaseResourceInfo getBaseResourceInfo(String resourceKey) {
+		
+		BaseResourceInfo resourceInfo = null;
+		
+//		insBaseResourceSt.setInt(1, baseResourcesNumber++);
+//		insBaseResourceSt.setString(2, baseResourceInfo.getResourceKey());
+//		insBaseResourceSt.setBytes(3, baseResourceInfo.getByteArray());
+//		insBaseResourceSt.setBytes(4, new byte[0]);
+//		insBaseResourceSt.setBytes(5, new byte[0]);
+//		insBaseResourceSt.setBytes(6, new byte[0]);
+//		insBaseResourceSt.setString(7, "");
+//		insBaseResourceSt.setString(8, "");
+//		insBaseResourceSt.setString(9, "");
+//		insBaseResourceSt.setString(10, "");
+//		insBaseResourceSt.setString(11, "");
+//		insBaseResourceSt.setString(12, "");
+//		insBaseResourceSt.executeUpdate();
+		
+		return resourceInfo;
+		
 	}
 	
 	public boolean isLoaded() {
@@ -330,9 +357,8 @@ public class FDBBaseReadUnit {
 			int resourceId = -1;
 			if (resIdRS.next()) {
 				resourceId = resIdRS.getInt(1);
-			} else {
-				return -1;
 			}
+			
 			resIdRS.close();
 			
 			return resourceId;
@@ -472,7 +498,6 @@ public class FDBBaseReadUnit {
 	/**
 	 * 
 	 * @param wordInfo - must always have id
-	 * @param isRaw
 	 * @return
 	 * @throws BaseFormatException
 	 */
@@ -526,7 +551,7 @@ public class FDBBaseReadUnit {
 	public void getWordRedirect(WordInfo wordInfo) throws BaseFormatException {
 		
 		if (!wordInfo.hasIndex()) {
-			throw new IllegalArgumentException("WordInfo must have an index to get a redirect");
+			throw new IllegalArgumentException("WordInfo must have an index to get its redirect");
 		}
 		
 		int redirectToId = wordInfo.getId();
@@ -534,8 +559,8 @@ public class FDBBaseReadUnit {
 		try {
 			
 			// Check if redirect is available
-			selRelationWordIdByWordIdSt.setInt(1, redirectToId);
-			ResultSet redirRS = selRelationWordIdByWordIdSt.executeQuery();
+			selWordRedirectByWordIdSt.setInt(1, redirectToId);
+			ResultSet redirRS = selWordRedirectByWordIdSt.executeQuery();
 			if (redirRS.next()) {
 				redirectToId = redirRS.getInt(1);
 				wordInfo.setRedirectToId(redirectToId);
@@ -547,6 +572,35 @@ public class FDBBaseReadUnit {
 		} catch (Exception e) {
 			log.error("Error", e);
 			throw new BaseFormatException("Couldn't retrieve the relation: " + e.getClass().getName() + ", " + e.getMessage());
+		}
+		
+	}
+	
+	public void getWordMapping(WordInfo wordInfo) throws BaseFormatException {
+		
+		if (!wordInfo.hasIndex()) {
+			throw new IllegalArgumentException("WordInfo must have an index to get its mapping");
+		}
+		
+		int redirectToId = wordInfo.getId();
+		
+		try {
+			
+			// Check if redirect is available
+			selWordMappingByWordIdSt.setInt(1, redirectToId);
+			ResultSet redirRS = selWordMappingByWordIdSt.executeQuery();
+			if (redirRS.next()) {
+				String mapping = redirRS.getString(1);
+				if (mapping != null && !mapping.isEmpty()) {
+					wordInfo.setWordMapping(mapping);
+					log.debug("Relation to word_id={} is found from word_id={}", redirectToId, wordInfo.getId()); 
+				}
+			}
+			redirRS.close();
+			
+		} catch (Exception e) {
+			log.error("Error", e);
+			throw new BaseFormatException("Couldn't retrieve the word mapping: " + e.getClass().getName() + ", " + e.getMessage());
 		}
 		
 	}

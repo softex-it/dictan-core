@@ -19,8 +19,11 @@
 
 package info.softex.dictionary.core.testutils;
 
+import static org.junit.Assert.assertNotNull;
+
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 
 /**
@@ -46,6 +49,13 @@ public class TestUtils {
 			targetDir.mkdirs();
 		}
 		return targetDir;
+	}
+	
+	public static File getCodeSourceRelevantFile(String path) {
+		assertNotNull(path);
+		URL resource = TestUtils.class.getResource(path);
+		assertNotNull(resource);
+		return new File(resource.getPath());
 	}
 
 	public static File getMavenTargetDirectory() {

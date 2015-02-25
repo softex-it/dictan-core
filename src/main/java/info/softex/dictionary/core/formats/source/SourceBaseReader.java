@@ -24,9 +24,11 @@ import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingMode;
+import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
+import info.softex.dictionary.core.attributes.MediaResourceKey;
 import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.api.BaseReader;
@@ -59,12 +61,12 @@ import org.slf4j.LoggerFactory;
 @BaseFormat(name = "BASIC_SOURCE", primaryExtension = "", extensions = {})
 public class SourceBaseReader implements BaseReader {
 	
-	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(SourceBaseReader.class);
+	public final static FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(SourceBaseReader.class);
 	
-	public static final int BUF_SIZE_ARTICLES = 2097152; // 2.0 MB 
-	public static final int BUF_SIZE_ABBREVS = 131072; // 128 KB
+	public final static int BUF_SIZE_ARTICLES = 2097152; // 2.0 MB 
+	public final static int BUF_SIZE_ABBREVS = 131072;   // 128 KB
 	
-	private static final Logger log = LoggerFactory.getLogger(SourceBaseReader.class);
+	private final static Logger log = LoggerFactory.getLogger(SourceBaseReader.class);
 
 	protected BasePropertiesInfo baseInfo = null;
 	protected LanguageDirectionsInfo langDirections = null;
@@ -169,6 +171,11 @@ public class SourceBaseReader implements BaseReader {
 	public BasePropertiesInfo getBasePropertiesInfo() {
 		return baseInfo;
 	}
+	
+	@Override
+	public BaseResourceInfo getBaseResourceInfo(String resourceKey) {
+		return null;
+	}
 
 	@Override
 	public FormatInfo getFormatInfo() {
@@ -189,11 +196,12 @@ public class SourceBaseReader implements BaseReader {
 	}
 
 	@Override
-	public MediaResourceInfo getMediaResourceInfo(MediaResourceInfo.Key mediaKey) throws BaseFormatException {
+	public MediaResourceInfo getMediaResourceInfo(MediaResourceKey mediaKey) throws BaseFormatException {
 		MediaResourceInfo resourceInfo = null;
-		if (mediaResources.contains(mediaKey.getResourceKey())) {
+		String resKey = mediaKey.getResourceKey();
+		if (mediaResources.contains(resKey)) {
 			try {
-				DataAdapter isAdapter = new DataAdapter(new File(mediaDirectoryPath + File.separator + mediaKey.getResourceKey()));
+				DataAdapter isAdapter = new DataAdapter(new File(mediaDirectoryPath + File.separator + resKey));
 				resourceInfo = new MediaResourceInfo(mediaKey, isAdapter.toByteArray());
 			} catch (IOException e) {
 				log.error("Error", e);
@@ -239,13 +247,18 @@ public class SourceBaseReader implements BaseReader {
 	public Map<Integer, String> getWordsMappings() throws BaseFormatException {
 		return null;
 	}
+	
+	@Override
+	public Map<Integer, String> getAdaptedWordsMappings() throws BaseFormatException {
+		return getWordsMappings();
+	}
 
 	@Override
 	public ArticleInfo getArticleInfo(WordInfo wordInfo) throws BaseFormatException {
 		ArticleInfo articleInfo = getRawArticleInfo(wordInfo);
 		if (articleInfo != null) {
 			String article = ArticleHtmlFormatter.prepareArticle(
-					wordInfo.getWord(),
+					wordInfo.getArticleWord(),
 					articleInfo.getArticle(), getAbbreviationKeys(), 
 					baseInfo.getArticlesFormattingMode(), 
 					baseInfo.getArticlesFormattingInjectWordMode(),
@@ -259,9 +272,8 @@ public class SourceBaseReader implements BaseReader {
 
 	@Override
 	public ArticleInfo getRawArticleInfo(WordInfo wordInfo) throws BaseFormatException {
-		int wid = wordInfo.getId();
 		ArticleInfo articleInfo = new ArticleInfo(wordInfo, null);
-		if (articleReader.readLine(articleInfo, wid)) {
+		if (articleReader.readLine(articleInfo, wordInfo.getId())) {
 			return articleInfo;
 		}
 		return null;
@@ -286,8 +298,6 @@ public class SourceBaseReader implements BaseReader {
 			abbrevReader = new SourceFileReader(abbrevFile, BUF_SIZE_ABBREVS);
 			abbrevReader.load(true);
 			abbKeys = abbrevReader.getLineMapper().keySet();
-		} else {
-			this.abbrevReader = null;
 		}
 		return abbKeys;
 	}

@@ -89,6 +89,7 @@ public class FDBBaseIOTest {
 		
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Test
 	public void testFDBBaseRead() throws Exception {
 		
@@ -109,7 +110,7 @@ public class FDBBaseIOTest {
 		
 		assertNotNull(words);
 		assertTrue("Number of words must be > 0", words.size() > 0);
-		assertEquals(FDBBaseSampleContent.WORDS_NUMBER, words.size());		
+		assertEquals(FDBBaseSampleContent.WORDS_NUMBER, words.size());
 		assertEquals(FDBBaseSampleContent.WORDS_NUMBER, baseInfo.getWordsNumber());
 		assertEquals(FDBBaseSampleContent.WORDS_NUMBER, baseInfo.getArticlesDeprecatedNumber());
 		assertEquals(FDBBaseSampleContent.ARTICLES_ACTUAL_NUMBER, baseInfo.getArticlesActualNumber());
@@ -139,7 +140,7 @@ public class FDBBaseIOTest {
 		ArticleInfo article123 = reader.getRawArticleInfo(new WordInfo(123));
 		ArticleInfo article2000 = reader.getRawArticleInfo(new WordInfo(2000));
 		assertEquals(article123.getArticle(), article2000.getArticle());
-		assertEquals(article123.getWordInfo().getWord(), article2000.getWordInfo().getArticleWord());
+		//assertEquals(article123.getWordInfo().getWord(), article2000.getWordInfo().getArticleWord());
 		assertEquals(SW_2000_REDIRECT_TO_123, article2000.getWordInfo().getWord());
 		
 		ArticleInfo article237 = reader.getRawArticleInfo(new WordInfo(237));

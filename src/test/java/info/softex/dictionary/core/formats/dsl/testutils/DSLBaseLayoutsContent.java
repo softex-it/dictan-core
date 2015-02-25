@@ -30,17 +30,21 @@ package info.softex.dictionary.core.formats.dsl.testutils;
  */
 public class DSLBaseLayoutsContent {
 
-	public static final int WORDS_NUMBER = 21;
-	public static final int WORDS_UNIQUE_NUMBER = 20;
+	public final static int WORDS_NUMBER = 28;
+	public final static int WORDS_UNIQUE_NUMBER = 27;
 	
-	public static final int WORDS_MAPPINGS_NUMBER = 9;
-	public static final int WORDS_MAPPINGS_UNIQUE_NUMBER = 8;
+	public final static int WORDS_MAPPINGS_NUMBER = 16;
+	public final static int WORDS_MAPPINGS_UNIQUE_NUMBER = 15;
 	
-	public static final int REDIRECTS_NUMBER = 10;
-	public static final int REDIRECTS_UNIQUE_NUMBER = 9;
+	public final static int ABBREVS_NUMBER = 16;
 	
-	public static final int ARTICLES_ACTAUL_NUMBER = 11;
+	public final static int REDIRECTS_NUMBER = 17;
+	public final static int REDIRECTS_UNIQUE_NUMBER = 16;
 	
-	public static final String WORD_NONINDEXED_AE3PE = "-ae3 partially excluded";
+	public final static int ARTICLES_ACTUAL_NUMBER = 11;
+	
+	public final static String WORD_NONINDEXED_AE2_SPEC = "-ae2 with {braces} and";
+	
+	public final static String WORD_NONINDEXED_AE3_PE = "-ae3 partially excluded";
 	
 }

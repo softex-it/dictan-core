@@ -1,2 +1,9 @@
-abb 1  def 1
-abb 2  def 2
+#NAME	"Abbrev"
+#INDEX_LANGUAGE	"English"
+#CONTENTS_LANGUAGE	"English"
+#ICON_FILE	"abrvev.bmp"
+
+abbr.
+	Abbreviation
+adj.
+	Adjective

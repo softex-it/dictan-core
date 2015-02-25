@@ -22,9 +22,11 @@ package info.softex.dictionary.core.formats.api;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
+import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
+import info.softex.dictionary.core.attributes.MediaResourceKey;
 import info.softex.dictionary.core.attributes.WordInfo;
 
 import java.util.List;
@@ -83,8 +85,10 @@ public interface BaseReader {
 	public FormatInfo getFormatInfo();
 	public LanguageDirectionsInfo getLanguageDirectionsInfo();
 	
+	public BaseResourceInfo getBaseResourceInfo(String resourceKey);
+	
 	public Set<String> getMediaResourceKeys() throws BaseFormatException;
-	public MediaResourceInfo getMediaResourceInfo(MediaResourceInfo.Key mediaKey) throws BaseFormatException;
+	public MediaResourceInfo getMediaResourceInfo(MediaResourceKey mediaKey) throws BaseFormatException;
 	
 	public Set<String> getAbbreviationKeys() throws BaseFormatException;
 	public AbbreviationInfo getAbbreviationInfo(String abbreviationKey) throws BaseFormatException;
@@ -113,7 +117,8 @@ public interface BaseReader {
 //	public int getWordIndex(String word) throws BaseFormatException;
 	
 	public List<String> getWords() throws BaseFormatException;
-	public Map<Integer, String> getWordsMappings() throws BaseFormatException;	
+	public Map<Integer, String> getWordsMappings() throws BaseFormatException;
+	public Map<Integer, String> getAdaptedWordsMappings() throws BaseFormatException;	
 	public Map<Integer, Integer> getWordsRedirects() throws BaseFormatException;	
 	
 	/**

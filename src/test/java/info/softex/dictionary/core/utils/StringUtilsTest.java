@@ -53,5 +53,12 @@ public class StringUtilsTest {
 			assertEquals(STRINGS_LTRIMMED.get(input), StringUtils.ltrim(input));
 		}
 	}
+	
+	@Test
+	public void testDefaultString() throws Exception {
+		assertEquals("", StringUtils.defaultString(null));
+		assertEquals("", StringUtils.defaultString(""));
+		assertEquals("mytest", StringUtils.defaultString("mytest"));
+	}
 
 }

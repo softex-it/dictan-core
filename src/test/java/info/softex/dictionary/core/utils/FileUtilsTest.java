@@ -20,16 +20,14 @@
 package info.softex.dictionary.core.utils;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import info.softex.dictionary.core.testutils.TestUtils;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 import org.junit.Test;
 
@@ -41,45 +39,69 @@ import org.junit.Test;
  * 
  */
 public class FileUtilsTest {
+	
+	protected final static String UTF8 = "UTF-8";
+	
+	protected final static String ST_SAMPLE = "unicode smiley \u263A and umbrella \u2602";
+	protected final static byte[] ST_SAMPLE_BT = new byte[] { 
+		117, 110, 105, 99, 111, 100, 101, 32, 115, 109, 105, 108, 101, 121, 32, -30, -104, 
+		-70, 32, 97, 110, 100, 32, 117, 109, 98, 114, 101, 108, 108, 97, 32, -30, -104, -126
+	}; 
 
-	private final Map<String, String> title2FileNameMap = new HashMap<String, String>();
+	protected final static String ST_SAMPLE_FILE = "/info/softex/dictionary/core/utils/sample.txt";
+
+	protected final static byte[] ST_SAMPLE_FILE_BT = new byte[] { 
+		115, 111, 109, 101, 32, 105, 110, 112, 117, 116, 32, 119, 105, 116, 104, 32, 85, 110, 
+		105, 99, 111, 100, 101, 32, 115, 121, 109, 112, 111, 108, 115, 10, 10, 73, 116, 32, 109, 
+		97, 121, 32, 98, 101, 32, 117, 115, 101, 102, 117, 108, 32, 116, 111, 32, 102, 111, 114, 
+		32, 102, 105, 108, 101, 32, 117, 116, 105, 108, 115, 32, 116, 101, 115, 116, 115, 10, 10, 
+		83, 111, 109, 101, 32, 117, 110, 105, 99, 111, 100, 101, 32, 99, 104, 97, 114, 97, 99, 
+		116, 101, 114, 115, 58, 10, 10, -30, -104, -70, 10, -30, -104, -126, 10
+	}; 
 	
-	private final static String T2F_PATH = "/info/softex/dictionary/core/utils/titles2filenames.txt";
+	@Test
+	public void testImageExtensions() {
+		assertEquals("", FileUtils.getFileExtension(null));
+		assertEquals("", FileUtils.getFileExtension(""));
+		assertEquals("", FileUtils.getFileExtension("myfile."));
+		assertEquals("", FileUtils.getFileExtension("myfile"));
+		assertEquals("pNg", FileUtils.getFileExtension("myfile.pNg"));
+		assertEquals("bmp", FileUtils.getFileExtension("myfile.ext.bmp"));
+	}
 	
-	public FileUtilsTest() throws IOException {
+	@Test
+	public void testToByteArray() throws UnsupportedEncodingException, IOException {
 		
-		URL url = getClass().getResource(T2F_PATH);
-		
-		assertNotNull("Resource URL is null", url);
-		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(new File(url.getPath()))));
-		String line = null;
-		int lines = 0;
-		while ((line = reader.readLine()) != null){
-		    String[] kv = line.split(",");
-		    title2FileNameMap.put(kv[0].trim(), kv[1].trim());
-		    lines++;
-		}
-		reader.close();
-		
-		assertEquals(8, lines);
+		assertEquals(
+			Arrays.toString(ST_SAMPLE_BT), 
+			Arrays.toString(FileUtils.toByteArray(new ByteArrayInputStream(ST_SAMPLE.getBytes(UTF8))))
+		);
+
+		assertEquals(
+			new String(ST_SAMPLE_FILE_BT, UTF8), 
+			new String(FileUtils.toByteArray(TestUtils.getCodeSourceRelevantFile(ST_SAMPLE_FILE)), UTF8)
+		);
 		
 	}
 	
 	@Test
-	public void testTitle2FileName() throws Exception {
-		for (Map.Entry<String, String> entry : title2FileNameMap.entrySet()) {
-			String value = FileUtils.title2FileName(entry.getKey());
-			assertEquals(entry.getValue(), value);
-		}
+	public void testCopy() throws UnsupportedEncodingException, IOException {
+		
+		byte[] stSampleBytes = ST_SAMPLE.getBytes(UTF8);
+		
+		InputStream is = new ByteArrayInputStream(stSampleBytes);
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		
+		long length = FileUtils.copy(is, os);
+		
+		assertEquals(stSampleBytes.length, length);
+		assertEquals(stSampleBytes.length, os.toByteArray().length);
+		
+		assertEquals(Arrays.toString(stSampleBytes), Arrays.toString(os.toByteArray()));
+		
+		is.close();
+		os.close();
+		
 	}
 	
-	@Test
-	public void testFileName2Title() throws Exception {
-		for (Map.Entry<String, String> entry : title2FileNameMap.entrySet()) {
-			String value = FileUtils.fileName2Title(entry.getValue());
-			assertEquals(entry.getKey(), value);
-		}
-	}
-
 }

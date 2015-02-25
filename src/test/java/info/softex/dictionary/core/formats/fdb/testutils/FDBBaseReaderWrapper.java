@@ -72,6 +72,10 @@ public class FDBBaseReaderWrapper extends FDBBaseReader {
 		rs3.next();
 		assertEquals(baseInfo.getWordsMappingsNumber(), rs3.getInt(1));
 		
+		// Actual articles
+		assertTrue(baseInfo.getArticlesActualNumber() > 0);
+		assertEquals(baseInfo.getWordsNumber() - baseInfo.getWordsRelationsNumber(), baseInfo.getArticlesActualNumber());
+		
 	}
 
 }

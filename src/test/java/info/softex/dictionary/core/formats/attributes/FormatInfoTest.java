@@ -59,7 +59,7 @@ public class FormatInfoTest {
 		assertEquals(format.getName(), "FDB");
 		assertEquals(format.getPrimaryExtension(), ".fdb");
 		
-		assertArrayEquals(format.getExtensions().toArray(), new String [] {".fdb"});
+		assertArrayEquals(format.getExtensions().toArray(), new String [] {".fdb", ".fdl"});
 		
 	}
 	
