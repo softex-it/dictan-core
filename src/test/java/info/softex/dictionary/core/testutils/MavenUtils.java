@@ -33,14 +33,14 @@ import java.nio.file.Path;
  * @author Dmitry Viktorov
  * 
  */
-public class TestUtils {
+public class MavenUtils {
 	
 	protected final static String MVN_TARGET_SUBPATH = "../../target/";
 	protected final static String MVN_TEST_FILES_SUBPATH = MVN_TARGET_SUBPATH + "test-files/";
 	protected final static String MVN_TEST_DICTS_SUBPATH = MVN_TARGET_SUBPATH + "test-dicts/";
 	
 	protected static File getCodeSourceRelevantDirectory(String subPath) {
-		String relPath = TestUtils.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+		String relPath = MavenUtils.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 		if (!relPath.endsWith(File.separator)) {
 			relPath += File.separator;
 		}
@@ -53,8 +53,8 @@ public class TestUtils {
 	
 	public static File getCodeSourceRelevantFile(String path) {
 		assertNotNull(path);
-		URL resource = TestUtils.class.getResource(path);
-		assertNotNull(resource);
+		URL resource = MavenUtils.class.getResource(path);
+		assertNotNull("Resource is null for path " + path, resource);
 		return new File(resource.getPath());
 	}
 

@@ -134,6 +134,14 @@ public class ArticleInfo implements Cloneable, KeyValueInfo<String, String> {
 			return "Article: null, Ref type: " + referenceType + "; " + wordInfo;
 		}
 	}
+
+	public ArticleInfo clone() {
+		try {
+			return (ArticleInfo)super.clone();
+		} catch (CloneNotSupportedException e) {
+			return null;
+		}
+	}
 	
 	public ArticleInfo clone(RT refType) {
 		ArticleInfo transInfo = new ArticleInfo(wordInfo.clone(), article);

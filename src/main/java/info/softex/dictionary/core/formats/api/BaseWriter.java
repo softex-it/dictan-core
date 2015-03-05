@@ -19,8 +19,6 @@
 
 package info.softex.dictionary.core.formats.api;
 
-import java.util.Observer;
-
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
@@ -28,6 +26,8 @@ import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
+
+import java.util.Observer;
 
 /**
  * 
@@ -51,7 +51,9 @@ public interface BaseWriter {
 	public LanguageDirectionsInfo saveLanguageDirectionsInfo(LanguageDirectionsInfo languageDirectionsInfo) throws Exception;
 	public LanguageDirectionsInfo getLanguageDirectionsInfo();
 	
-	public void saveArticleInfo(ArticleInfo articleInfo) throws Exception;
+	public void saveRawArticleInfo(ArticleInfo articleInfo) throws Exception;
+	public void saveAdaptedArticleInfo(ArticleInfo articleInfo) throws Exception;
+	
 	public void saveAbbreviationInfo(AbbreviationInfo abbreviationInfo) throws Exception;
 	public void saveBaseResourceInfo(BaseResourceInfo baseResourceInfo) throws Exception;
 	public void saveMediaResourceInfo(MediaResourceInfo mediaResourceInfo) throws Exception;

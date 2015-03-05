@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
  * @author Dmitry Viktorov
  * 
  */
-@BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb", ".fdl"})
+@BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb", ".fdl"}, sortingExpected = true)
 public class FDBBaseWriter implements BaseWriter {
 	
 	private static final Logger log = LoggerFactory.getLogger(FDBBaseWriter.class);
@@ -157,7 +157,7 @@ public class FDBBaseWriter implements BaseWriter {
 	}
 	
 	@Override
-	public void saveArticleInfo(ArticleInfo articleInfo) throws Exception {
+	public void saveRawArticleInfo(ArticleInfo articleInfo) throws Exception {
 		
 		if (wordsNumber == 0) {
 			saveArticlesBlockIdStart4BaseIndex(activeBase.getBaseIndex());
@@ -193,6 +193,11 @@ public class FDBBaseWriter implements BaseWriter {
 			flushArticles();
 			reviseBaseFiles();
 		}
+	}
+	
+	@Override
+	public void saveAdaptedArticleInfo(ArticleInfo articleInfo) throws Exception {
+		saveRawArticleInfo(articleInfo);
 	}
 	
 	@Override

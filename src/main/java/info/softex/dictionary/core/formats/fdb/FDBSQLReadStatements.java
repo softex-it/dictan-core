@@ -37,9 +37,12 @@ public class FDBSQLReadStatements {
 	public static final String SELECT_WORDS_NUMER =
 		"SELECT MAX(word_id)+1 FROM " + FDBTables.words;
 	
-	public static final String SELECT_ALL_RELATIONS_REDIRECTS =
-		"SELECT word_id, to_word_id, relation_type FROM " + FDBTables.words_relations + 
+	public static final String SELECT_ALL_WORD_RELATIONS_REDIRECTS =
+		"SELECT word_id,to_word_id,relation_type FROM " + FDBTables.words_relations + 
 		" WHERE relation_type IN (1,2)";
+	
+	public static final String SELECT_ALL_WORD_MAPPINGS =
+		"SELECT word_id,word_mapping_1,word_mapping_2 FROM " + FDBTables.words_mappings;
 
 	public static final String SELECT_ABBREVIATIONS =
 		"SELECT abbreviation_id, abbreviation, definition FROM " + FDBTables.abbreviations;
@@ -87,6 +90,10 @@ public class FDBSQLReadStatements {
 		"SELECT from_locale,to_locale,base_resource,data_1,data_2,data_3,info_1,info_2,info_3,info_4,info_5,info_6 FROM " + 
 		FDBTables.language_directions + "," + FDBTables.base_resources + 
 		" WHERE base_resource_key=\"collation.rules.\"||from_locale";
+	
+	public static final String SELECT_BASE_RESOURCE_BY_KEY =	
+		"SELECT base_resource_id,base_resource_key,base_resource,data_1,data_2,data_3,info_1,info_2,info_3,info_4,info_5,info_6 FROM " + 
+		FDBTables.base_resources + " WHERE base_resource_key=(?)";
 	
 	// SQLite Meta Info ---------------------------------------------------------
 	

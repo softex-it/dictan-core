@@ -16,7 +16,7 @@ import java.io.Writer;
  * @author Dmitry Viktorov
  *
  */
-@BaseFormat(name = "SOURCE_KEYS", primaryExtension = "", extensions = {})
+@BaseFormat(name = "SOURCE_KEYS", primaryExtension = "", extensions = {}, sortingExpected = false)
 public class SourceKeysBaseWriter extends SourceBaseWriter {
 	
 	protected Writer mediaWriter;
@@ -26,7 +26,7 @@ public class SourceKeysBaseWriter extends SourceBaseWriter {
 	}
 	
 	@Override
-	public void saveArticleInfo(ArticleInfo articleInfo) throws Exception {
+	public void saveRawArticleInfo(ArticleInfo articleInfo) throws Exception {
 		saveArticleLine(articleInfo.getWordInfo().getWord() + "\r\n");
 	}
 	

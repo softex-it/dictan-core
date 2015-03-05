@@ -13,6 +13,15 @@ cept
 	\[[t]sep(t)[/t]\] 
 	[m1][p][trn]prep., conj., & v.[/p] nonstandard contraction of [ref]except[/ref][/trn][/m]
 	
+sample entry
+example
+sample {unsorted part} card 1
+sample {unsorted part}card 2
+sample{unsorted part} card 3
+sample {unsorted part} card 4 {at the end}
+{the }sample headword
+	Sample entry is the main headword with many redirects.
+	
 d
  [m1][i][c][trn]contraction[/c][/i] had[/trn][/m]
 	[m1][*][trn][ex]they'd already gone[/ex][/trn][/*][/m]

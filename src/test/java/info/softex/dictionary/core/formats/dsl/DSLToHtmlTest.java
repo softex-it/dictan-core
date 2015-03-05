@@ -19,17 +19,17 @@
 
 package info.softex.dictionary.core.formats.dsl;
 
+import static info.softex.dictionary.core.formats.dsl.testutils.content.DSLBaseLayoutsContent.PROPS_LAYOUTS_ORIG;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.FontInfo;
 import info.softex.dictionary.core.attributes.WordInfo;
-import info.softex.dictionary.core.formats.dsl.testutils.DSLBaseLayoutsContent;
-import info.softex.dictionary.core.formats.dsl.testutils.DSLBaseReaderFactory;
 import info.softex.dictionary.core.formats.dsl.testutils.DSLBaseReaderWrapper;
+import info.softex.dictionary.core.formats.dsl.testutils.content.DSLBaseLayoutsContent;
 import info.softex.dictionary.core.formats.dsl.utils.DSLWriteFormatUtils;
-import info.softex.dictionary.core.testutils.TestUtils;
+import info.softex.dictionary.core.testutils.MavenUtils;
 import info.softex.dictionary.core.utils.StringUtils;
 
 import java.io.IOException;
@@ -55,8 +55,8 @@ public class DSLToHtmlTest {
 	@Test
 	public void testDSLFormatting() throws Exception {
 		
-		DSLBaseReaderWrapper readerOrig = DSLBaseReaderFactory.createAndAssertLayoutsDSLBaseReader();
-		DSLBaseReaderWrapper readerAdapted = DSLBaseReaderFactory.createAndAssertLayoutsAdaptedDSLBaseReader();
+		DSLBaseReaderWrapper readerOrig = DSLBaseLayoutsContent.createAndAssertLayoutsDSLBaseReader();
+		DSLBaseReaderWrapper readerAdapted = DSLBaseLayoutsContent.createAndAssertLayoutsAdaptedDSLBaseReader();
 		
 		List<String> wordsOrig = readerOrig.getWords();
 		List<String> wordsAdapted = readerAdapted.getWords();
@@ -64,16 +64,16 @@ public class DSLToHtmlTest {
 		log.info("Number of words. Original: {}. Adapted: {}", wordsOrig.size(), wordsAdapted.size());
 		
 		// Verify readers have the same words
-		assertEquals(DSLBaseLayoutsContent.WORDS_NUMBER, wordsOrig.size());
-		assertEquals(DSLBaseLayoutsContent.WORDS_NUMBER, wordsAdapted.size());
+		assertEquals(PROPS_LAYOUTS_ORIG.getWordsNumber(), wordsOrig.size());
+		assertEquals(PROPS_LAYOUTS_ORIG.getWordsNumber(), wordsAdapted.size());
 		assertEquals(wordsOrig, wordsAdapted);
 		
 		Map<Integer, String> mappingsOrig = readerOrig.getAdaptedWordsMappings();
 		Map<Integer, String> mappingsAdapted = readerAdapted.getWordsMappings();
 		
 		// Check words mappings
-		assertEquals(DSLBaseLayoutsContent.WORDS_MAPPINGS_NUMBER, mappingsOrig.size());
-		assertEquals(DSLBaseLayoutsContent.WORDS_MAPPINGS_NUMBER, mappingsAdapted.size());
+		assertEquals(PROPS_LAYOUTS_ORIG.getWordsMappingsNumber(), mappingsOrig.size());
+		assertEquals(PROPS_LAYOUTS_ORIG.getWordsMappingsNumber(), mappingsAdapted.size());
 		
 		for (int i = 0; i < wordsOrig.size(); i++) {
 			assertNotNull(wordsOrig.get(i));
@@ -84,8 +84,8 @@ public class DSLToHtmlTest {
 		// Verify readers have the same redirects
 		Map<Integer, Integer> redirectsOrig = readerOrig.getWordsRedirects();
 		Map<Integer, Integer> redirectsAdapted = readerAdapted.getWordsRedirects();		
-		assertEquals(DSLBaseLayoutsContent.REDIRECTS_NUMBER, redirectsOrig.size());
-		assertEquals(DSLBaseLayoutsContent.REDIRECTS_NUMBER, redirectsAdapted.size());
+		assertEquals(PROPS_LAYOUTS_ORIG.getWordsRelationsNumber(), redirectsOrig.size());
+		assertEquals(PROPS_LAYOUTS_ORIG.getWordsRelationsNumber(), redirectsAdapted.size());
 		assertEquals(redirectsOrig, redirectsAdapted);
 		for (int i = 0; i < wordsOrig.size(); i++) {
 			processTestArticle(
@@ -113,7 +113,7 @@ public class DSLToHtmlTest {
 		
 		// Output the full HTML article (for manual verification)
 		String htmlArticle = origAdapted.getFullArticle(new FontInfo(), null, DSLStyles.getDSLStylesForBrowser());
-		Files.write(TestUtils.getMavenTestPath(origWordRaw + ".html"), htmlArticle.getBytes());
+		Files.write(MavenUtils.getMavenTestPath(origWordRaw + ".html"), htmlArticle.getBytes());
 		
 		// Check the expected and actual adapted articles are the same
 		assertEquals(origArticleAdapted, adaptedRaw.getArticle());

@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
  * @author Dmitry Viktorov
  *
  */
-@BaseFormat(name = "BASIC_SOURCE", primaryExtension = "", extensions = {})
+@BaseFormat(name = "BASIC_SOURCE", primaryExtension = "", extensions = {}, sortingExpected = false)
 public class SourceBaseReader implements BaseReader {
 	
 	public final static FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(SourceBaseReader.class);
@@ -173,7 +173,7 @@ public class SourceBaseReader implements BaseReader {
 	}
 	
 	@Override
-	public BaseResourceInfo getBaseResourceInfo(String resourceKey) {
+	public BaseResourceInfo getBaseResourceInfo(String resourceKey) throws BaseFormatException {
 		return null;
 	}
 

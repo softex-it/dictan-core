@@ -70,7 +70,7 @@ import org.slf4j.LoggerFactory;
  * @author Dmitry Viktorov
  * 
  */
-@BaseFormat(name = "ZD", primaryExtension = ".zd", extensions = {".zd"})
+@BaseFormat(name = "ZD", primaryExtension = ".zd", extensions = {".zd"}, sortingExpected = true)
 public class ZDBaseReader implements BaseReader {
 	
 	public static final String FORMAT_ZPAK_NAME = "ZPAK";

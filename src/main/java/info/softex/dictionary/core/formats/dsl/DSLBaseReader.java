@@ -42,6 +42,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * The DSL Base Reader enables reading the DSL (Dictionary Specification Language)
  * format developed by ABBYY and mainly used at Lingvo application.
@@ -51,10 +54,12 @@ import java.util.TreeMap;
  * @author Dmitry Viktorov
  * 
  */
-@BaseFormat(name = "DSL", primaryExtension = ".dsl", extensions = {".dsl"})
+@BaseFormat(name = "DSL", primaryExtension = ".dsl", extensions = {".dsl"}, sortingExpected = false)
 public class DSLBaseReader extends SourceBaseReader {
 	
 	public final static FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(DSLBaseReader.class);
+	
+	private final static Logger log = LoggerFactory.getLogger(DSLBaseReader.class);
 
 	protected final List<String> headers = new ArrayList<String>();
 	
@@ -176,7 +181,7 @@ public class DSLBaseReader extends SourceBaseReader {
 	}
 	
 	@Override
-	public BaseResourceInfo getBaseResourceInfo(String resourceKey) {
+	public BaseResourceInfo getBaseResourceInfo(String resourceKey) throws BaseFormatException {
 		
 		BaseResourceKey brk = BaseResourceKey.resolveKey(resourceKey);
 		if (brk == null) {
@@ -186,18 +191,23 @@ public class DSLBaseReader extends SourceBaseReader {
 		BaseResourceInfo resInfo = null;
 		
 		switch (brk) {
-		
 			case BASE_ARTICLES_META_DSL:
-				resInfo = new BaseResourceInfo(brk, dslArticleReader.getDSLIcon());
-				resInfo.setInfo1(dslArticleReader.getDSLHeadersAsString());
-				resInfo.setInfo2(dslArticleReader.getDSLDescription());
+				try {
+					resInfo = dslArticleReader.getDSLMetaBaseResourceInfo(brk.getKey());
+				} catch (IOException e) {
+					log.error("Error", e);
+					throw new BaseFormatException("Couldn'r read base resource: " + brk);
+				}
 			break;
 
 			case BASE_ABBREVIATIONS_META_DSL:
 				if (dslAbbrevReader != null) {
-					resInfo = new BaseResourceInfo(brk, dslAbbrevReader.getDSLIcon());
-					resInfo.setInfo1(dslAbbrevReader.getDSLHeadersAsString());
-					resInfo.setInfo2(dslAbbrevReader.getDSLDescription());
+					try {
+						resInfo = dslAbbrevReader.getDSLMetaBaseResourceInfo(brk.getKey());
+					} catch (IOException e) {
+						log.error("Error", e);
+						throw new BaseFormatException("Couldn'r read base resource: " + brk);
+					}
 				}
 			break;
 				
@@ -226,8 +236,7 @@ public class DSLBaseReader extends SourceBaseReader {
 		baseInfo.setArticlesActualNumber(words.size() - getWordsRedirects().size());
 		baseInfo.setWordsMappingsNumber(getWordsMappings().size());
 		baseInfo.setWordsRelationsNumber(getWordsRedirects().size());
-		
 		return baseInfo;
 	}
-
+	
 }

@@ -22,15 +22,16 @@ package info.softex.dictionary.core.formats.dsl;
 import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.attributes.BaseResourceInfo;
+import info.softex.dictionary.core.attributes.BaseResourceKey;
 import info.softex.dictionary.core.attributes.FormatInfo;
-import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
-import info.softex.dictionary.core.attributes.MediaResourceInfo;
-import info.softex.dictionary.core.formats.api.BaseWriter;
-import info.softex.dictionary.core.formats.fdb.FDBBaseWriter;
+import info.softex.dictionary.core.attributes.WordInfo;
+import info.softex.dictionary.core.formats.dsl.utils.DSLWriteFormatUtils;
+import info.softex.dictionary.core.formats.source.SourceBaseWriter;
+import info.softex.dictionary.core.formats.source.SourceFileNames;
 
-import java.util.Observer;
+import java.io.File;
+import java.io.IOException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,71 +40,29 @@ import org.slf4j.LoggerFactory;
  * The DSL Base Writer enables writing the DSL (Dictionary Specification Language)
  * format developed by ABBYY and mainly used at Lingvo application.
  * 
- * @since version 4.6, 02/21/2015
+ * @since version 4.6, 02/28/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
-@BaseFormat(name = "DSL", primaryExtension = ".dsl", extensions = {".dsl"})
-public class DSLBaseWriter implements BaseWriter {
+@BaseFormat(name = "DSL", primaryExtension = ".dsl", extensions = {".dsl"}, sortingExpected = false)
+public class DSLBaseWriter extends SourceBaseWriter {
+
+	private final static Logger log = LoggerFactory.getLogger(DSLBaseWriter.class);
+
+	public final static FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(DSLBaseWriter.class);
+
+	protected DSLBaseWriteUnit dslArticleWriter;
+	protected DSLBaseWriteUnit dslAbbrevWriter;
 	
-	private static final Logger log = LoggerFactory.getLogger(DSLBaseWriter.class);
-
-	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(FDBBaseWriter.class);
-
-	@Override
-	public void createBase(String... params) throws Exception {
-		
+	public DSLBaseWriter(File inOutDirectory) throws IOException {
+		super(inOutDirectory);
 	}
-
+	
 	@Override
-	public BasePropertiesInfo saveBasePropertiesInfo(BasePropertiesInfo basePropertiesInfo) throws Exception {
-		return null;
-	}
-
-	@Override
-	public BasePropertiesInfo getBasePropertiesInfo() {
-		return null;
-	}
-
-	@Override
-	public LanguageDirectionsInfo saveLanguageDirectionsInfo(LanguageDirectionsInfo languageDirectionsInfo) throws Exception {
-		return null;
-	}
-
-	@Override
-	public LanguageDirectionsInfo getLanguageDirectionsInfo() {
-		return null;
-	}
-
-	@Override
-	public void saveArticleInfo(ArticleInfo articleInfo) throws Exception {
-		
-	}
-
-	@Override
-	public void saveAbbreviationInfo(AbbreviationInfo abbreviationInfo) throws Exception {
-		
-	}
-
-	@Override
-	public void saveBaseResourceInfo(BaseResourceInfo baseResourceInfo) throws Exception {
-		
-	}
-
-	@Override
-	public void saveMediaResourceInfo(MediaResourceInfo mediaResourceInfo) throws Exception {
-		
-	}
-
-	@Override
-	public void flush() throws Exception {
-		
-	}
-
-	@Override
-	public void close() throws Exception {
-		
+	protected void createWriters() throws Exception {
+		dslArticleWriter = new DSLBaseWriteUnit(outDirectory.getPath(), SourceFileNames.FILE_DSL_ARTICLES_NO_EXT);
+		dslAbbrevWriter = new DSLBaseWriteUnit(outDirectory.getPath(), SourceFileNames.FILE_DSL_ABBREVIATIONS_NO_EXT);
 	}
 
 	@Override
@@ -112,8 +71,61 @@ public class DSLBaseWriter implements BaseWriter {
 	}
 
 	@Override
-	public void addObserver(Observer observer) {
+	public void saveRawArticleInfo(ArticleInfo articleInfo) throws Exception {
+		WordInfo wordInfo = articleInfo.getWordInfo();
+		dslArticleWriter.saveEntry(wordInfo.getWord(), wordInfo.getWordMapping(), wordInfo.getRedirectToId(), articleInfo.getArticle());
+	}
+	
+	@Override
+	public void saveAdaptedArticleInfo(ArticleInfo articleInfo) throws Exception {
+		String dslArticle = DSLWriteFormatUtils.convertAdaptedHtmlToDSL(articleInfo.getArticle());
+		ArticleInfo dslArticleInfo = articleInfo.clone();
+		dslArticleInfo.setArticle(dslArticle);
+		saveRawArticleInfo(dslArticleInfo);
+	}
+	
+	@Override
+	public void saveAbbreviationInfo(AbbreviationInfo abbreviationInfo) throws Exception {
+		dslAbbrevWriter.saveEntry(abbreviationInfo.getAbbreviation(), null, -1, abbreviationInfo.getDefinition());
+	}
+	
+	@Override
+	public void saveBaseResourceInfo(BaseResourceInfo baseResourceInfo) throws IOException {
+
+		BaseResourceKey brk = BaseResourceKey.resolveKey(baseResourceInfo.getResourceKey());
+		if (brk == null) {
+			log.info("Couldn't resolve the resource key: {}", baseResourceInfo.getResourceKey());
+			return;
+		}
 		
+		switch (brk) {
+		
+			case BASE_ARTICLES_META_DSL:
+				dslArticleWriter.saveDSLIcon(baseResourceInfo.getByteArray());
+				dslArticleWriter.saveDSLHeaders(baseResourceInfo.getInfo1());
+				dslArticleWriter.saveDSLDescription(baseResourceInfo.getInfo2());				
+			break;
+
+			case BASE_ABBREVIATIONS_META_DSL:
+				dslAbbrevWriter.saveDSLIcon(baseResourceInfo.getByteArray());
+				dslAbbrevWriter.saveDSLHeaders(baseResourceInfo.getInfo1());
+				dslAbbrevWriter.saveDSLDescription(baseResourceInfo.getInfo2());	
+			break;
+				
+			default:
+		}
+		
+	}
+	
+	@Override
+	public void close() throws IOException {
+		super.close();
+		if (dslArticleWriter != null) {
+			dslArticleWriter.close();
+		}
+		if (dslAbbrevWriter != null) {
+			dslAbbrevWriter .close();
+		}
 	}
 
 }

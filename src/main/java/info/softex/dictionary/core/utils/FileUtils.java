@@ -20,12 +20,15 @@
 package info.softex.dictionary.core.utils;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -253,5 +256,116 @@ public class FileUtils {
 		}
 		return total;
 	}
-
+	
+	/**
+	 * Opens a {@link FileOutputStream} for the specified file, checking and
+	 * creating the parent directory if it does not exist.
+	 */
+	public static FileOutputStream openOutputStream(final File file, final boolean append) throws IOException {
+		if (file.exists()) {
+			if (file.isDirectory()) {
+				throw new IOException("File '" + file + "' exists but is a directory");
+			}
+			if (file.canWrite() == false) {
+				throw new IOException("File '" + file + "' cannot be written to");
+			}
+		} else {
+			final File parent = file.getParentFile();
+			if (parent != null) {
+				if (!parent.mkdirs() && !parent.isDirectory()) {
+					throw new IOException("Directory '" + parent + "' could not be created");
+				}
+			}
+		}
+		return new FileOutputStream(file, append);
+	}
+	
+	/**
+	 * Closes a <code>Closeable</code> unconditionally.
+	 * <p>
+	 * Equivalent to {@link Closeable#close()}, except any exceptions will be ignored. 
+	 * This is typically used in finally blocks.
+	 * </p>
+	 */
+	public static void closeQuietly(final Closeable closeable) {
+		try {
+			if (closeable != null) {
+				closeable.close();
+			}
+		} catch (final IOException ioe) {
+			// ignore
+		}
+	}
+	
+	/**
+	 * Opens a {@link FileOutputStream} for the specified file, checking and
+	 * creating the parent directory if it does not exist.
+	 */
+	public static FileOutputStream openOutputStream(final File file) throws IOException {
+		return openOutputStream(file, false);
+	}
+	
+	/**
+	 * Writes {@code len} bytes from the specified byte array starting
+	 * at offset {@code off} to a file, creating the file if it does
+	 * not exist.
+	 */
+	public static void toFile(final File file, final byte[] data, final int off, final int len, final boolean append) throws IOException {
+		OutputStream out = null;
+		try {
+			out = openOutputStream(file, append);
+			out.write(data, off, len);
+			out.close(); // Don't swallow close Exception if copy completes normally
+		} finally {
+			closeQuietly(out);
+		}
+	}
+	
+	/**
+	 * Writes a byte array to a file creating the file if it does not exist.
+	 */
+	public static void toFile(final File file, final byte[] data) throws IOException {
+		toFile(file, data, false);
+	}
+	
+	/**
+	 * Writes a byte array to a file creating the file if it does not exist.
+	 */
+	public static void toFile(final File file, final byte[] data, final boolean append) throws IOException {
+		toFile(file, data, 0, data.length, append);
+	}
+	
+	/**
+	 * Writes chars from a <code>String</code> to bytes on an
+	 * <code>OutputStream</code> using the specified character encoding.
+	 * <p>This method uses {@link String#getBytes(String)}.</p>
+	 */
+	public static void write(final String data, final OutputStream output, final Charset encoding) throws IOException {
+		if (data != null) {
+			output.write(data.getBytes(encoding));
+		}
+	}
+	
+	/**
+	 * Writes a String to a file creating the file if it does not exist.
+	 */
+	public static void toFile(final File file, final String data, final Charset encoding, final boolean append) throws IOException {
+		OutputStream out = null;
+		try {
+			out = openOutputStream(file, append);
+			write(data, out, encoding);
+			out.close(); // Don't swallow close Exception if copy completes normally
+		} finally {
+			closeQuietly(out);
+		}
+	}
+	
+	/**
+	 * Writes a String to a file creating the file if it does not exist.
+	 * The parent directories of the file will be created if they do not exist.
+	 */
+	public static void toFile(final File file, final String data, final Charset encoding) throws IOException {
+		toFile(file, data, encoding, false);
+	}
+	
 }

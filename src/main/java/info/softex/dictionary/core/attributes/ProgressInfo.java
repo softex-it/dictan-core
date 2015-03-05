@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -23,10 +23,11 @@ import java.util.Observable;
 
 /**
  * 
- * @since version 1.0, 09/23/2010
+ * @since version 1.0,		09/23/2010
  * 
- * @modified version 3.4, 07/09/2012
- * @modified version 4.5, 05/06/2014
+ * @modified version 3.4,	07/09/2012
+ * @modified version 4.5,	05/06/2014
+ * @modified version 4.6,	02/26/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -41,9 +42,10 @@ public final class ProgressInfo extends Observable {
 		return message;
 	}
 
-	public void setMessage(String message) {
+	public ProgressInfo setMessage(String message) {
 		this.message = message;
 		setChanged();
+		return this;
 	}
 
 	public int getTotal() {
@@ -59,9 +61,10 @@ public final class ProgressInfo extends Observable {
 		return current;
 	}
 
-	public void setCurrent(int current) {
+	public ProgressInfo setCurrent(int current) {
 		this.current = current;
 		setChanged();
+		return this;
 	}
 
 	public void step(int number) {

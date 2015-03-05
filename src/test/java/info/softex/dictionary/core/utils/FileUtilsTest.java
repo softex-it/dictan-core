@@ -20,7 +20,7 @@
 package info.softex.dictionary.core.utils;
 
 import static org.junit.Assert.assertEquals;
-import info.softex.dictionary.core.testutils.TestUtils;
+import info.softex.dictionary.core.testutils.MavenUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -79,7 +79,7 @@ public class FileUtilsTest {
 
 		assertEquals(
 			new String(ST_SAMPLE_FILE_BT, UTF8), 
-			new String(FileUtils.toByteArray(TestUtils.getCodeSourceRelevantFile(ST_SAMPLE_FILE)), UTF8)
+			new String(FileUtils.toByteArray(MavenUtils.getCodeSourceRelevantFile(ST_SAMPLE_FILE)), UTF8)
 		);
 		
 	}

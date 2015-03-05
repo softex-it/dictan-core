@@ -41,7 +41,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.Collator;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -77,6 +76,7 @@ public class FDBBaseReadUnit {
 	
 	protected List<String> words = null;
 	protected TreeMap<Integer, Integer> wordsRedirects = null;
+	protected TreeMap<Integer, String> wordsMappings = null;
 	
 	protected Map<String, String> abbreviations = null;
 	protected Set<String> mediaResources = null; // Initialized only when getMediaResourceKeys is called
@@ -92,6 +92,8 @@ public class FDBBaseReadUnit {
 	protected PreparedStatement selArticleBlockByIdSt;
 	protected PreparedStatement selMediaResourceIdByKey;
 	protected PreparedStatement selMediaResourceBlockById; 
+	
+	protected PreparedStatement selBaseResourceByKey;
 	
 	protected final AbstractCollatorFactory collatorFactory;
 	
@@ -109,6 +111,7 @@ public class FDBBaseReadUnit {
 		if (main) {
 			selWordIdByWordSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_ID_BY_WORD);
 			selMediaResourceIdByKey = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_ID_BY_MEDIA_RESOURCE_KEY);
+			selBaseResourceByKey = connection.prepareStatement(FDBSQLReadStatements.SELECT_BASE_RESOURCE_BY_KEY);
 			
 			// Initialize statements for FDB version 3 and higher
 			ResultSet rs = connection.createStatement().executeQuery(FDBSQLReadStatements.CHECK_TABLE_WORDS_RELATIONS_EXISTS);
@@ -198,23 +201,17 @@ public class FDBBaseReadUnit {
 		return mediaResources;
 	}
 	
-	public BaseResourceInfo getBaseResourceInfo(String resourceKey) {
+	public BaseResourceInfo getBaseResourceInfo(String resourceKey) throws SQLException {
 		
 		BaseResourceInfo resourceInfo = null;
 		
-//		insBaseResourceSt.setInt(1, baseResourcesNumber++);
-//		insBaseResourceSt.setString(2, baseResourceInfo.getResourceKey());
-//		insBaseResourceSt.setBytes(3, baseResourceInfo.getByteArray());
-//		insBaseResourceSt.setBytes(4, new byte[0]);
-//		insBaseResourceSt.setBytes(5, new byte[0]);
-//		insBaseResourceSt.setBytes(6, new byte[0]);
-//		insBaseResourceSt.setString(7, "");
-//		insBaseResourceSt.setString(8, "");
-//		insBaseResourceSt.setString(9, "");
-//		insBaseResourceSt.setString(10, "");
-//		insBaseResourceSt.setString(11, "");
-//		insBaseResourceSt.setString(12, "");
-//		insBaseResourceSt.executeUpdate();
+		selBaseResourceByKey.setString(1, resourceKey);
+		ResultSet rs = selBaseResourceByKey.executeQuery();
+		if (rs.next()) {
+			resourceInfo = new BaseResourceInfo(rs.getInt(1), rs.getString(2), rs.getBytes(3));
+			resourceInfo.setInfo1(rs.getString(7));
+			resourceInfo.setInfo2(rs.getString(8));
+		}
 		
 		return resourceInfo;
 		
@@ -422,13 +419,13 @@ public class FDBBaseReadUnit {
 	 * 
 	 * @return Map of word IDs for redirects
 	 */
-	public Map<Integer, Integer> getWordsRedirects() throws BaseFormatException {
+	public TreeMap<Integer, Integer> getWordsRedirects() throws BaseFormatException {
 		if (wordsRedirects == null) {
 			wordsRedirects = new TreeMap<Integer, Integer>();
 			try {
 				
 				Statement statement = connection.createStatement();
-				ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_RELATIONS_REDIRECTS);
+				ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_WORD_RELATIONS_REDIRECTS);
 				
 				// Populate the redirects map
 				while (rs.next()) {
@@ -442,6 +439,28 @@ public class FDBBaseReadUnit {
 			}
 		} 
 		return wordsRedirects;
+	}
+	
+	public TreeMap<Integer, String> getWordsMappings() throws BaseFormatException {
+		if (wordsMappings == null) {
+			wordsMappings = new TreeMap<Integer, String>();
+			try {
+				
+				Statement statement = connection.createStatement();
+				ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_WORD_MAPPINGS);
+				
+				// Populate the redirects map
+				while (rs.next()) {
+					wordsMappings.put(rs.getInt(1), rs.getString(2));
+				}
+				rs.close();
+				
+			} catch (Exception e) {
+				log.error("Error", e);
+				throw new BaseFormatException("Couldn't load word mappings: " + e.getMessage());
+			}
+		}
+		return wordsMappings;
 	}
 	
 	public BasePropertiesInfo getBasePropertiesInfo() {

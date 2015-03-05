@@ -17,7 +17,7 @@ import java.io.IOException;
  * @author Dmitry Viktorov
  * 
  */
-@BaseFormat(name = "HTML", primaryExtension = "", extensions = {})
+@BaseFormat(name = "HTML", primaryExtension = "", extensions = {}, sortingExpected = false)
 public class HtmlBaseWriter extends SourceBaseWriter {
 	
 	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(HtmlBaseWriter.class);
@@ -31,7 +31,7 @@ public class HtmlBaseWriter extends SourceBaseWriter {
 	}
 	
 	@Override
-	public void saveArticleInfo(ArticleInfo articleInfo) throws Exception {
+	public void saveRawArticleInfo(ArticleInfo articleInfo) throws Exception {
 		String fileName = FileConversionUtils.title2FileName(articleInfo.getKey());
 		FileConversionUtils.string2File(
 			outHtmlPath + File.separator + fileName, 

@@ -31,6 +31,7 @@ import info.softex.dictionary.core.attributes.ProgressInfo;
 import info.softex.dictionary.core.formats.api.BaseWriter;
 import info.softex.dictionary.core.formats.source.utils.SourceFormatUtils;
 import info.softex.dictionary.core.formats.source.utils.SourceReaderUtils;
+import info.softex.dictionary.core.utils.FileUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -47,24 +48,25 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * @since version 3.4, 07/02/2012
+ * @since version 3.4,		07/02/2012
  * 
- * @modified version 4.0, 02/08/2014
- * @modified version 4.2, 03/08/2014
- * @modified version 4.4, 03/17/2014
- * @modified version 4.5, 03/29/2014
+ * @modified version 4.0,	02/08/2014
+ * @modified version 4.2,	03/08/2014
+ * @modified version 4.4,	03/17/2014
+ * @modified version 4.5,	03/29/2014
+ * @modified version 4.6,	02/28/2015
  * 
  * @author Dmitry Viktorov
  *
  */
-@BaseFormat(name = "BASIC_SOURCE", primaryExtension = "", extensions = {})
+@BaseFormat(name = "BASIC_SOURCE", primaryExtension = "", extensions = {}, sortingExpected = false)
 public class SourceBaseWriter implements BaseWriter {
 	
 	private static final Logger log = LoggerFactory.getLogger(SourceBaseWriter.class);
 	
 	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(SourceBaseWriter.class);
-		
-	byte mediaBuffer[] = new byte[16384];
+	
+	//byte mediaBuffer[] = new byte[16384];
 	
 	protected BasePropertiesInfo baseInfo;
 	
@@ -93,12 +95,10 @@ public class SourceBaseWriter implements BaseWriter {
 	
 	@Override
 	public void createBase(String... params) throws Exception {
-		
-		// Create environment
+		// Create directories
 		outDirectory.mkdirs();
 		mediaDirectory = new File(outDirectory.getAbsolutePath() + File.separator + SourceFileNames.DIRECTORY_MEDIA);
 		mediaDirectory.mkdirs();
-		
 		createWriters();
 	}
 
@@ -131,9 +131,14 @@ public class SourceBaseWriter implements BaseWriter {
 	}
 
 	@Override
-	public void saveArticleInfo(ArticleInfo articleInfo) throws Exception {
+	public void saveRawArticleInfo(ArticleInfo articleInfo) throws Exception {
 		String nobrArticle = SourceFormatUtils.removeLineBreaks(articleInfo.getArticle());
 		saveArticleLine(articleInfo.getWordInfo().getWord() + SourceReaderUtils.SOURCE_DELIMITER + nobrArticle + "\r\n");
+	}
+	
+	@Override
+	public void saveAdaptedArticleInfo(ArticleInfo articleInfo) throws Exception {
+		saveRawArticleInfo(articleInfo);
 	}
 
 	@Override
@@ -142,22 +147,15 @@ public class SourceBaseWriter implements BaseWriter {
 	}
 
 	@Override
-	public void saveBaseResourceInfo(BaseResourceInfo baseResourceInfo) {
-		try {
-			logDebug(baseResourceInfo.getResourceKey() + "  " + new String(baseResourceInfo.getByteArray(), UTF8));
-		} catch (Exception e) {
-			log.error("Error", e);
-		}
+	public void saveBaseResourceInfo(BaseResourceInfo baseResourceInfo) throws IOException {
+		logDebug(baseResourceInfo.getResourceKey() + "  " + new String(baseResourceInfo.getByteArray(), UTF8));
 	}
 
 	@Override
 	public void saveMediaResourceInfo(MediaResourceInfo mediaResourceInfo) throws Exception {
 		InputStream is = mediaResourceInfo.getInputStream();
-	    FileOutputStream fos = new FileOutputStream(mediaDirectory.getAbsoluteFile() + File.separator + mediaResourceInfo.getKey().getResourceKey());
-	    int len;
-	    while ((len = is.read(mediaBuffer)) > 0) {
-	    	fos.write(mediaBuffer, 0, len);
-	    }
+	    FileOutputStream fos = new FileOutputStream(mediaDirectory.getAbsoluteFile() + File.separator + mediaResourceInfo.getKey().getResourceKey()); 
+	    FileUtils.copy(is, fos);
 	    fos.close();
 	    is.close();	
 	    mediaResourcesNumber++;
@@ -169,8 +167,12 @@ public class SourceBaseWriter implements BaseWriter {
 		if (artWriter != null) {
 			artWriter.flush();
 		}
-		abbWriter.flush();
-		debugWriter.flush();
+		if (abbWriter != null) {
+			abbWriter.flush();
+		}
+		if (debugWriter != null) {
+			debugWriter.flush();
+		}
 	}
 
 	@Override
@@ -178,8 +180,12 @@ public class SourceBaseWriter implements BaseWriter {
 		if (artWriter != null) {
 			artWriter.close();
 		}
-		abbWriter.close();
-		debugWriter.close();
+		if (abbWriter != null) {
+			abbWriter.close();
+		}
+		if (debugWriter != null) {
+			debugWriter.close();
+		}
 	}
 
 	@Override

@@ -196,12 +196,12 @@ public class FDBBaseWriteUnit {
 	public BasePropertiesInfo saveBasePropertiesInfo(BasePropertiesInfo inBaseInfo, FormatInfo inFormatInfo) throws SQLException, NoSuchAlgorithmException {
 		
 		if (baseIndex == 1) {
-
+			
 			this.baseInfo = inBaseInfo;
-
+			
 			inBaseInfo.setFormatName(inFormatInfo.getName());
 			inBaseInfo.setFormatVersion(FDBConstants.CURRENT_FDB_VERSION);
-		
+			
 			// Dates
 			Date currentDate = new Date();
 			if (inBaseInfo.getCompilationDate() == null) {
@@ -238,6 +238,11 @@ public class FDBBaseWriteUnit {
 			// If actual articles number is not set, it always must have a value
 			if (inBaseInfo.getArticlesActualNumber() == 0) {
 				inBaseInfo.setArticlesActualNumber(0);
+			}
+			
+			// If actual media resources number, it always must have a value
+			if (inBaseInfo.getMediaResourcesNumber() == 0) {
+				inBaseInfo.setMediaResourcesNumber(0);
 			}
 			
 			inBaseInfo.getPrimaryParameters().put(PrimaryKey.ARTICLES_BLOCKS_SIZE_UNCOMPRESSED_MIN.getKey(), this.minArticleBlockMemSize);

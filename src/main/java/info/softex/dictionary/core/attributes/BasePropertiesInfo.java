@@ -252,10 +252,10 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 
 	public String getArticlesFormattingMode() {
-		return getArticlesFormattingResolved().name();
+		return getArticlesFormattingModeResolved().name();
 	}
 	
-	public ArticlesFormattingMode getArticlesFormattingResolved() {
+	public ArticlesFormattingMode getArticlesFormattingModeResolved() {
 		Object mode = primaryParams.get(PrimaryKey.ARTICLES_FORMATTING_MODE.getKey());
 		if (mode instanceof String) {
 			if ("MEDIA".equalsIgnoreCase((String)mode)) { // Except the obsolete MEDIA formatting
@@ -267,19 +267,27 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	public String getArticlesFormattingInjectWordMode() {
+		return getArticlesFormattingInjectWordModeResolved().name();
+	}
+	
+	public ArticlesFormattingInjectWordMode getArticlesFormattingInjectWordModeResolved() {
 		Object mode = primaryParams.get(PrimaryKey.ARTICLES_FORMATTING_INJECT_WORD_MODE.getKey());
 		if (mode instanceof String) {
-			return ArticlesFormattingInjectWordMode.valueOf(mode.toString()).name();
+			return ArticlesFormattingInjectWordMode.valueOf(mode.toString());
 		}
-		return ArticlesFormattingInjectWordMode.AUTO.name();
+		return ArticlesFormattingInjectWordMode.AUTO;
 	}
 
 	public String getAbbreviationsFormattingMode() {
+		return getAbbreviationsFormattingModeResolved().name();
+	}
+	
+	public AbbreviationsFormattingMode getAbbreviationsFormattingModeResolved() {
 		Object mode = primaryParams.get(PrimaryKey.ABBREVIATIONS_FORMATTING_MODE.getKey());
 		if (mode instanceof String) {
-			return AbbreviationsFormattingMode.valueOf(mode.toString()).name();
+			return AbbreviationsFormattingMode.valueOf(mode.toString());
 		}
-		return AbbreviationsFormattingMode.FULL.name();
+		return AbbreviationsFormattingMode.FULL;
 	}
 	
 	public void setAbbreviationsFormattingMode(AbbreviationsFormattingMode mode) {

@@ -27,13 +27,13 @@ import java.util.HashMap;
 
 /**
  * 
- * @since version 2.0, 03/13/2011
+ * @since version 2.0,		03/13/2011
  * 
- * @modified version 2.6, 09/17/2011
- * @modified version 3.7, 06/14/2013
- * @modified version 3.9, 12/05/2013
- * @modified version 4.0, 02/09/2014
- * @modified version 4.6, 02/08/2015
+ * @modified version 2.6,	09/17/2011
+ * @modified version 3.7,	06/14/2013
+ * @modified version 3.9,	12/05/2013
+ * @modified version 4.0,	02/09/2014
+ * @modified version 4.6,	02/08/2015
  *  
  * @author Dmitry Viktorov
  * 
@@ -77,7 +77,7 @@ public class BaseInfoHtmlBuilder {
 			put(NUMBER_OF_WORDS_ARTICLES, "Words, Articles");
 			put(NUMBER_OF_REDIRECTS_MAPPINGS, "Redirects, Mappings");
 			put(NUMBER_OF_ABBREVIATIONS, "Abbreviations");
-			put(NUMBER_OF_RESOURCES, "Resources");
+			put(NUMBER_OF_RESOURCES, "Media Resources");
 			put(ARTICLES_FORMATTING, "Articles Formatting");
 			put(ARTICLES_FORMATTING_INJECT_WORDS, "Prefix Articles with Words");
 			put(ABBREV_FORMATTING, "Abbrev. Formatting");
@@ -98,7 +98,7 @@ public class BaseInfoHtmlBuilder {
 			put(NUMBER_OF_ABBREVIATIONS, "Сокращения");
 			put(NUMBER_OF_WORDS_ARTICLES, "Слова / Статьи");
 			put(NUMBER_OF_REDIRECTS_MAPPINGS, "Редиректы / Маппинги");
-			put(NUMBER_OF_RESOURCES, "Ресурсы");
+			put(NUMBER_OF_RESOURCES, "Медиа Ресурсы");
 			put(ARTICLES_FORMATTING, "Формат Статей");
 			put(ARTICLES_FORMATTING_INJECT_WORDS, "Префикс Статей Словами");
 			put(ABBREV_FORMATTING, "Формат Сокращений");

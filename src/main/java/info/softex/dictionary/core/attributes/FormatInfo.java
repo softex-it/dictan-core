@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -31,6 +31,7 @@ import java.util.Set;
  * @since version 2.6, 09/02/2011
  * 
  * @modified version 3.7, 06/12/2013
+ * @modified version 4.6, 02/26/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -43,12 +44,20 @@ public class FormatInfo {
 	private final String primaryExtension;
 	private final Set<String> extensions;
 	
-	public FormatInfo(String name, String primaryExtension, String[] extensions) {
+	// States whether the base is expected to be sorted
+	private final boolean sortingExpected;
+	
+	// States if the base contains key only
+	private final boolean hasKeysOnly;
+	
+	public FormatInfo(String name, String inPrimaryExtension, String[] inExtensions, boolean inSortingExpected, boolean inHasKeysOnly) {
 		this.name = name.toUpperCase(LOCALE_DEFAULT);
-		this.primaryExtension = primaryExtension;
+		this.primaryExtension = inPrimaryExtension;
+		this.sortingExpected = inSortingExpected;
+		this.hasKeysOnly = inHasKeysOnly;
 		this.extensions = new LinkedHashSet<String>();
-		for (int i = 0; i < extensions.length; i++) {
-			this.extensions.add(extensions[i].toLowerCase(LOCALE_DEFAULT));
+		for (int i = 0; i < inExtensions.length; i++) {
+			this.extensions.add(inExtensions[i].toLowerCase(LOCALE_DEFAULT));
 		}
 	}
 	
@@ -76,12 +85,20 @@ public class FormatInfo {
 		return null;
 	}
 	
+	public boolean isSortingExpected() {
+		return sortingExpected;
+	}
+	
+	public boolean hasKeysOnly() {
+		return hasKeysOnly;
+	}
+	
 	public static FormatInfo buildFormatInfoFromAnnotation(Class<?> clazz) {
 		Annotation[] anns = clazz.getAnnotations();
 		for (int i = 0; i < anns.length; i++) {
 			if (anns[i] instanceof BaseFormat) {
 				BaseFormat df = (BaseFormat)anns[i];
-				return new FormatInfo(df.name(), df.primaryExtension(), df.extensions());
+				return new FormatInfo(df.name(), df.primaryExtension(), df.extensions(), df.sortingExpected(), df.hasKeysOnly());
 			}
 		}
 		return null;

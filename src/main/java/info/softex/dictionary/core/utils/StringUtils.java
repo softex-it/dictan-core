@@ -126,6 +126,16 @@ public class StringUtils {
 	}
 	
 	/**
+	 * Splits input string into an array of string by line breaks.
+	 */
+	public static String[] splitByLineBreaks(final String str) {
+		if (str != null) {
+			return str.split("\\r?\\n");
+		}
+		return null;
+	}
+	
+	/**
 	 * Removes the leading white spaces. It repeats the implementation of
 	 * String.trim() but only for the leading white spaces.
 	 * 

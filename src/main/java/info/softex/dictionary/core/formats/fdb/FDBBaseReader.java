@@ -63,7 +63,7 @@ import org.slf4j.LoggerFactory;
  * @author Dmitry Viktorov
  * 
  */
-@BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb", ".fdl"})
+@BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb", ".fdl"}, sortingExpected = true)
 public class FDBBaseReader implements BaseReader {
 	
 	private static final Logger log = LoggerFactory.getLogger(FDBBaseReader.class.getSimpleName());
@@ -250,7 +250,7 @@ public class FDBBaseReader implements BaseReader {
 	
 	@Override
 	public Map<Integer, String> getWordsMappings() throws BaseFormatException {
-		return null;
+		return mainBase.getWordsMappings();
 	}
 	
 	@Override
@@ -276,8 +276,13 @@ public class FDBBaseReader implements BaseReader {
 	}
 	
 	@Override
-	public BaseResourceInfo getBaseResourceInfo(String resourceKey) {
-		return mainBase.getBaseResourceInfo(resourceKey);
+	public BaseResourceInfo getBaseResourceInfo(String resourceKey) throws BaseFormatException {
+		try {
+			return mainBase.getBaseResourceInfo(resourceKey);
+		} catch (SQLException e) {
+			log.error("Error", e);
+			throw new BaseFormatException("Couldn't read BaseResourceInfo: " + e.getMessage());
+		}
 	}
 	
 	@Override

@@ -21,9 +21,9 @@ package info.softex.dictionary.core.attributes;
 
 /**
  * 
- * @since version 4.2, 03/07/2014
+ * @since version 4.2,		03/07/2014
  * 
- * @modified version 4.6, 01/27/2015
+ * @modified version 4.6,	01/27/2015
  *
  */
 public interface KeyValueInfo<K, V> {

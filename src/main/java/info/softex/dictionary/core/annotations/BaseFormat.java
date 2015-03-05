@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -26,10 +26,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * The annotation represents the meta information about the base format. 
+ * It's used to get the <code>FormatInfo</code> of a base.
  * 
- * @since version 2.6, 09/03/2011
+ * @since version 2.6,		09/03/2011
  * 
- * @since modified 3.4, 07/05/2012
+ * @modified version 3.4,	07/05/2012
+ * @modified version 4.6,	02/26/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -44,5 +47,11 @@ public @interface BaseFormat {
 	String primaryExtension();
 	
 	String[] extensions();
+	
+	// States if the base is expected to be sorted
+	boolean sortingExpected();
+	
+	// States if the base contains keys only, i.e. body is not provides for its entries
+	boolean hasKeysOnly() default false;
 	
 }

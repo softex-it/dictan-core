@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
  * @author Dmitry Viktorov
  * 
  */
-@BaseFormat(name = "HTML", primaryExtension = "", extensions = {})
+@BaseFormat(name = "HTML", primaryExtension = "", extensions = {}, sortingExpected = false)
 public class HtmlBaseReader extends SourceBaseReader {
 	
 	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(HtmlBaseReader.class);

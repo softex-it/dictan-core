@@ -85,7 +85,7 @@ public interface BaseReader {
 	public FormatInfo getFormatInfo();
 	public LanguageDirectionsInfo getLanguageDirectionsInfo();
 	
-	public BaseResourceInfo getBaseResourceInfo(String resourceKey);
+	public BaseResourceInfo getBaseResourceInfo(String resourceKey) throws BaseFormatException;
 	
 	public Set<String> getMediaResourceKeys() throws BaseFormatException;
 	public MediaResourceInfo getMediaResourceInfo(MediaResourceKey mediaKey) throws BaseFormatException;

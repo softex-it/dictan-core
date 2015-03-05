@@ -41,7 +41,7 @@ import java.util.Locale;
  */
 public class FDBBaseIOFactory {
 	
-	public static FDBBaseWriterWrapper createFDBBaseWriter(File file, BasePropertiesInfo baseInfo) throws Exception {
+	public static FDBBaseWriterWrapper createAndAssertFDBBaseWriter(File file, BasePropertiesInfo baseInfo) throws Exception {
 		
 		if (file.exists()) {
 			file.delete();
@@ -51,7 +51,7 @@ public class FDBBaseIOFactory {
 		writer.createBase();
 		
 		// Populate base properties
-		baseInfo.setBaseVersion(6,3);
+		baseInfo.setBaseVersion(6, 3);
 		baseInfo.setBaseShortName(FDBBaseSampleContent.SHORT_NAME);
 		baseInfo.setBaseFullName(FDBBaseSampleContent.FULL_NAME);
 		

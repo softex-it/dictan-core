@@ -17,34 +17,23 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.dsl.testutils;
+package info.softex.dictionary.core.conversions.testutils;
+
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * 
- * Test data for the layouts DSL base.
- * 
- * @since version 4.6, 02/09/2015
+ * @since version 4.6, 		02/27/2015
  * 
  * @author Dmitry Viktorov
- * 
+ *
  */
-public class DSLBaseLayoutsContent {
+public class TestConversionObserver implements Observer {
 
-	public final static int WORDS_NUMBER = 28;
-	public final static int WORDS_UNIQUE_NUMBER = 27;
-	
-	public final static int WORDS_MAPPINGS_NUMBER = 16;
-	public final static int WORDS_MAPPINGS_UNIQUE_NUMBER = 15;
-	
-	public final static int ABBREVS_NUMBER = 16;
-	
-	public final static int REDIRECTS_NUMBER = 17;
-	public final static int REDIRECTS_UNIQUE_NUMBER = 16;
-	
-	public final static int ARTICLES_ACTUAL_NUMBER = 11;
-	
-	public final static String WORD_NONINDEXED_AE2_SPEC = "-ae2 with {braces} and";
-	
-	public final static String WORD_NONINDEXED_AE3_PE = "-ae3 partially excluded";
-	
+	@Override
+	public void update(Observable o, Object arg) {
+		// Do nothing
+	}
+
 }

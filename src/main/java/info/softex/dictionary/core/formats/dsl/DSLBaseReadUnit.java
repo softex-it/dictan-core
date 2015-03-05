@@ -19,6 +19,7 @@
 
 package info.softex.dictionary.core.formats.dsl;
 
+import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.KeyValueInfo;
 import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.dsl.utils.DSLReaderUtils;
@@ -29,6 +30,8 @@ import info.softex.dictionary.core.utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,19 +42,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 
  * File reader for the DSL format developed by ABBYY Lingvo. It's used
  * separately for the articles and abbreviations to open a DSL base.
  * 
  * @since version 4.6, 01/26/2015
  * 
  * @author Dmitry Viktorov
- * 
  */
 public class DSLBaseReadUnit {
 	
 	private final static int INIT_LIST_SIZE = 10000;
-	private final static String UTF8 = "UTF-8";
+	private final static Charset UTF8 = Charset.forName("UTF-8");
 	
 	private final static Logger log = LoggerFactory.getLogger(DSLBaseReadUnit.class.getName());
 
@@ -66,20 +67,20 @@ public class DSLBaseReadUnit {
 	protected final TreeMap<Integer, String> wordsMappings = new TreeMap<Integer, String>();
 	protected final TreeMap<Integer, Integer> wordsRedirects = new TreeMap<Integer, Integer>();
 	
-	protected final String sourceDir;
+	protected final String sourceDirPath;
 	protected final File descFile;
 	protected final File iconFile;
 	
-	public DSLBaseReadUnit(String sourceDirPath, String nameBasis) throws IOException {
+	public DSLBaseReadUnit(String inSourceDirPath, String nameBasis) throws IOException {
 		
-		this.sourceDir = sourceDirPath;
+		this.sourceDirPath = inSourceDirPath;
 		
 		// Source file: Check BOM to see the encoding is UTF-8 or undefined
-		File sourceFile = new File(sourceDirPath + File.separator + nameBasis + SourceFileNames.FILE_DSL_EXT_MAIN);
+		File sourceFile = new File(inSourceDirPath + File.separator + nameBasis + SourceFileNames.FILE_DSL_EXT_MAIN);
 		FileConversionUtils.verifyUnicodeEncodingUndefinedOrUTF8(sourceFile);
 		
 		// Description file: Check it exists and if yes, check it's UTF-8
-		File tempDescFile = new File(sourceDirPath + File.separator + nameBasis + SourceFileNames.FILE_DSL_EXT_DESCRIPTION);
+		File tempDescFile = new File(inSourceDirPath + File.separator + nameBasis + SourceFileNames.FILE_DSL_EXT_DESCRIPTION);
 		if (tempDescFile.exists() && tempDescFile.isFile()) {
 			FileConversionUtils.verifyUnicodeEncodingUndefinedOrUTF8(tempDescFile);
 			descFile = tempDescFile;
@@ -89,7 +90,7 @@ public class DSLBaseReadUnit {
 		}
 		
 		// Icon file: Check if it exists
-		File tempIconFile = new File(sourceDirPath + File.separator + nameBasis + SourceFileNames.FILE_DSL_EXT_ICON);
+		File tempIconFile = new File(inSourceDirPath + File.separator + nameBasis + SourceFileNames.FILE_DSL_EXT_ICON);
 		if (tempIconFile.exists() && tempIconFile.isFile()) {
 			iconFile = tempIconFile;
 		} else {
@@ -145,6 +146,27 @@ public class DSLBaseReadUnit {
 			result = strHeaders.trim();
 		}
 		return result;
+	}
+	
+	public BaseResourceInfo getDSLMetaBaseResourceInfo(String brk) throws IOException {
+		BaseResourceInfo resInfo = null;
+		
+		byte[] icon = getDSLIcon();
+		String headers = getDSLHeadersAsString();
+		String descr = getDSLDescription();
+		
+		// Create result only if at least one resource is defined
+		if ((icon != null && icon.length > 0) ||
+			(headers != null && !headers.isEmpty()) ||
+				(descr != null && !descr.isEmpty())) {
+			resInfo = new BaseResourceInfo(brk, icon);
+			resInfo.setInfo1(headers);
+			resInfo.setInfo2(descr);	
+		} else {
+			log.error("All resource for {} are empty or null. The BaseResourceInfo is not created");
+		}
+
+		return resInfo;
 	}
 
 	public boolean readEntry(KeyValueInfo<String, String> inKeyValueInfo, int entryId) throws BaseFormatException {
@@ -216,28 +238,20 @@ public class DSLBaseReadUnit {
 		return indexMapper;
 	}
 	
-	public byte[] getDSLIcon() {
+	public byte[] getDSLIcon() throws IOException {
 		byte[] result = null;
 		if (iconFile != null) {
-			try {
-				// Android doesn't support java.nio.file.Files, so use the common approach
-				result = FileUtils.toByteArray(iconFile);
-			} catch (IOException e) {
-				log.error("Error", e);
-			}
+			// Android doesn't support java.nio.file.Files, so use the common approach
+			result = FileUtils.toByteArray(iconFile);
 		}
 		return result;
 	}
 	
-	public String getDSLDescription() {
+	public String getDSLDescription() throws UnsupportedEncodingException, IOException {
 		String result = null;
 		if (descFile != null) {
-			try {
-				// Android doesn't support java.nio.file.Files, so use the common approach
-				result = new String(FileUtils.toByteArray(descFile), UTF8);
-			} catch (IOException e) {
-				log.error("Error", e);
-			}
+			// Android doesn't support java.nio.file.Files, so use the common approach
+			result = new String(FileUtils.toByteArray(descFile), UTF8);
 		}
 		return result;
 	}

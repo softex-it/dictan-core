@@ -31,7 +31,7 @@ import info.softex.dictionary.core.database.BasicSQLiteConnectionFactory;
 import info.softex.dictionary.core.formats.api.BaseWriter;
 import info.softex.dictionary.core.formats.fdb.testutils.FDBBaseSampleContent;
 import info.softex.dictionary.core.formats.fdb.testutils.FDBBaseIOFactory;
-import info.softex.dictionary.core.testutils.TestUtils;
+import info.softex.dictionary.core.testutils.MavenUtils;
 
 import java.io.File;
 import java.util.List;
@@ -71,7 +71,7 @@ public class FDBBaseIOTest {
 
 	@Before
 	public void doBefore() throws Exception {
-		file = TestUtils.getMavenTestDictFile(BASE_FILE);
+		file = MavenUtils.getMavenTestDictFile(BASE_FILE);
 	}
 	
 	@Test
@@ -79,7 +79,7 @@ public class FDBBaseIOTest {
 		
 		log.info("FDB write test started");
 		
-		FDBBaseWriter writer = FDBBaseIOFactory.createFDBBaseWriter(file, new BasePropertiesInfo());
+		FDBBaseWriter writer = FDBBaseIOFactory.createAndAssertFDBBaseWriter(file, new BasePropertiesInfo());
 
 		pushSampleToWriter(writer, FDBBaseSampleContent.createWordsArticles(), FDBBaseSampleContent.REDIRECTS);
 		
@@ -174,7 +174,7 @@ public class FDBBaseIOTest {
 			if (redirectId != null) {
 				wordInfo = new WordInfo(count, word, redirectId);
 			}
-			writer.saveArticleInfo(new ArticleInfo(wordInfo, sample.get(word)));				
+			writer.saveRawArticleInfo(new ArticleInfo(wordInfo, sample.get(word)));				
 			count++;
 		}
 		return count;
