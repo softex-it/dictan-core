@@ -19,8 +19,10 @@
 
 package info.softex.dictionary.core.formats.source;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.formats.api.BaseReader;
 
 import java.io.File;
@@ -31,6 +33,8 @@ import org.junit.Test;
 /**
  * 
  * @since version 4.5, 04/05/2014
+ * 
+ * @modified version 4.6, 03/05/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -53,6 +57,12 @@ public class SourceBaseReaderTest {
 		
 		assertNotNull(srcReader.getMediaResourceKeys());
 		assertEquals(1, srcReader.getMediaResourceKeys().size());
+	}
+	
+	@Test
+	public void testSourceReaderFormatInfo() throws Exception {
+		FormatInfo sbrFormatInfo = SourceBaseReader.FORMAT_INFO;
+		assertFalse(sbrFormatInfo.hasKeysOnly());
 	}
 
 }

@@ -3,6 +3,7 @@ package info.softex.dictionary.core.formats.source;
 import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
+import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
 
 import java.io.File;
@@ -16,9 +17,11 @@ import java.io.Writer;
  * @author Dmitry Viktorov
  *
  */
-@BaseFormat(name = "SOURCE_KEYS", primaryExtension = "", extensions = {}, sortingExpected = false)
+@BaseFormat(name = "SOURCE_KEYS", primaryExtension = "", extensions = {}, sortingExpected = false, hasKeysOnly = true)
 public class SourceKeysBaseWriter extends SourceBaseWriter {
 	
+	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(SourceKeysBaseWriter.class);
+
 	protected Writer mediaWriter;
 
 	public SourceKeysBaseWriter(File outDirectory) throws IOException {
@@ -52,6 +55,11 @@ public class SourceKeysBaseWriter extends SourceBaseWriter {
 		mediaWriter.write(inAbbrevLine);
 	    mediaResourcesNumber++;
 	    updateProgress();
+	}
+	
+	@Override
+	public FormatInfo getFormatInfo() {
+		return FORMAT_INFO;
 	}
 
 }
