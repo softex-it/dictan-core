@@ -14,6 +14,8 @@ import java.io.Writer;
  * 
  * @since version 4.4, 03/17/2014
  *
+ * @modified version 4.6, 03/05/2015
+ *
  * @author Dmitry Viktorov
  *
  */
