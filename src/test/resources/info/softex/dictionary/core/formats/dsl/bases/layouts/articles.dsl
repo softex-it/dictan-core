@@ -4,12 +4,14 @@
 
 trivial card
   Trivially simple card. The body of the card starts with spaces or TABs, that's all.
-  
+
 trivial card with markup
   Trivially simple card. [m3]Very simple.[/m]
   [m2]Two left margin tags[/m][m2] in one line.[/m] and line with no tags.
   [m2]Math expressions: 5 < 3 < 2, 2 <=> 2[/m]
   This is [p]abbr.[/p]
+  [m0]This is m0 line 1[/m]
+  [m0]This is m0 line 2[/m][m0]This is m0 line 3[/m]
   [c]Text with default highlighted color[/c]
   [c blue]Text with blue highlighted color[/c]
   [t]This is transcription[/t]

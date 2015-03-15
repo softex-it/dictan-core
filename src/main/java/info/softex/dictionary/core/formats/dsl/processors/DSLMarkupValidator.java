@@ -17,7 +17,7 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.dsl.utils;
+package info.softex.dictionary.core.formats.dsl.processors;
 
 import info.softex.dictionary.core.utils.StringUtils;
 
@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  * @author Dmitry Viktorov
  * 
  */
-public class DSLReadValidationUtils {
+public class DSLMarkupValidator {
 	
 	protected final static Pattern EMPTY_BRACKETS = Pattern.compile("[(.+?)]");
 	

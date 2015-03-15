@@ -126,6 +126,16 @@ public class StringUtils {
 	}
 	
 	/**
+	 * Join the strings with line breaks.
+	 */
+	public static String joinWithLineBreaks(final Iterable<String> iterable) {
+		if (iterable == null) {
+			return null;
+		}
+		return join(iterable.iterator(), "\r\n");
+	}
+	
+	/**
 	 * Splits input string into an array of string by line breaks.
 	 */
 	public static String[] splitByLineBreaks(final String str) {

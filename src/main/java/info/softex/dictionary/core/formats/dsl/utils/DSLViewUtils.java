@@ -136,8 +136,8 @@ public class DSLViewUtils {
 		result.append(word);
 		result.append("</div>");
 		
-		// Some bases have the empty paragraph included
-		if (!article.startsWith("<div class=\"m1\">&#160;</div>")) {
+		// Don't ad break if article starts from m1 or m0
+		if (!article.startsWith("<div class=\"m1") && !article.startsWith("<div class=\"m0")) {
 			result.append("<br/>");
 		}
 		

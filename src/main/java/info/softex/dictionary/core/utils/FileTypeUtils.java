@@ -44,7 +44,7 @@ public class FileTypeUtils {
 	}));
 	
 	protected final static Set<String> AUDIO_EXTENSIONS = new HashSet<String>(Arrays.asList(new String[] {
-		"wav", "wma", "vox", "ogg", "oga", "mp3", "m4a", "m4p", "flac", 
+		"wav", "ogg", "mp3", "wma", "vox", "oga", "m4a", "m4p", "flac", 
 		"gsm", "aac", "aiff", "ra", "tta"
 	}));
 	

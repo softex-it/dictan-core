@@ -20,21 +20,35 @@
 package info.softex.dictionary.core.attributes;
 
 /**
- * Interface to simplify the population of various key-value containers.
  * 
- * @since version 4.2,		03/07/2014
- * 
- * @modified version 4.6,	01/27/2015
+ * @since version 4.7,	03/07/2015
  * 
  * @author Dmitry Viktorov
- *
  */
-public interface KeyValueInfo<K, V> {
+public class KeyValueStringInfo implements KeyValueInfo<String, String> {
 	
-	public K getKey();
-	public void setKey(K key);
-	
-	public V getValue();
-	public void setValue(V value);
+	private String key;
+	private String value;
+
+	@Override
+	public String getKey() {
+		return key;
+	}
+
+	@Override
+	public void setKey(String inKey) {
+		this.key = inKey;
+	}
+
+	@Override
+	public String getValue() {
+		return value;
+	}
+
+	@Override
+	public void setValue(String inValue) {
+		this.value = inValue;
+	}
+
 	
 }

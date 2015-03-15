@@ -115,7 +115,7 @@ public class DSLBaseWriteUnit {
 	}
 	
 	public void close() throws IOException {
-		
+
 		flushArticles();
 		
 		if (outStream != null) {

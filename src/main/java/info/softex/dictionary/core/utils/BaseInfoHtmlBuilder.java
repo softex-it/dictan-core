@@ -52,7 +52,7 @@ public class BaseInfoHtmlBuilder {
 		BASE_SIZE,
 		BASE_PARTS_NUMBER,
 		NUMBER_OF_WORDS_ARTICLES,
-		NUMBER_OF_REDIRECTS_MAPPINGS,
+		NUMBER_OF_MAPPINGS_REDIRECTS,
 		NUMBER_OF_ABBREVIATIONS,
 		NUMBER_OF_RESOURCES,
 		ARTICLES_FORMATTING,
@@ -75,7 +75,7 @@ public class BaseInfoHtmlBuilder {
 			put(BASE_SIZE, "Base Size");
 			put(BASE_PARTS_NUMBER, "Number of Base Parts");
 			put(NUMBER_OF_WORDS_ARTICLES, "Words, Articles");
-			put(NUMBER_OF_REDIRECTS_MAPPINGS, "Redirects, Mappings");
+			put(NUMBER_OF_MAPPINGS_REDIRECTS, "Mappings, Redirects");
 			put(NUMBER_OF_ABBREVIATIONS, "Abbreviations");
 			put(NUMBER_OF_RESOURCES, "Media Resources");
 			put(ARTICLES_FORMATTING, "Articles Formatting");
@@ -96,8 +96,8 @@ public class BaseInfoHtmlBuilder {
 			put(BASE_SIZE, "Размер");
 			put(BASE_PARTS_NUMBER, "Количество Частей Базы");
 			put(NUMBER_OF_ABBREVIATIONS, "Сокращения");
-			put(NUMBER_OF_WORDS_ARTICLES, "Слова / Статьи");
-			put(NUMBER_OF_REDIRECTS_MAPPINGS, "Редиректы / Маппинги");
+			put(NUMBER_OF_WORDS_ARTICLES, "Слова, Статьи");
+			put(NUMBER_OF_MAPPINGS_REDIRECTS, "Маппинги, Редиректы");
 			put(NUMBER_OF_RESOURCES, "Медиа Ресурсы");
 			put(ARTICLES_FORMATTING, "Формат Статей");
 			put(ARTICLES_FORMATTING_INJECT_WORDS, "Префикс Статей Словами");
@@ -195,9 +195,9 @@ public class BaseInfoHtmlBuilder {
 		}
 
 		if (baseInfo.getWordsRelationsNumber() > 0 || baseInfo.getWordsMappingsNumber() > 0) {
-			String redirectsMappingsNumber = getString(StringKey.NUMBER_OF_REDIRECTS_MAPPINGS, lang) + 
-				": <span class=\"dvl\">" + formatNumber(baseInfo.getWordsRelationsNumber()) + " / " + 
-				formatNumber(baseInfo.getWordsMappingsNumber()) + "</span>";
+			String redirectsMappingsNumber = getString(StringKey.NUMBER_OF_MAPPINGS_REDIRECTS, lang) + 
+				": <span class=\"dvl\">" + formatNumber(baseInfo.getWordsMappingsNumber()) + " / " + 
+				formatNumber(baseInfo.getWordsRelationsNumber()) + "</span>";
 			html += "<tr><td>" + redirectsMappingsNumber + "</td></tr>";
 		}
 		

@@ -85,6 +85,8 @@ public class SourceBaseWriter implements BaseWriter {
 	protected int articleNumber = 0;
 	protected int mediaResourcesNumber = 0;
 	
+	protected boolean isClosed = false;
+	
 	public SourceBaseWriter(File inOutDirectory) throws IOException {
 		if (inOutDirectory == null || inOutDirectory.exists() && !inOutDirectory.isDirectory()) {
 			throw new IOException("The target must be a directory, not a file!");
@@ -177,6 +179,12 @@ public class SourceBaseWriter implements BaseWriter {
 
 	@Override
 	public void close() throws IOException {
+		
+		if (isClosed) {
+			log.debug("Writer is already closed, ignoring the call");
+			return;
+		}
+		
 		if (artWriter != null) {
 			artWriter.close();
 		}
@@ -186,6 +194,9 @@ public class SourceBaseWriter implements BaseWriter {
 		if (debugWriter != null) {
 			debugWriter.close();
 		}
+		
+		isClosed = true;
+		
 	}
 
 	@Override

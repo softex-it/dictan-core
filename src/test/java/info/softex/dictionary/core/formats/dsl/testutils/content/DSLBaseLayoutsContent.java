@@ -133,7 +133,9 @@ public class DSLBaseLayoutsContent {
 			"Trivially simple card. [m3]Very simple.[/m]\r\n" + 
 			"[m2]Two left margin tags[/m][m2] in one line.[/m] and line with no tags.\r\n" + 
 			"[m2]Math expressions: 5 < 3 < 2, 2 <=> 2[/m]\r\n" + 
-			"This is [p]abbr.[/p]\r\n" + 
+			"This is [p]abbr.[/p]\r\n" +
+			"[m0]This is m0 line 1[/m]\r\n" +
+			"[m0]This is m0 line 2[/m][m0]This is m0 line 3[/m]\r\n" +
 			"[c]Text with default highlighted color[/c]\r\n" + 
 			"[c blue]Text with blue highlighted color[/c]\r\n" + 
 			"[t]This is transcription[/t]\r\n" + 
@@ -156,8 +158,10 @@ public class DSLBaseLayoutsContent {
 			"Trivially simple card. <div class=\"m3\">Very simple.</div>\r\n" + 
 			"<div class=\"m2\">Two left margin tags</div><div class=\"m2\"> in one line.</div> and line with no tags.\r\n" + 
 			"<br/><div class=\"m2\">Math expressions: 5 &#60; 3 &#60; 2, 2 &#60;=&#62; 2</div>\r\n" + 
-			"This is <w>abbr.</w>\r\n" + 
-			"<br/><span class=\"cd\">Text with default highlighted color</span>\r\n" + 
+			"This is <w>abbr.</w>\r\n" +
+			"<br/><div class=\"m0\">This is m0 line 1</div>\r\n" +
+			"<div class=\"m0\">This is m0 line 2</div><div class=\"m0\">This is m0 line 3</div>\r\n" +
+			"<span class=\"cd\">Text with default highlighted color</span>\r\n" + 
 			"<br/><span class=\"ca\" style=\"color:blue\">Text with blue highlighted color</span>\r\n" + 
 			"<br/><t>This is transcription</t>\r\n" + 
 			"<br/>Stress<v>e</v>d word\r\n" + 

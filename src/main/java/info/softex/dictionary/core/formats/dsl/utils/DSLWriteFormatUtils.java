@@ -30,15 +30,7 @@ import info.softex.dictionary.core.utils.StringUtils;
  */
 public class DSLWriteFormatUtils {
 	
-	/**
-	 * The method does the opposite to <code>DSLReadFormatUtils.convertDSLToAdaptedHtml</code>
-	 */
-	public static String convertAdaptedHtmlToDSL(String s) {
-		
-		// Don't process blank string
-		if (StringUtils.isBlank(s)) {
-			return s;
-		}
+	public static String convertAdaptedHtmlToDSLDesignTags(String s) {
 		
 		// Remove all artificial line breaks
 		s = s.replaceAll("<br>", "");
@@ -64,17 +56,33 @@ public class DSLWriteFormatUtils {
 		s = s.replaceAll("<sub>", "[sub]");
 		s = s.replaceAll("</sub>", "[/sub]");
 		
-		// Invisible comments
-		s = s.replaceAll("<!--(.*?)-->", "{{$1}}");
+		// Stressed vowels in a word. They are usually highlighted.
+		s = s.replaceAll("<v>", "[']");
+		s = s.replaceAll("</v>", "[/']");
 		
 		// Colored text
 		s = s.replaceAll("<span class=\"ca\" style=\"color:(.+?)\">", "[c $1]");
 		s = s.replaceAll("<span class=\"cd\">", "[c]");
 		s = s.replaceAll("</span>", "[/c]");
 		
-		// Stressed vowels in a word. They are usually highlighted.
-		s = s.replaceAll("<v>", "[']");
-		s = s.replaceAll("</v>", "[/']");
+		return s;
+		
+	}
+	
+	/**
+	 * The method does the opposite to <code>DSLReadFormatUtils.convertDSLToAdaptedHtml</code>
+	 */
+	public static String convertAdaptedHtmlToDSL(String s) {
+		
+		// Don't process blank string
+		if (StringUtils.isBlank(s)) {
+			return s;
+		}
+		
+		s = convertAdaptedHtmlToDSLDesignTags(s);
+		
+		// Invisible comments
+		s = s.replaceAll("<!--(.*?)-->", "{{$1}}");
 		
 		// Transcription zone
 		s = s.replaceAll("<t (.*?)>", "[t $1]"); // Space is needed to differ it from [trn]

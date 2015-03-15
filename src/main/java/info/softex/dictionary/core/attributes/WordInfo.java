@@ -109,7 +109,7 @@ public class WordInfo implements Cloneable {
 	}
 	
 	@Override
-	protected WordInfo clone() {
+	public WordInfo clone() {
 		try {
 			return (WordInfo)super.clone();
 		} catch (CloneNotSupportedException e) {

@@ -105,7 +105,7 @@ public class DSLBaseReader extends SourceBaseReader {
 			for (Integer wordId: mappings.keySet()) {
 				adaptedWordsMappings.put(
 					wordId, 
-					DSLReadFormatUtils.convertDSLDesignTagsToHtml(mappings.get(wordId))
+					DSLReadFormatUtils.convertDSLDesignTagsToAdaptedHtml(mappings.get(wordId))
 				);
 			}
 		}

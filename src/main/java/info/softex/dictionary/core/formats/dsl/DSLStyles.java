@@ -21,7 +21,9 @@ package info.softex.dictionary.core.formats.dsl;
 
 /**
  * 
- * @since version 4.6, 02/15/2015
+ * @since version 4.6,		02/15/2015
+ * 
+ * @modified version 4.7,	03/07/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -35,6 +37,7 @@ public class DSLStyles {
 	protected final static String DSL_CSS_BROWSER =
 			
 		"div.header {font-weight:bold;font-size:115%} " +
+		"div.m0,div.m1 {margin-top:1em} " +
 		"div.m2 {margin-left:1em} " +
 		"div.m3 {margin-left:2em} " +
 		"div.m4 {margin-left:3em} " +
@@ -44,7 +47,7 @@ public class DSLStyles {
 		"div.m8 {margin-left:7em} " +
 		"div.m9 {margin-left:8em} " +
 
-		"img.int {width:100%;height:auto} " +
+		"img.int {max-width:100%;height:auto} " +
 		
 		"t {font-weight:bold} " +
 		"v {color:#FF0000} " +
@@ -54,6 +57,8 @@ public class DSLStyles {
 	
 	protected final static String DSL_CSS_JAVA =
 		"div.header {font-weight:bold;font-size:105%} " +
+		"div.m0 {margin-top:15px}" +
+		"div.m1 {margin-top:15px} " +
 		"div.m2 {margin-left:15px} " +
 		"div.m3 {margin-left:30px} " +
 		"div.m4 {margin-left:45px} " +

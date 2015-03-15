@@ -78,9 +78,21 @@ public class DSLBaseWriter extends SourceBaseWriter {
 	
 	@Override
 	public void saveAdaptedArticleInfo(ArticleInfo articleInfo) throws Exception {
-		String dslArticle = DSLWriteFormatUtils.convertAdaptedHtmlToDSL(articleInfo.getArticle());
+		
+		// Convert article
 		ArticleInfo dslArticleInfo = articleInfo.clone();
+		String dslArticle = DSLWriteFormatUtils.convertAdaptedHtmlToDSL(articleInfo.getArticle());
 		dslArticleInfo.setArticle(dslArticle);
+		
+		// Convert word mapping
+		String wordMapping = articleInfo.getWordInfo().getWordMapping();
+		if (wordMapping != null) {
+			WordInfo dslWordInfo = articleInfo.getWordInfo().clone();
+			String dslWordMapping = DSLWriteFormatUtils.convertAdaptedHtmlToDSLDesignTags(wordMapping);
+			dslWordInfo.setWordMapping(dslWordMapping);
+			dslArticleInfo.setWordInfo(dslWordInfo);
+		}
+		
 		saveRawArticleInfo(dslArticleInfo);
 	}
 	
@@ -119,13 +131,18 @@ public class DSLBaseWriter extends SourceBaseWriter {
 	
 	@Override
 	public void close() throws IOException {
+		
+		if (!isClosed) {
+			if (dslArticleWriter != null) {
+				dslArticleWriter.close();
+			}
+			if (dslAbbrevWriter != null) {
+				dslAbbrevWriter .close();
+			}			
+		}
+		
 		super.close();
-		if (dslArticleWriter != null) {
-			dslArticleWriter.close();
-		}
-		if (dslAbbrevWriter != null) {
-			dslAbbrevWriter .close();
-		}
+
 	}
 
 }

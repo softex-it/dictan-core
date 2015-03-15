@@ -85,7 +85,7 @@ public class DSLReadFormatUtils {
 		s = s.replaceAll("\\[/s\\]", "</r>");
 		
 		// Replace all basic tags
-		s = convertDSLDesignTagsToHtml(s);
+		s = convertDSLDesignTagsToAdaptedHtml(s);
 		
 		// Invisible comments
 		s = s.replaceAll("\\{\\{(.*?)\\}\\}", "<!--$1-->");
@@ -132,7 +132,7 @@ public class DSLReadFormatUtils {
 		
 	}
 	
-	public static String convertDSLDesignTagsToHtml(String s) {
+	public static String convertDSLDesignTagsToAdaptedHtml(String s) {
 		// Italic
 		s = s.replaceAll("\\[i\\]", "<i>");
 		s = s.replaceAll("\\[/i\\]", "</i>");

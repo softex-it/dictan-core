@@ -10,7 +10,9 @@ trivial card with markup
   <div class="m2">Two left margin tags</div><div class="m2"> in one line.</div> and line with no tags.
   <br/><div class="m2">Math expressions: 5 &#60; 3 &#60; 2, 2 &#60;=&#62; 2</div>
   This is <w>abbr.</w>
-  <br/><span class="cd">Text with default highlighted color</span>
+  <br/><div class="m0">This is m0 line 1</div>
+  <div class="m0">This is m0 line 2</div><div class="m0">This is m0 line 3</div>
+  <span class="cd">Text with default highlighted color</span>
   <br/><span class="ca" style="color:blue">Text with blue highlighted color</span>
   <br/><t>This is transcription</t>
   <br/>Stress<v>e</v>d word
