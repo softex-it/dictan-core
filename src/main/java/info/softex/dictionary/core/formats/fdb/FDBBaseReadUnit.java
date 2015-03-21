@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FDBBaseReadUnit {
 	
-	protected static final String ENC_UTF8 = "UTF-8";
+	protected final static String ENC_UTF8 = "UTF-8";
 
 	protected BasePropertiesInfo baseInfo = null;
 	protected LanguageDirectionsInfo langDirections = null;
@@ -422,21 +422,28 @@ public class FDBBaseReadUnit {
 	public TreeMap<Integer, Integer> getWordsRedirects() throws BaseFormatException {
 		if (wordsRedirects == null) {
 			wordsRedirects = new TreeMap<Integer, Integer>();
-			try {
-				
-				Statement statement = connection.createStatement();
-				ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_WORD_RELATIONS_REDIRECTS);
-				
-				// Populate the redirects map
-				while (rs.next()) {
-					wordsRedirects.put(rs.getInt(1), rs.getInt(2));
+			
+			// Check if the relations statement for FDB3 is defined
+			if (selWordRedirectByWordIdSt != null) {
+				try {
+					
+					Statement statement = connection.createStatement();
+					ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_WORD_RELATIONS_REDIRECTS);
+					
+					// Populate the redirects map
+					while (rs.next()) {
+						wordsRedirects.put(rs.getInt(1), rs.getInt(2));
+					}
+					rs.close();
+					
+				} catch (Exception e) {
+					log.error("Error", e);
+					throw new BaseFormatException("Couldn't load redirects: " + e.getMessage());
 				}
-				rs.close();
-				
-			} catch (Exception e) {
-				log.error("Error", e);
-				throw new BaseFormatException("Couldn't load redirects: " + e.getMessage());
+			} else {
+				log.info("Relations are empty because the FDB version is below 3");
 			}
+			
 		} 
 		return wordsRedirects;
 	}
@@ -444,21 +451,30 @@ public class FDBBaseReadUnit {
 	public TreeMap<Integer, String> getWordsMappings() throws BaseFormatException {
 		if (wordsMappings == null) {
 			wordsMappings = new TreeMap<Integer, String>();
-			try {
-				
-				Statement statement = connection.createStatement();
-				ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_WORD_MAPPINGS);
-				
-				// Populate the redirects map
-				while (rs.next()) {
-					wordsMappings.put(rs.getInt(1), rs.getString(2));
+			
+			// Check if the mappings statement for FDB3 is defined
+			if (selWordMappingByWordIdSt != null) {
+			
+				try {
+					
+					Statement statement = connection.createStatement();
+					ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_WORD_MAPPINGS);
+					
+					// Populate the redirects map
+					while (rs.next()) {
+						wordsMappings.put(rs.getInt(1), rs.getString(2));
+					}
+					rs.close();
+					
+				} catch (Exception e) {
+					log.error("Error", e);
+					throw new BaseFormatException("Couldn't load word mappings: " + e.getMessage());
 				}
-				rs.close();
 				
-			} catch (Exception e) {
-				log.error("Error", e);
-				throw new BaseFormatException("Couldn't load word mappings: " + e.getMessage());
+			} else {
+				log.info("Mappings are empty because the FDB version is below 3");
 			}
+			
 		}
 		return wordsMappings;
 	}
