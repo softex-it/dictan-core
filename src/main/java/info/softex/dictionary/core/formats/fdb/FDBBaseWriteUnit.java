@@ -62,6 +62,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 4.0,	02/02/2014
  * @modified version 4.5,	03/29/2014
  * @modified version 4.6,	01/28/2015
+ * @modified version 4.7,	03/26/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -308,6 +309,12 @@ public class FDBBaseWriteUnit {
 		int i = 0;
 		for (Map.Entry<Locale, List<CollationProperties>> direction : directions.entrySet()) {
 			String fromLanguage = direction.getKey().getLanguage();
+			
+			// ISO 693 changed for Hebrew, so save he instead of iw
+			if (fromLanguage.toLowerCase().equals("iw")) {
+				fromLanguage = "he";
+			}
+			
 			List<CollationProperties> propsSet = direction.getValue();
 			
 			for (CollationProperties langProps : propsSet) {
