@@ -19,19 +19,28 @@
 
 package info.softex.dictionary.core.formats.dsl.processors;
 
-import info.softex.dictionary.core.attributes.KeyValueStringInfo;
+import info.softex.dictionary.core.attributes.ArticleInfo;
+import info.softex.dictionary.core.attributes.BaseResourceInfo;
+import info.softex.dictionary.core.attributes.BaseResourceKey;
+import info.softex.dictionary.core.attributes.KeyValueInfo;
+import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.formats.api.BaseFormatException;
-import info.softex.dictionary.core.formats.dsl.DSLBaseReadUnit;
-import info.softex.dictionary.core.formats.dsl.DSLBaseWriteUnit;
+import info.softex.dictionary.core.formats.dsl.DSLBaseReader;
+import info.softex.dictionary.core.formats.dsl.DSLBaseWriter;
+import info.softex.dictionary.core.utils.PreconditionUtils;
 import info.softex.dictionary.core.utils.StringUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility can be used for various pre-processings of the DSL markup.
@@ -40,12 +49,16 @@ import java.util.regex.Pattern;
  * The processor doesn't work with redirects. To work with redirects it repeat 
  * the normal conversion flow.
  * 
- * @since version 4.7, 03/07/2015
+ * @since version 4.6,		03/06/2015
+ * 
+ * @modified version 4.7,	03/23/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
 public class DSLMarkupProcessor {
+	
+	private final static Logger log = LoggerFactory.getLogger(DSLMarkupProcessor.class);
 	
 	protected final static String EMPTY_PAR = "[m1]\\ [/m]";
 	
@@ -53,56 +66,77 @@ public class DSLMarkupProcessor {
 		
 		DSLMarkupProcessor dslProc = new DSLMarkupProcessor();
 		//dslProc.process(args[0], args[1], args[2]);
-		//dslProc.process("/ext/ln/Great_Soviet_Encyclopaedia_2013/dictan-utf8_processed", "articles", "articles_out");
-		dslProc.process("/ext/ln/Oxford_American", "articles", "articles_out");
-		//dslProc.process("/ext/ln/Britannica_2010", "articles", "articles_out");
-		//dslProc.process("/Volumes/Media/ln/Lingvo_Universal_EN-RU-EN/Lingvo_Universal_EN-RU_2013/dictan-utf8_processed", "articles", "articles_out");
-		
+		dslProc.process("./Oxford_American");
 	}
 	
-	protected void process(String basePath, String inName, String outName) throws IOException, BaseFormatException {
+	protected void process(String basePath) throws IOException, BaseFormatException {
 		
-		DSLBaseReadUnit dslReader = new DSLBaseReadUnit(basePath, inName);
-		DSLBaseWriteUnit dslWriter = new DSLBaseWriteUnit(basePath, outName);
+		DSLBaseReader r = new DSLBaseReader(new File(basePath));
 		
-		dslReader.load(true);
-		List<String> words = dslReader.getWords();
-		Map<Integer, String> wordsMappings = dslReader.getWordsMappings();
+		log.info("DSL Reader is created");
+		
+		// Prepare out folder
+		File outDir = new File(basePath + File.separator + "out");
+		if (outDir.exists() && outDir.isDirectory()) {
+			outDir.delete();
+		}
+		outDir.mkdir();
+		
+		// Create writer
+		DSLBaseWriter w = new DSLBaseWriter(outDir);
+		
+		log.info("DSL Writer is created");
+		
+		r.load();
+		
+		log.info("DSL Reader is loaded");
+		
+		w.createBase();
+		
+		log.info("DSL Writer Base is created");
 		
 		// Headers
-		dslWriter.saveDSLHeaders(dslReader.getDSLHeadersAsString());
+		BaseResourceInfo artDslRes = r.getBaseResourceInfo(BaseResourceKey.BASE_ARTICLES_META_DSL.getKey());
+		PreconditionUtils.checkNotNull(artDslRes, "DSL Article Resource is not found");
+		w.saveBaseResourceInfo(artDslRes);
 		
-		int count = 0;
-		for (String word : words) {
-			KeyValueStringInfo kvInfo = new KeyValueStringInfo();
+		log.info("DSL Article Resource is copied");
+		
+		List<String> words = r.getWords();
+		
+		HashSet<String> set = new HashSet<String>();
+		
+		for (int i = 0; i < words.size(); i++) {
+			ArticleInfo articleInfo = r.getRawArticleInfo(new WordInfo(i));
 			
-			dslReader.readEntry(kvInfo, word);
+//			WordInfo wordInfo = articleInfo.getWordInfo();
+//			String lcWord = wordInfo.getWord().toLowerCase();
+//			if (!set.contains(lcWord)) {
+//				wordInfo.setWord(lcWord);
+//				w.saveRawArticleInfo(articleInfo);
+//			}
 			
-			processEntry(kvInfo);
+			processEntry(articleInfo);
 			
-			String wordOut = word;
-			if (StringUtils.isNotBlank(wordsMappings.get(count))) {
-				wordOut = wordsMappings.get(count);
-			}
+			w.saveRawArticleInfo(articleInfo);
 			
-			dslWriter.saveEntry(wordOut, null, -1, kvInfo.getValue());
-			
-			count++;
 		}
 		
-		dslReader.close();
-		dslWriter.close();
+		r.close();
+		w.close();
 		
 	}
 	
-	protected void processEntry(KeyValueStringInfo article) throws IOException, BaseFormatException {
+	protected void processEntry(KeyValueInfo<String, String> article) throws IOException, BaseFormatException {
 		
 		List<String> lines = new LinkedList<String>(Arrays.asList(StringUtils.splitByLineBreaks(article.getValue())));
 		
 		//lines = resLowerCase(lines);
 		
-		lines = processTranscriptions(lines);
-		lines = wrapIfStartsFromBNum(lines);
+		lines = endWithM(lines);
+		
+		//lines = processTranscriptions(lines);
+		//lines = wrapIfStartsFromBNum(lines);
 		
 		//lines = wrapImages(lines);
 		//lines = capitalizeParagraphs(lines);
@@ -269,6 +303,43 @@ public class DSLMarkupProcessor {
 			m.appendTail(sb);
 
 			tempLines.add(sb.toString());
+			
+		}
+		
+		return tempLines;
+		
+	}
+	
+	protected static List<String> endWithM(List<String> lines) {
+		
+		List<String> tempLines = new LinkedList<String>();
+
+		for (int i = 0; i < lines.size(); i++) {
+			
+			String s = lines.get(i);
+			
+			if (s.trim().startsWith("[m") && !s.trim().endsWith("[/m]")) {
+				s = s.trim() + "[/m]";
+			} else if (s.trim().startsWith("{{")) {
+				int firstInd = s.indexOf("{{");
+				int lastInd = s.lastIndexOf("{{");
+				
+				if (firstInd == lastInd) {
+					throw new RuntimeException("Incorrect line: " + s);
+				}
+				
+				int closeFirstInd = s.indexOf("}}");
+				int mInd = closeFirstInd + 2;
+				String fullMTag = s.substring(mInd, mInd + 4);
+				if (!fullMTag.startsWith("[m")) {
+					throw new RuntimeException("Can't find m tag: " + fullMTag + "|" + s);
+				}
+				
+				s = fullMTag + s.substring(0, mInd) + s.substring(mInd + 4) + "[/m]";
+				
+			}
+
+			tempLines.add(s);
 			
 		}
 		

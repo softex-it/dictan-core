@@ -50,6 +50,7 @@ public class DSLStyles {
 		"img.int {max-width:100%;height:auto} " +
 		
 		"t {font-weight:bold} " +
+		"o {font-weight:bold} " + // mainly for wrapping transcription t
 		"v {color:#FF0000} " +
 		"e {color:#808080} "
 		
@@ -69,6 +70,7 @@ public class DSLStyles {
 		"div.m9 {margin-left:120px} " +
 		
 		"span.t {font-weight:bold} " +
+		"span.o {font-weight:bold} " + // mainly for wrapping transcription t
 		"span.v {color:#FF0000} " +
 		"span.e {color:#808080} "
 		

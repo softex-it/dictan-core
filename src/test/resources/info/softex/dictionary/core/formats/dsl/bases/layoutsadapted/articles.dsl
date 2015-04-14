@@ -15,6 +15,7 @@ trivial card with markup
   <span class="cd">Text with default highlighted color</span>
   <br/><span class="ca" style="color:blue">Text with blue highlighted color</span>
   <br/><t>This is transcription</t>
+  <br/>This is <o>&#91;</o> <t>transcription with braces</t> <o>&#93;</o> and text after
   <br/>Stress<v>e</v>d word
   <br/><c>This text is a comment</c>
   <br/><n><f>Translation zone line</f></n>

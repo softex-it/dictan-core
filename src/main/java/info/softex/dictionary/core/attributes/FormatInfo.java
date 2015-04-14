@@ -32,7 +32,8 @@ import java.util.Set;
  * 
  * @modified version 3.7, 06/12/2013
  * @modified version 4.6, 02/26/2015
- * 
+ * @modified version 4.7, 03/29/2015
+ *
  * @author Dmitry Viktorov
  * 
  */
@@ -44,17 +45,22 @@ public class FormatInfo {
 	private final String primaryExtension;
 	private final Set<String> extensions;
 	
-	// States whether the base is expected to be sorted
+	// States if the format is expected to be sorted
 	private final boolean sortingExpected;
 	
-	// States if the base contains key only
+	// States if the format contains keys only
 	private final boolean hasKeysOnly;
+
+    // States if the format supports the DB like search, e.g. %test%
+    private final boolean likeSearchSupported;
 	
-	public FormatInfo(String name, String inPrimaryExtension, String[] inExtensions, boolean inSortingExpected, boolean inHasKeysOnly) {
+	public FormatInfo(String name, String inPrimaryExtension, String[] inExtensions,
+            boolean inSortingExpected, boolean inHasKeysOnly, boolean inLikeSearchSupported) {
 		this.name = name.toUpperCase(LOCALE_DEFAULT);
 		this.primaryExtension = inPrimaryExtension;
 		this.sortingExpected = inSortingExpected;
 		this.hasKeysOnly = inHasKeysOnly;
+        this.likeSearchSupported = inLikeSearchSupported;
 		this.extensions = new LinkedHashSet<String>();
 		for (int i = 0; i < inExtensions.length; i++) {
 			this.extensions.add(inExtensions[i].toLowerCase(LOCALE_DEFAULT));
@@ -92,13 +98,19 @@ public class FormatInfo {
 	public boolean hasKeysOnly() {
 		return hasKeysOnly;
 	}
-	
-	public static FormatInfo buildFormatInfoFromAnnotation(Class<?> clazz) {
+
+    public boolean isLikeSearchSupported() {
+        return likeSearchSupported;
+    }
+
+    public static FormatInfo buildFormatInfoFromAnnotation(Class<?> clazz) {
 		Annotation[] anns = clazz.getAnnotations();
 		for (int i = 0; i < anns.length; i++) {
 			if (anns[i] instanceof BaseFormat) {
 				BaseFormat df = (BaseFormat)anns[i];
-				return new FormatInfo(df.name(), df.primaryExtension(), df.extensions(), df.sortingExpected(), df.hasKeysOnly());
+				return new FormatInfo(df.name(), df.primaryExtension(), df.extensions(),
+                    df.sortingExpected(), df.hasKeysOnly(), df.likeSearchSupported()
+                );
 			}
 		}
 		return null;

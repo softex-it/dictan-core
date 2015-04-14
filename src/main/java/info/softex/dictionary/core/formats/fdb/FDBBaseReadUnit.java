@@ -19,17 +19,8 @@
 
 package info.softex.dictionary.core.formats.fdb;
 
-import info.softex.dictionary.core.attributes.AbbreviationInfo;
-import info.softex.dictionary.core.attributes.ArticleInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingMode;
-import info.softex.dictionary.core.attributes.BaseResourceInfo;
-import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
-import info.softex.dictionary.core.attributes.WordInfo;
-import info.softex.dictionary.core.collation.AbstractCollatorFactory;
-import info.softex.dictionary.core.formats.api.BaseFormatException;
-import info.softex.dictionary.core.formats.fdb.collections.FDBDynamicListSet;
-import info.softex.dictionary.core.io.SmartInflaterInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -49,8 +40,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import info.softex.dictionary.core.attributes.AbbreviationInfo;
+import info.softex.dictionary.core.attributes.ArticleInfo;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingMode;
+import info.softex.dictionary.core.attributes.BaseResourceInfo;
+import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
+import info.softex.dictionary.core.attributes.WordInfo;
+import info.softex.dictionary.core.collation.AbstractCollatorFactory;
+import info.softex.dictionary.core.formats.api.BaseFormatException;
+import info.softex.dictionary.core.formats.fdb.collections.FDBDynamicListSet;
+import info.softex.dictionary.core.io.SmartInflaterInputStream;
+import info.softex.dictionary.core.utils.SearchUtils;
 
 /**
  * 
@@ -59,6 +60,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 4.0, 02/04/2014
  * @modified version 4.2, 03/05/2014
  * @modified version 4.6, 01/28/2015
+ * @modified version 4.7, 03/26/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -89,6 +91,9 @@ public class FDBBaseReadUnit {
 	protected PreparedStatement selWordRedirectByWordIdSt;
 	protected PreparedStatement selWordMappingByWordIdSt;
 	
+	protected PreparedStatement selWordsBy1LikeExpSt;
+    protected PreparedStatement selWordsBy2LikeExpSt;
+
 	protected PreparedStatement selArticleBlockByIdSt;
 	protected PreparedStatement selMediaResourceIdByKey;
 	protected PreparedStatement selMediaResourceBlockById; 
@@ -112,6 +117,9 @@ public class FDBBaseReadUnit {
 			selWordIdByWordSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_ID_BY_WORD);
 			selMediaResourceIdByKey = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_ID_BY_MEDIA_RESOURCE_KEY);
 			selBaseResourceByKey = connection.prepareStatement(FDBSQLReadStatements.SELECT_BASE_RESOURCE_BY_KEY);
+			
+	        selWordsBy1LikeExpSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORDS_BY_1_LIKE_EXP);
+	        selWordsBy2LikeExpSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORDS_BY_2_LIKE_EXP);
 			
 			// Initialize statements for FDB version 3 and higher
 			ResultSet rs = connection.createStatement().executeQuery(FDBSQLReadStatements.CHECK_TABLE_WORDS_RELATIONS_EXISTS);
@@ -152,6 +160,8 @@ public class FDBBaseReadUnit {
 				}
 			}
 			
+			rs.close();
+			
 			if (baseInfo.getMediaResourcesNumber() > 0) {
 				baseInfo.setMediaFormatName(baseInfo.getFormatName());
 				baseInfo.setMediaFormatVersion(Integer.toString(baseInfo.getFormatVersion()));
@@ -163,7 +173,7 @@ public class FDBBaseReadUnit {
 				baseInfo.setAbbreviationsFormattingMode(AbbreviationsFormattingMode.DISABLED);
 			}
 			
-			// Below version 3 number of articles instead of number of words was defined.
+			// Below version 3 number of articles was defined instead of number of words.
 			// Setting number of words to number of articles if number of words is 0.
 			if (baseInfo.getWordsNumber() == 0) {
 				baseInfo.setWordsNumber(baseInfo.getArticlesDeprecatedNumber());
@@ -171,8 +181,6 @@ public class FDBBaseReadUnit {
 			} else {
 				baseInfo.setArticlesDeprecatedNumber(baseInfo.getWordsNumber());
 			}
-			
-			rs.close();
 			
 		} catch (Exception e) {
 			log.error("Error", e);
@@ -230,10 +238,10 @@ public class FDBBaseReadUnit {
 			ResultSet dcrRS = statement.executeQuery(FDBSQLReadStatements.SELECT_BASE_RESOURCE_DEFAULT_COLLATION_RULES);
 			if (dcrRS.next()) {
 				this.langDirections.setDefaultCollationProperties(
-						new String (dcrRS.getBytes(3), ENC_UTF8), 
-						new String (dcrRS.getBytes(4), ENC_UTF8), 
-						Integer.parseInt(dcrRS.getString(7))
-					);
+					new String (dcrRS.getBytes(3), ENC_UTF8), 
+					new String (dcrRS.getBytes(4), ENC_UTF8), 
+					Integer.parseInt(dcrRS.getString(7))
+				);
 				
 			}
 			dcrRS.close();
@@ -241,17 +249,17 @@ public class FDBBaseReadUnit {
 			ResultSet lcrRS = statement.executeQuery(FDBSQLReadStatements.SELECT_BASE_RESOURCE_LOCALE_COLLATION_RULES);
 			while (lcrRS.next()) {
 				langDirections.addDirection(
-						lcrRS.getString(1), lcrRS.getString(2),
-						new String(lcrRS.getBytes(3), ENC_UTF8), 
-						new String(lcrRS.getBytes(4), ENC_UTF8),
-						lcrRS.getString(8), lcrRS.getString(9),
-						Integer.parseInt(lcrRS.getString(7)), Boolean.parseBoolean(lcrRS.getString(10))
-					);
-			} 
+					lcrRS.getString(1), lcrRS.getString(2),
+					new String(lcrRS.getBytes(3), ENC_UTF8), 
+					new String(lcrRS.getBytes(4), ENC_UTF8),
+					lcrRS.getString(8), lcrRS.getString(9),
+					Integer.parseInt(lcrRS.getString(7)), Boolean.parseBoolean(lcrRS.getString(10))
+				);
+			}
 			
 			lcrRS.close();
 
-			log.debug("Loaded Language Directions: {}", this.langDirections);
+			log.trace("Loaded Language Directions: {}", this.langDirections);
 			
 			this.collator = collatorFactory.createCollator(this.langDirections.getCombinedCollationRules(), null, null);
 			
@@ -281,7 +289,7 @@ public class FDBBaseReadUnit {
 		    }
 			
 			long s2 = System.currentTimeMillis();
-			log.debug("BasePropertiesInfo loaded, time: {}", s2 - s1);
+			log.debug("BasePropertiesInfo loaded, time: {} ms", s2 - s1);
 			
 			if (langDirections == null) {
 		        log.debug("Loading LanguageDirectionsInfo");
@@ -289,17 +297,13 @@ public class FDBBaseReadUnit {
 		    }
 			
 			long s3 = System.currentTimeMillis();
-			log.debug("LanguageDirectionsInfo loaded, time: {}", s3 - s2); 
+			log.debug("LanguageDirectionsInfo loaded, time: {} ms", s3 - s2);
 	
 			// Create dynamic list for words
-		    words = new FDBDynamicListSet(
-		    		baseInfo.getWordsNumber(), 
-		    		wordListBlockSize,
-		    		connection
-		    	);
+		    words = new FDBDynamicListSet(baseInfo.getWordsNumber(), wordListBlockSize, connection);
 		    
 			long s4 = System.currentTimeMillis();
-			log.debug("Word list created, time: {}", s4 - s3); 
+			log.debug("Word list created, time: {} ms", s4 - s3);
 		    
 		    if (abbreviations == null) {
 		    	log.debug("Loading Abbreviations");
@@ -307,7 +311,7 @@ public class FDBBaseReadUnit {
     		}
 		    
 			long s5 = System.currentTimeMillis();
-			log.debug("Abbreviations loaded, time: {}", s5 - s4); 
+			log.debug("Abbreviations loaded, time: {} ms", s5 - s4);
 
     	} catch (Exception e) {
 			log.error("Error", e);
@@ -411,6 +415,56 @@ public class FDBBaseReadUnit {
 	
 	public List<String> getWords() {
 		return words;
+	}
+	
+	public TreeMap<Integer, String> getWordsLike(String likeExp, int limit) throws BaseFormatException {
+
+		TreeMap<Integer, String> result = new TreeMap<>();
+
+        if (likeExp != null && likeExp.length() > 0) {
+
+            likeExp = SearchUtils.escapeSQLLike(likeExp, '!', '%');
+            //System.out.println(likeExp);
+
+            String likeExpFLR = SearchUtils.revertFirstLetterRegister(likeExp);
+
+            try {
+
+                ResultSet rs = null;
+
+                long startTime = System.currentTimeMillis();
+
+                if (likeExpFLR != null) {
+                    // Basic versions of SQLite don't support Unicode, so try to search
+                    // the exp with first letter reverted
+                    selWordsBy2LikeExpSt.setString(1, likeExp);
+                    selWordsBy2LikeExpSt.setString(2, likeExpFLR);
+                    selWordsBy2LikeExpSt.setInt(3, limit);
+                    rs = selWordsBy2LikeExpSt.executeQuery();
+                    log.info("Time for executing a query with 2 like expressions '{}', '{}': {} ms", likeExp, likeExpFLR, System.currentTimeMillis() - startTime);
+                } else {
+                    selWordsBy1LikeExpSt.setString(1, likeExp);
+                    selWordsBy1LikeExpSt.setInt(2, limit);
+                    rs = selWordsBy1LikeExpSt.executeQuery();
+                    log.info("Time for executing a query with 1 like expression '{}': {} ms", likeExp, System.currentTimeMillis() - startTime);
+                }
+
+                while (rs.next()) {
+                    log.info("Iter: {} ms", System.currentTimeMillis() - startTime);
+                    result.put(rs.getInt(1), rs.getString(2));
+                }
+
+                rs.close();
+
+                log.info("Time for search and words retrieval: {} ms", System.currentTimeMillis() - startTime);
+
+            } catch (Exception e) {
+                log.error("Error", e);
+                throw new BaseFormatException("Couldn't read words by like expression: " + e.getMessage());
+            }
+        }
+
+		return result;
 	}
 	
 	/**

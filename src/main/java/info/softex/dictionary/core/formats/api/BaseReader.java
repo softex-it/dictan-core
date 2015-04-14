@@ -42,6 +42,7 @@ import java.util.Set;
  * @modified version 2.6,	08/21/2011
  * @modified version 4.2,	03/06/2014
  * @modified version 4.6,	02/01/2015
+ * @modified version 4.7,	03/26/2015
  *  
  * @author Dmitry Viktorov
  * 
@@ -107,16 +108,13 @@ public interface BaseReader {
 	 */
 	public int searchWordIndex(String word, boolean positive) throws BaseFormatException;
 	
-//	/**
-//	 * Get the word index. Doesn't work for capital/low
-//	 * 
-//	 * @param word
-//	 * @return Word index if it is found, otherwise -1.
-//	 * @throws BaseFormatException
-//	 */
-//	public int getWordIndex(String word) throws BaseFormatException;
+	public List<String> getWords();
+
+    /**
+     * Returns words based on SQL 'like' query.
+     */
+	public Map<Integer, String> getWordsLike(String rootWord, int limit) throws BaseFormatException;
 	
-	public List<String> getWords() throws BaseFormatException;
 	public Map<Integer, String> getWordsMappings() throws BaseFormatException;
 	public Map<Integer, String> getAdaptedWordsMappings() throws BaseFormatException;	
 	public Map<Integer, Integer> getWordsRedirects() throws BaseFormatException;	

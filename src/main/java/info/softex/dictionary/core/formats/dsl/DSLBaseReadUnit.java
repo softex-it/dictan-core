@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -123,10 +123,22 @@ public class DSLBaseReadUnit {
 		words = DSLReaderUtils.readDSLWords(tlr, linePointers, wordsRedirects, wordsMappings);
 
 		if (isMapperActive) {
-			indexMapper = new HashMap<String, Integer>();
+			indexMapper = new LinkedHashMap<String, Integer>();
+			int entriesRemoved = 0;
 			for (int i = 0; i < words.size(); i++) {
-				indexMapper.put(words.get(i), i);
+				String word = words.get(i);
+				// Duplicates will be removed when working with the index mapper
+				// Though give the priority to the entries that were read first
+				if (!indexMapper.containsKey(word)) {
+					indexMapper.put(words.get(i), i);
+				} else {
+					log.info("The entry {} (index {}) is already in the index map, ignoring it.", word, i);
+					entriesRemoved++;
+				}
 			}
+			
+			log.info("Total number of removed duplicate entries: {}", entriesRemoved);
+			
 		}
 
 	}

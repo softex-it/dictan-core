@@ -31,7 +31,9 @@ import java.util.regex.Pattern;
 
 /**
  * 
- * @since version 4.6, 02/16/2015
+ * @since version 4.6,		02/16/2015
+ * 
+ * @modified version 4.7,	03/24/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -54,11 +56,13 @@ public class DSLViewUtils {
 	protected final static Map<String, String> DSL_TO_HTML_TAGS = new HashMap<String, String>() {{
 		put("<t ", "<span class=\"t\" ");
 		put("<t>", "<span class=\"t\">");
+		put("<o>", "<span class=\"o\">");
 		put("<v ", "<span class=\"v\" ");
 		put("<v>", "<span class=\"v\">");
 		put("<e ", "<span class=\"e\" ");
 		put("<e>", "<span class=\"e\">");
 		put("/t>", "/span>");
+		put("/o>", "/span>");
 		put("/v>", "/span>");
 		put("/e>", "/span>");
 	}};
@@ -120,7 +124,7 @@ public class DSLViewUtils {
 		return result.toString();
 	}
 	
-	public static String injectDSLWord(String word, String article) {
+	public static String injectDSLWord(String word, final String article) {
 		StringBuffer result = new StringBuffer();
 		result.append("<div class=\"header\">");
 		
@@ -136,8 +140,27 @@ public class DSLViewUtils {
 		result.append(word);
 		result.append("</div>");
 		
+		String choppedArticle = article;
+
+		// Skip all 1-letter tags (e.g. <n> at Duden) before the check of m0 and m1
+		if (article.length() > 3) {
+			int i = 2;
+			for (; i < article.length(); i += 3) {
+				char start = article.charAt(i - 2);
+				char end = article.charAt(i);
+				if (start != '<' || end != '>') {
+					//System.out.println("Found: " + i + " " );
+					break;
+				}
+			}
+			if (i > 2) {
+				choppedArticle = article.substring(i - 2);
+				//System.out.println("Chopped: " + choppedArticle );
+			}
+		}
+
 		// Don't ad break if article starts from m1 or m0
-		if (!article.startsWith("<div class=\"m1") && !article.startsWith("<div class=\"m0")) {
+		if (!choppedArticle.startsWith("<div class=\"m1") && !choppedArticle.startsWith("<div class=\"m0")) {
 			result.append("<br/>");
 		}
 		

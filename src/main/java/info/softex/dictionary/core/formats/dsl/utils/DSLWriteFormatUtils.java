@@ -84,6 +84,9 @@ public class DSLWriteFormatUtils {
 		// Invisible comments
 		s = s.replaceAll("<!--(.*?)-->", "{{$1}}");
 		
+		// Specific conversion for Dictan. It helps wrap and style braces (\[ and \]) around transcriptions
+		s = s.replaceAll("<o>(.*?)</o>", "{{t}}$1{{/t}}");
+		
 		// Transcription zone
 		s = s.replaceAll("<t (.*?)>", "[t $1]"); // Space is needed to differ it from [trn]
 		s = s.replaceAll("<t>", "[t]");
@@ -96,12 +99,10 @@ public class DSLWriteFormatUtils {
 		
 		// Examples
 		s = s.replaceAll("<e(.*?)>", "[ex$1]");
-		//s = s.replaceAll("<e>", "[ex]");
 		s = s.replaceAll("</e>", "[/ex]");
 		
 		// Comments zone
 		s = s.replaceAll("<c(.*?)>", "[com$1]");
-		//s = s.replaceAll("<c>", "[com]");
 		s = s.replaceAll("</c>", "[/com]");
 		
 		// Translation zone

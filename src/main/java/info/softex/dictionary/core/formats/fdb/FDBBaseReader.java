@@ -19,6 +19,20 @@
 
 package info.softex.dictionary.core.formats.fdb;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+
 import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
@@ -35,40 +49,27 @@ import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.api.BaseReader;
 import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
 
-import java.io.File;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * FDB (Free Dictionary Base) base reader.
  * 
- * @since version 2.6, 08/21/2011
+ * @since version 2.6,      08/21/2011
  * 
- * @modified version 2.9, 11/11/2011
- * @modified version 3.4, 07/04/2012
- * @modified version 3.9, 01/25/2014
- * @modified version 4.0, 02/08/2014
- * @modified version 4.6, 01/28/2015
+ * @modified version 2.9,   11/11/2011
+ * @modified version 3.4,   07/04/2012
+ * @modified version 3.9,   01/25/2014
+ * @modified version 4.0,   02/08/2014
+ * @modified version 4.6,   01/28/2015
+ * @modified version 4.7,   03/26/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
-@BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb", ".fdl"}, sortingExpected = true)
+@BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb", ".fdl"}, sortingExpected = true, likeSearchSupported = true)
 public class FDBBaseReader implements BaseReader {
 	
-	private static final Logger log = LoggerFactory.getLogger(FDBBaseReader.class.getSimpleName());
+	private final static Logger log = LoggerFactory.getLogger(FDBBaseReader.class);
 
-	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(FDBBaseReader.class);
+	public final static FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(FDBBaseReader.class);
 		
 	protected final String mainBaseFilePath;
 
@@ -178,7 +179,7 @@ public class FDBBaseReader implements BaseReader {
 			int startArtId = baseProps.getBasePartsArticlesBlockIdStart(i);
 			if (startArtId >= 0) {
 				dbArticlesRanges.add(new BaseRange(startArtId, i));
-				log.debug("Added articles block id start: {}", startArtId);				
+				log.trace("Added articles block id start: {}", startArtId);
 			}
 			
 			int startResId = baseProps.getBasePartsMediaResourcesBlockIdStart(i);
@@ -241,6 +242,11 @@ public class FDBBaseReader implements BaseReader {
 	@Override
 	public List<String> getWords() {
 		return mainBase.getWords();
+	}
+	
+	@Override
+	public TreeMap<Integer, String> getWordsLike(String rootWord, int limit) throws BaseFormatException {
+		return mainBase.getWordsLike(rootWord, limit);
 	}
 	
 	@Override

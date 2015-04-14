@@ -142,7 +142,7 @@ public class FileUtils {
 	/**
 	 * Sort files in a file list by segmenting folders and files
 	 * 
-	 * @param files list
+	 * @param filesList
 	 * @return sorted file list
 	 */
 	public static List<File> sortFiles(File[] filesList) {

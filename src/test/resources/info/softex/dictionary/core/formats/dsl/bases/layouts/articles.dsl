@@ -15,6 +15,7 @@ trivial card with markup
   [c]Text with default highlighted color[/c]
   [c blue]Text with blue highlighted color[/c]
   [t]This is transcription[/t]
+  This is {{t}}\[{{/t}} [t]transcription with braces[/t] {{t}}\]{{/t}} and text after
   Stress[']e[/']d word
   [com]This text is a comment[/com]
   [trn][*]Translation zone line[/*][/trn]

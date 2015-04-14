@@ -138,7 +138,8 @@ public class DSLBaseLayoutsContent {
 			"[m0]This is m0 line 2[/m][m0]This is m0 line 3[/m]\r\n" +
 			"[c]Text with default highlighted color[/c]\r\n" + 
 			"[c blue]Text with blue highlighted color[/c]\r\n" + 
-			"[t]This is transcription[/t]\r\n" + 
+			"[t]This is transcription[/t]\r\n" +
+			"This is {{t}}\\[{{/t}} [t]transcription with braces[/t] {{t}}\\]{{/t}} and text after\r\n" +
 			"Stress[']e[/']d word\r\n" + 
 			"[com]This text is a comment[/com]\r\n" + 
 			"[trn][*]Translation zone line[/*][/trn]\r\n" + 
@@ -163,7 +164,8 @@ public class DSLBaseLayoutsContent {
 			"<div class=\"m0\">This is m0 line 2</div><div class=\"m0\">This is m0 line 3</div>\r\n" +
 			"<span class=\"cd\">Text with default highlighted color</span>\r\n" + 
 			"<br/><span class=\"ca\" style=\"color:blue\">Text with blue highlighted color</span>\r\n" + 
-			"<br/><t>This is transcription</t>\r\n" + 
+			"<br/><t>This is transcription</t>\r\n" +
+			"<br/>This is <o>&#91;</o> <t>transcription with braces</t> <o>&#93;</o> and text after\r\n" +
 			"<br/>Stress<v>e</v>d word\r\n" + 
 			"<br/><c>This text is a comment</c>\r\n" + 
 			"<br/><n><f>Translation zone line</f></n>\r\n" + 

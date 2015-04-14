@@ -308,19 +308,14 @@ public class FDBBaseWriteUnit {
 		
 		int i = 0;
 		for (Map.Entry<Locale, List<CollationProperties>> direction : directions.entrySet()) {
-			String fromLanguage = direction.getKey().getLanguage();
-			
-			// ISO 693 changed for Hebrew, so save he instead of iw
-			if (fromLanguage.toLowerCase().equals("iw")) {
-				fromLanguage = "he";
-			}
+			String fromLanguage = localeToLanguageString(direction.getKey());
 			
 			List<CollationProperties> propsSet = direction.getValue();
 			
 			for (CollationProperties langProps : propsSet) {
 				insDirectionSt.setInt(1, i++);
 				insDirectionSt.setString(2, fromLanguage);
-				insDirectionSt.setString(3, langProps.getLocale().getLanguage());
+				insDirectionSt.setString(3, localeToLanguageString(langProps.getLocale()));
 				insDirectionSt.addBatch();
 				
 				insBaseResourceSt.setInt(1, baseResourcesNumber++);
@@ -344,6 +339,22 @@ public class FDBBaseWriteUnit {
 		
 		return languageDirectionsInfo;
 		
+	}
+	
+	/**
+	 * Handle replacements for language codes if needed.
+	 */
+	protected String localeToLanguageString(Locale locale) throws Exception {
+		if (locale == null || locale.getLanguage() == null) {
+			log.warn("Null locale is passed what is not expected!");
+			return null;
+		}
+		String lang = locale.getLanguage().toLowerCase();
+		// ISO 693 changed for Hebrew, so change iw to he
+		if (lang.equals("iw")) {
+			lang = "he";
+		}
+		return lang;
 	}
 	
 	public void saveAbbreviation(AbbreviationInfo abbreviationInfo) throws Exception {

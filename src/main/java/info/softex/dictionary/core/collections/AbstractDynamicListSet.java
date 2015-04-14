@@ -30,13 +30,13 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * @since version 1.3, 11/12/2010
+ * @since version 1.3,		11/12/2010
  * 
- * @modified version 1.4, 12/19/2010
- * @modified version 1.7, 02/05/2011
- * @modified version 1.8, 02/10/2011
- * @modified version 1.9, 02/16/2011
- * @modified version 2.6, 09/18/2011
+ * @modified version 1.4,	12/19/2010
+ * @modified version 1.7,	02/05/2011
+ * @modified version 1.8,	02/10/2011
+ * @modified version 1.9,	02/16/2011
+ * @modified version 2.6,	09/18/2011
  * 
  * @author Dmitry Viktorov
  * 
@@ -85,14 +85,12 @@ public abstract class AbstractDynamicListSet<T> extends AbstractList<T> implemen
 		// Storage for the content of strong blocks
 		this.strongBlockList = new HashMap<Integer, List<T>>();
 		
-		log.debug("ADL Constructor | Number of Blocks: " + blockNumber + " | (" + maxSize + "/" + blockSize + ")");
+		log.debug("Number of Blocks: " + blockNumber + " | (" + maxSize + "/" + blockSize + ")");
 		
 	}
 
 	/**
-	 * 
-	 * Synchronized because the data is being changed
-	 * 
+	 * Synchronized because the the internal data changes
 	 */
 	@Override
 	public synchronized T get(final int index) {
@@ -118,7 +116,7 @@ public abstract class AbstractDynamicListSet<T> extends AbstractList<T> implemen
 		List<T> blockContent = getBlockContent(blockNumber);
 		T elem = blockContent.get(elementNumber);
 
-		//log.debug("AWL | Get " + index + " | BN: " + blockNumber + " | " + toStringCounters() + ", Elem: " + elem);
+	    //log.trace("Get " + index + " | BN: " + blockNumber + " | " + toStringCounters() + ", Elem: " + elem);
 		
 		return elem;
 	}
@@ -139,8 +137,7 @@ public abstract class AbstractDynamicListSet<T> extends AbstractList<T> implemen
 	/**
 	 * 
 	 * Attempts to restore the child stored at the given index.
-	 * 
-	 * @param index
+	 *
 	 * @return null if the child could not be restored or the restored child.
 	 * 
 	 */
@@ -149,8 +146,6 @@ public abstract class AbstractDynamicListSet<T> extends AbstractList<T> implemen
 	protected List<T> getBlockContent(final int blockNumber) {
 		
 		BasicCacheBlock<T> block = this.weakBlocksList[blockNumber];
-
-		//log.debug("AWL | {}", + block);
 
 		List<T> curDynamicElements = block.getElementsReference().get();
 

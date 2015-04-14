@@ -36,7 +36,7 @@ import info.softex.dictionary.core.utils.StringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,7 +49,9 @@ import org.slf4j.LoggerFactory;
  * The DSL Base Reader enables reading the DSL (Dictionary Specification Language)
  * format developed by ABBYY and mainly used at Lingvo application.
  * 
- * @since version 4.6, 01/26/2015
+ * @since version 4.6,		01/26/2015
+ * 
+ * @modified version 4.7,	03/23/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -78,12 +80,12 @@ public class DSLBaseReader extends SourceBaseReader {
 	}
 	
 	@Override
-	public Map<Integer, Integer> getWordsRedirects() throws BaseFormatException {
+	public Map<Integer, Integer> getWordsRedirects() {
 		return dslArticleReader.getWordRedirects();
 	}
 	
 	@Override
-	public Map<Integer, String> getWordsMappings() throws BaseFormatException {
+	public Map<Integer, String> getWordsMappings() {
 		return dslArticleReader.getWordsMappings();
 	}
 	
@@ -93,7 +95,7 @@ public class DSLBaseReader extends SourceBaseReader {
 	}
 	
 	@Override
-	protected List<String> loadWords() throws BaseFormatException, Exception {
+	protected List<String> loadWords() throws IOException, BaseFormatException {
 		
 		// Load articles
 		dslArticleReader = new DSLBaseReadUnit(sourceDirectory.getAbsolutePath(), SourceFileNames.FILE_DSL_ARTICLES_NO_EXT);
@@ -115,7 +117,7 @@ public class DSLBaseReader extends SourceBaseReader {
 	
 	@Override
 	protected Set<String> loadAbbreviations() throws IOException, BaseFormatException {
-		Set<String> abbKeys = new HashSet<String>();
+		Set<String> abbKeys = new LinkedHashSet<String>();
 		
 		File abbrevFile = new File(sourceDirectory.getAbsolutePath() + File.separator + 
 			SourceFileNames.FILE_DSL_ABBREVIATIONS_NO_EXT + SourceFileNames.FILE_DSL_EXT_MAIN);
@@ -220,7 +222,7 @@ public class DSLBaseReader extends SourceBaseReader {
 	}
 	
 	@Override
-	public void close() throws Exception {
+	public void close() throws IOException {
 		super.close();
 		if (dslArticleReader != null) {
 			dslArticleReader.close();
@@ -231,7 +233,7 @@ public class DSLBaseReader extends SourceBaseReader {
 	}
 	
 	@Override
-	public BasePropertiesInfo loadBasePropertiesInfo() throws BaseFormatException, Exception {
+	public BasePropertiesInfo loadBasePropertiesInfo() throws IOException, BaseFormatException {
 		super.loadBasePropertiesInfo();
 		baseInfo.setArticlesActualNumber(words.size() - getWordsRedirects().size());
 		baseInfo.setWordsMappingsNumber(getWordsMappings().size());

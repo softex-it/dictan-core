@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 4.4,	03/17/2014
  * @modified version 4.5,	03/29/2014
  * @modified version 4.6,	02/28/2015
+ * @modified version 4.7,	03/23/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -96,7 +97,7 @@ public class SourceBaseWriter implements BaseWriter {
 	}
 	
 	@Override
-	public void createBase(String... params) throws Exception {
+	public void createBase(String... params) throws IOException {
 		// Create directories
 		outDirectory.mkdirs();
 		mediaDirectory = new File(outDirectory.getAbsolutePath() + File.separator + SourceFileNames.DIRECTORY_MEDIA);
@@ -195,6 +196,13 @@ public class SourceBaseWriter implements BaseWriter {
 			debugWriter.close();
 		}
 		
+		// Remove the media directory if it's empty
+		// Be careful with the files, check the media res number and the length of the list of files
+		if (mediaDirectory != null && mediaDirectory.exists() && mediaDirectory.isDirectory() && 
+				mediaResourcesNumber == 0 && mediaDirectory.list().length == 0) {
+			mediaDirectory.delete();
+		}
+		
 		isClosed = true;
 		
 	}
@@ -209,7 +217,7 @@ public class SourceBaseWriter implements BaseWriter {
 		progressInfo.addObserver(observer);
 	}
 	
-	protected void createWriters() throws Exception {
+	protected void createWriters() throws IOException {
 		artWriter = createWriter(SourceFileNames.FILE_ARTICLES);
 		abbWriter = createWriter(SourceFileNames.FILE_ABBREVIATIONS);
 		debugWriter = createWriter(SourceFileNames.FILE_DEBUG);
@@ -227,7 +235,7 @@ public class SourceBaseWriter implements BaseWriter {
 		updateProgress();
 	}
 	
-	protected Writer createWriter(String fileName) throws Exception {
+	protected Writer createWriter(String fileName) throws IOException {
 		File abbFile = new File(outDirectory.getAbsolutePath() + File.separator + fileName);
 		if (abbFile.exists()) {
 			abbFile.delete();

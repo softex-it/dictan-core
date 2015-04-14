@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
  * @author Dmitry Viktorov
  * 
  */
-@BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb", ".fdl"}, sortingExpected = true)
+@BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb", ".fdl"}, sortingExpected = true, likeSearchSupported = true)
 public class FDBBaseWriter implements BaseWriter {
 	
 	private static final Logger log = LoggerFactory.getLogger(FDBBaseWriter.class);

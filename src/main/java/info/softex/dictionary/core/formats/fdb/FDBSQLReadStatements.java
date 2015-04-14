@@ -25,6 +25,7 @@ package info.softex.dictionary.core.formats.fdb;
  * 
  * @modified version 4.2, 03/05/2014
  * @modified version 4.6, 02/01/2015
+ * @modified version 4.7, 03/26/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -55,8 +56,14 @@ public class FDBSQLReadStatements {
 	
 	public static final String SELECT_WORDS_IN_RANGE =	
 		"SELECT word FROM " + FDBTables.words + " WHERE word_id BETWEEN (?) AND (?)";
-	
-	public static final String SELECT_WORD_ID_BY_WORD =	
+
+	public static final String SELECT_WORDS_BY_1_LIKE_EXP =
+		"SELECT word_id,word FROM " + FDBTables.words + " WHERE word LIKE (?) ESCAPE '!' LIMIT (?)";
+
+    public static final String SELECT_WORDS_BY_2_LIKE_EXP =
+        "SELECT word_id,word FROM " + FDBTables.words + " WHERE word LIKE (?) OR word LIKE (?) ESCAPE '!' LIMIT (?)";
+
+	public static final String SELECT_WORD_ID_BY_WORD =
 		"SELECT word_id FROM " + FDBTables.words + " WHERE word=(?)";
 	
 	public static final String SELECT_WORD_RELATION_REDIRECT_BY_WORD_ID =

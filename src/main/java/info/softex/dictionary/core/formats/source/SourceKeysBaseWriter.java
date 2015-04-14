@@ -46,7 +46,7 @@ public class SourceKeysBaseWriter extends SourceBaseWriter {
 	}
 	
 	@Override
-	protected void createWriters() throws Exception {
+	protected void createWriters() throws IOException {
 		artWriter = createWriter(SourceFileNames.FILE_ARTICLES_KEYS);
 		abbWriter = createWriter(SourceFileNames.FILE_ABBREVIATIONS_KEYS);
 		debugWriter = createWriter(SourceFileNames.FILE_DEBUG);
