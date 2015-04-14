@@ -29,7 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
  * @since version 4.2,		03/07/2014
  *
  * @modified version 4.6,	01/27/2015
+ * @modified version 4.7,	03/23/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -78,15 +79,27 @@ public class SourceFileReader {
 		
 	}
 	
-	public void load(boolean isMapperActive) throws IOException, BaseFormatException {
+	public void load(boolean isMapperActive) throws IOException {
 		
 		SourceReaderUtils.loadSourceKeys(raf, lineKeys, linePointers);
 		
 		if (isMapperActive) {
-			lineMapper = new HashMap<String, Integer>();
+			lineMapper = new LinkedHashMap<String, Integer>();
+			int entriesRemoved = 0;
 			for (int i = 0; i < lineKeys.size(); i++) {
-				lineMapper.put(lineKeys.get(i), i);
+				String key = lineKeys.get(i);
+				// Duplicates will be removed when working with the index mapper
+				// Though give the priority to the entries that were read first
+				if (!lineMapper.containsKey(key)) {
+					lineMapper.put(key, i);
+				} else {
+					log.info("The entry {} (index {}) is already in the line map, ignoring it.", key, i);
+					entriesRemoved++;
+				}
 			}
+			
+			log.info("Total number of removed duplicate entries: {}", entriesRemoved);
+			
 		}
 		
 	}

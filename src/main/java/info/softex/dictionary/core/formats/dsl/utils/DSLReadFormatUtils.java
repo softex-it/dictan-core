@@ -87,6 +87,10 @@ public class DSLReadFormatUtils {
 		// Replace all basic tags
 		s = convertDSLDesignTagsToAdaptedHtml(s);
 		
+		// Specific conversion for Dictan. It helps wrap and style braces (\[ and \]) around transcriptions
+		// Must be done before the conversion of other comments
+		s = s.replaceAll("\\{\\{t\\}\\}(.*?)\\{\\{/t\\}\\}", "<o>$1</o>");
+		
 		// Invisible comments
 		s = s.replaceAll("\\{\\{(.*?)\\}\\}", "<!--$1-->");
 		

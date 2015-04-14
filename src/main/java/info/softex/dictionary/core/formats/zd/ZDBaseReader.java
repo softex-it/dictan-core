@@ -38,6 +38,7 @@ import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.api.BaseReader;
 import info.softex.dictionary.core.regional.RegionalResolver;
 import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
+import info.softex.dictionary.core.utils.SearchUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,6 +49,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,11 +68,12 @@ import org.slf4j.LoggerFactory;
  * @modified version 3.7,	06/11/2013
  * @modified version 4.0,	02/04/2014
  * @modified version 4.6,	02/01/2015
+ * @modified version 4.7,   03/26/2015
  *  
  * @author Dmitry Viktorov
  * 
  */
-@BaseFormat(name = "ZD", primaryExtension = ".zd", extensions = {".zd"}, sortingExpected = true)
+@BaseFormat(name = "ZD", primaryExtension = ".zd", extensions = {".zd"}, sortingExpected = true, likeSearchSupported = true)
 public class ZDBaseReader implements BaseReader {
 	
 	public static final String FORMAT_ZPAK_NAME = "ZPAK";
@@ -117,6 +120,14 @@ public class ZDBaseReader implements BaseReader {
 	@Override
 	public List<String> getWords() {
 		return zdReader.getWords();
+	}
+	
+	@Override
+	public Map<Integer, String> getWordsLike(String likeExp, int limit) {
+		long startTime = System.currentTimeMillis();
+		TreeMap<Integer, String> result = SearchUtils.searchSQLLike(getWords(), likeExp, limit);
+		log.info("Time for search and words retrieval: {} ms", System.currentTimeMillis() - startTime);
+		return result;
 	}
 	
 	@Override

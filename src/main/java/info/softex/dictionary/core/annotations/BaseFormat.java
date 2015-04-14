@@ -33,7 +33,8 @@ import java.lang.annotation.Target;
  * 
  * @modified version 3.4,	07/05/2012
  * @modified version 4.6,	02/26/2015
- * 
+ * @modified version 4.7,	03/29/2015
+ *
  * @author Dmitry Viktorov
  * 
  */
@@ -53,5 +54,8 @@ public @interface BaseFormat {
 	
 	// States if the base contains keys only, i.e. body is not provides for its entries
 	boolean hasKeysOnly() default false;
-	
+
+    // States if the format supports the DB like search
+    boolean likeSearchSupported() default false;
+
 }

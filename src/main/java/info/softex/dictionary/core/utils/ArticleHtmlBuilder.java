@@ -25,14 +25,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @since version 1.0, 10/26/2010 
+ * @since version 1.0,      10/26/2010
  * 
- * @modified version 1.4, 12/19/2010 
- * @modified version 1.9, 02/18/2011
- * @modified version 2.5, 07/10/2011 
- * @modified version 4.0, 02/03/2014 
- * @modified version 4.1, 02/17/2014 
- * @modified version 4.6, 02/15/2015 
+ * @modified version 1.4,   12/19/2010
+ * @modified version 1.9,   02/18/2011
+ * @modified version 2.5,   07/10/2011
+ * @modified version 4.0,   02/03/2014
+ * @modified version 4.1,   02/17/2014
+ * @modified version 4.6,   02/15/2015
  * 
  * @author Dmitry Viktorov
  *

@@ -62,7 +62,7 @@ public class DSLToFDBBidiConversionTest {
 	}
 
 	@Test
-	public void testCompositeDslToBdbConversion() throws Exception {
+	public void testCompositeDslToFdbConversion() throws Exception {
 
 		testDSLToFDBConversion();
 		testDSLToFDBConvertedBase();

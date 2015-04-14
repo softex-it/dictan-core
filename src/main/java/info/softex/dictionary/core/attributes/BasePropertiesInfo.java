@@ -31,14 +31,14 @@ import java.util.TimeZone;
 
 /**
  * 
- * @since version 2.0, 03/12/2011
+ * @since version 2.0,		03/12/2011
  * 
- * @modified version 2.6, 08/27/2011
- * @modified version 2.9, 11/13/2011
- * @modified version 3.9, 12/05/2013
- * @modified version 4.0, 02/02/2014
- * @modified version 4.5, 03/29/2014
- * @modified version 4.6, 01/19/2015
+ * @modified version 2.6,	08/27/2011
+ * @modified version 2.9,	11/13/2011
+ * @modified version 3.9,	12/05/2013
+ * @modified version 4.0,	02/02/2014
+ * @modified version 4.5,	03/29/2014
+ * @modified version 4.6,	01/19/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -535,7 +535,7 @@ public class BasePropertiesInfo implements Cloneable {
 	// Private methods ------------------------------------------------------------
 
 	private int getIntValue(String keyString) {
-		Object obj = this.primaryParams.get(keyString);
+		Object obj = primaryParams.get(keyString);
 		if (obj instanceof Integer) {
 			return (Integer)obj;
 		} else if (obj instanceof String) {
@@ -546,28 +546,16 @@ public class BasePropertiesInfo implements Cloneable {
 		return -1;
 	}
 	
-//	private int getIntValue(PrimaryKeys key) {
-//		Object obj = this.primaryParams.get(key);
-//		if (obj instanceof Integer) {
-//			return (Integer)obj;
-//		} else if (obj instanceof String) {
-//			return Integer.parseInt((String)obj);
-//		} else if (obj != null) {
-//			throw new IllegalArgumentException("The key " + key + " cannot be cast to int");
-//		}
-//		return 0;
-//	}
-	
-//	private boolean getBooleanValue(PrimaryKeys key) {
-//		Object obj = this.primaryParams.get(key);
+//	private boolean getBooleanValue(String keyString, boolean defValue) {
+//		Object obj = primaryParams.get(keyString);
 //		if (obj instanceof Boolean) {
 //			return (Boolean)obj;
 //		} else if (obj instanceof String) {
 //			return Boolean.parseBoolean((String)obj);
 //		} else if (obj != null) {
-//			throw new IllegalArgumentException("The key " + key + " cannot be cast to boolean");
+//			throw new IllegalArgumentException("The key " + keyString + " cannot be cast to boolean");
 //		}
-//		return false;
+//		return defValue;
 //	}
 	
 	private String dateToString(Date date) {

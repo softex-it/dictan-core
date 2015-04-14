@@ -40,7 +40,9 @@ import org.slf4j.LoggerFactory;
  * The DSL Base Writer enables writing the DSL (Dictionary Specification Language)
  * format developed by ABBYY and mainly used at Lingvo application.
  * 
- * @since version 4.6, 02/28/2015
+ * @since version 4.6,		02/28/2015
+ * 
+ * @modified version 4.7,	03/23/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -60,7 +62,7 @@ public class DSLBaseWriter extends SourceBaseWriter {
 	}
 	
 	@Override
-	protected void createWriters() throws Exception {
+	protected void createWriters() throws IOException {
 		dslArticleWriter = new DSLBaseWriteUnit(outDirectory.getPath(), SourceFileNames.FILE_DSL_ARTICLES_NO_EXT);
 		dslAbbrevWriter = new DSLBaseWriteUnit(outDirectory.getPath(), SourceFileNames.FILE_DSL_ABBREVIATIONS_NO_EXT);
 	}
@@ -71,13 +73,13 @@ public class DSLBaseWriter extends SourceBaseWriter {
 	}
 
 	@Override
-	public void saveRawArticleInfo(ArticleInfo articleInfo) throws Exception {
+	public void saveRawArticleInfo(ArticleInfo articleInfo) throws IOException {
 		WordInfo wordInfo = articleInfo.getWordInfo();
 		dslArticleWriter.saveEntry(wordInfo.getWord(), wordInfo.getWordMapping(), wordInfo.getRedirectToId(), articleInfo.getArticle());
 	}
 	
 	@Override
-	public void saveAdaptedArticleInfo(ArticleInfo articleInfo) throws Exception {
+	public void saveAdaptedArticleInfo(ArticleInfo articleInfo) throws IOException {
 		
 		// Convert article
 		ArticleInfo dslArticleInfo = articleInfo.clone();

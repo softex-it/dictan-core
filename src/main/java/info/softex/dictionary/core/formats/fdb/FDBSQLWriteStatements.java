@@ -35,7 +35,7 @@ public class FDBSQLWriteStatements {
 	public static final String CREATE_TABLE_WORDS =
 		"CREATE TABLE " + FDBTables.words +
 		" (word_id INTEGER PRIMARY KEY, word TEXT UNIQUE NOT NULL)";
-
+	
 	// Words mappings
 	public static final String CREATE_TABLE_WORDS_MAPPINGS =
 		"CREATE TABLE " + FDBTables.words_mappings + " (word_id INTEGER PRIMARY KEY, word_mapping_1 TEXT DEFAULT NULL, word_mapping_2 TEXT DEFAULT NULL)";

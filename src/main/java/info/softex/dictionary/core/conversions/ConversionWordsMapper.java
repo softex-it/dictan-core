@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
  * 
  * @since version 4.6, 		03/02/2015
  * 
+ * @modified version 4.7, 	03/25/2015
+ * 
  * @author Dmitry Viktorov
  *
  */
@@ -116,9 +118,8 @@ public class ConversionWordsMapper {
 		}
 		log.info("List size after removing duplicates: {}", cleanedList.size());
 
-		if (removedWordIds.size() == 0) {
-			log.info("No duplicates found in the word list");
-		}
+		log.info("Number of removed duplicate words: {}", removedWordIds.size());
+		
 		return cleanedList;
 	}
 	

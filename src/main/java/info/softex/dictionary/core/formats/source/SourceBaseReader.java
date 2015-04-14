@@ -38,6 +38,7 @@ import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,6 +55,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 4.0,	08/06/2012
  * @modified version 4.2,	03/06/2014
  * @modified version 4.6,	01/26/2015
+ * @modified version 4.7,	03/23/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -99,7 +101,7 @@ public class SourceBaseReader implements BaseReader {
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() throws IOException {
 		if (articleReader != null) {
 			articleReader.close();
 		}
@@ -109,7 +111,7 @@ public class SourceBaseReader implements BaseReader {
 	}
 
 	@Override
-	public void load() throws BaseFormatException, Exception {
+	public void load() throws IOException, BaseFormatException {
 				
 		if (baseInfo == null) {
 	        log.debug("Loading BasePropertiesInfo");
@@ -128,7 +130,7 @@ public class SourceBaseReader implements BaseReader {
 	}
 
 	@Override
-	public BasePropertiesInfo loadBasePropertiesInfo() throws BaseFormatException, Exception {
+	public BasePropertiesInfo loadBasePropertiesInfo() throws IOException, BaseFormatException {
 
 		baseInfo = new BasePropertiesInfo();
 		
@@ -158,7 +160,7 @@ public class SourceBaseReader implements BaseReader {
 	 * Method is not supported.
 	 */
 	@Override
-	public LanguageDirectionsInfo loadLanguageDirectionsInfo() throws BaseFormatException, Exception {
+	public LanguageDirectionsInfo loadLanguageDirectionsInfo() {
 		return null;
 	}
 
@@ -234,8 +236,13 @@ public class SourceBaseReader implements BaseReader {
 	}
 
 	@Override
-	public List<String> getWords() throws BaseFormatException {
+	public List<String> getWords() {
 		return words;
+	}
+	
+	@Override
+	public Map<Integer, String> getWordsLike(String wordRoot, int limit) {
+		return null;
 	}
 	
 	@Override
@@ -284,15 +291,15 @@ public class SourceBaseReader implements BaseReader {
 		return getRawArticleInfo(wordInfo);
 	}
 	
-	protected List<String> loadWords() throws BaseFormatException, Exception {
+	protected List<String> loadWords() throws IOException, BaseFormatException {
 		File articleFile = new File(sourceDirectory + File.separator + SourceFileNames.FILE_ARTICLES);
 		articleReader = new SourceFileReader(articleFile, BUF_SIZE_ARTICLES);
 		articleReader.load(false);
 		return articleReader.getLineKeys();
 	}
 	
-	protected Set<String> loadAbbreviations() throws BaseFormatException, Exception {
-		Set<String> abbKeys = new HashSet<String>();
+	protected Set<String> loadAbbreviations() throws IOException, BaseFormatException {
+		Set<String> abbKeys = new LinkedHashSet<String>();
 		File abbrevFile = new File(sourceDirectory + File.separator + SourceFileNames.FILE_ABBREVIATIONS);
 		if (abbrevFile.exists() && abbrevFile.isFile()) {
 			abbrevReader = new SourceFileReader(abbrevFile, BUF_SIZE_ABBREVS);
@@ -302,7 +309,7 @@ public class SourceBaseReader implements BaseReader {
 		return abbKeys;
 	}
 	
-	protected Set<String> loadMediaResources() throws BaseFormatException, Exception {
+	protected Set<String> loadMediaResources() {
 		HashSet<String> resources = new HashSet<String>();
 		if (mediaDirectory.exists() && mediaDirectory.isDirectory()) {
             for (File file : mediaDirectory.listFiles()) {
