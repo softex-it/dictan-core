@@ -17,40 +17,31 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.utils;
+package info.softex.dictionary.core.processors.dsl;
 
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
+import info.softex.dictionary.core.processors.api.JobRunnable;
+import info.softex.dictionary.core.processors.api.JobRunner;
+import info.softex.dictionary.core.processors.impl.jobs.DSLMarkupProcessorJob;
+import info.softex.dictionary.core.processors.impl.runners.DSLEntriesJobRunner;
 
 /**
  * 
- * @since version 4.6,		02/17/2015
+ * @since version 4.8,		04/29/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
-public class FileTypeUtilsTest {
+public class DSLMarkupProcessor {
+	
+	public static void main(String[] args) throws Exception {
+		
+		String root = "/ext/processed";
+		
+		JobRunner runner = new DSLEntriesJobRunner(root);
+		
+		JobRunnable job = new DSLMarkupProcessorJob("/ext/output.txt");
+		
+		runner.run(job);
+	}
 
-	@Test
-	public void testImageExtensions() {
-		assertTrue(FileTypeUtils.isImageExtension("jpg"));
-		assertTrue(FileTypeUtils.isImageExtension("jpEg"));	
-		assertTrue(FileTypeUtils.isImageExtension("Tif"));	
-		assertTrue(FileTypeUtils.isImageExtension("Png"));	
-		assertTrue(FileTypeUtils.isImageExtension("bmp"));	
-	}
-	
-	@Test
-	public void testAudioExtensions() {
-		assertTrue(FileTypeUtils.isAudioExtension("waV"));	
-		assertTrue(FileTypeUtils.isAudioExtension("mp3"));
-		assertTrue(FileTypeUtils.isAudioExtension("oGG"));		
-	}
-	
-	@Test
-	public void testVideoExtensions() {
-		assertTrue(FileTypeUtils.isVideoExtension("avi"));
-	}
-	
 }

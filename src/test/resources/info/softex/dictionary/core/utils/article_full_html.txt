@@ -1,0 +1,24 @@
+<html><head><meta http-equiv='content-type' content='text/html'/><meta charset='UTF-8'><link rel='stylesheet' type='text/css' href='file:///android_asset/common_body_0.css' /><style>@font-face {font-family:'Lucida Sans Unicode';src:url('file:///android_asset/fonts/Lucida_Sans_Unicode.ttf');} body {font-family:'Lucida Sans Unicode';font-size:17px;font-weight:normal;font-style:normal;text-align:left;padding:1pt;}</style><style>span.cd {color:#008000} div.header {font-weight:bold;font-size:115%} div.m0,div.m1 {margin-top:1em} div.m2 {margin-left:1em} div.m3 {margin-left:2em} div.m4 {margin-left:3em} div.m5 {margin-left:4em} div.m6 {margin-left:5em} div.m7 {margin-left:6em} div.m8 {margin-left:7em} div.m9 {margin-left:8em} img.int {max-width:100%;height:auto} t {font-weight:bold} o {font-weight:bold} v {color:#FF0000} e {color:#808080} </style></head><body><div class="header">пров<v>е</v>рка</div><div class="m1"><a href="aud/ru-13748.ogg"><img src="img-ext/sound_32" border="0" style="vertical-align:middle"/></a></div>
+    <div class="m1"><a href="abbr/ж.">ж.</a></div>
+    <!-- This is a sample article -->
+    <div class="m1"><a href="abbr/ср. тж.">ср. тж.</a> <a href="проверять">проверять</a></n></div>
+    <script type="text/javascript"> 
+    	var test = 2 + 2;
+    </script>
+    <div class="m1"><b><span class="ca" style="color:green">1)</span></b> <n><c>(<i><l id=1049>осмотр, обследование</i>)</l></c> check(up); inspection</n></div>
+    <div class="m2"><f><e><l id=1049>пров<v>е</v>рка паспорт<v>о</v>в</l> — passport check / inspection</e></f></div>
+    <div class="m1"><b><span class="ca" style="color:green">2)</span></b> <n><c>(<i><l id=1049>выверка, определение соответствия или правильности</i>)</l></c> verification; check</n></div>
+    <div class="m2"><f><e><l id=1049>пров<v>е</v>рка счет<v>о</v>в <a href="abbr/бух.">бух.</a> — audit of accounts</e></f></div>
+    <div class="m2"><f><e><l id=1049>пров<v>е</v>рка пар<v>о</v>ля <a href="abbr/информ.">информ.</a> — password authentication / verification</e></f></div>
+    <div class="m2"><f><e><l id=1049>пров<v>е</v>рка нал<v>и</v>чия <i>(товаров, инвентаря)</l></i> — stocktaking</e></f></div>
+    <div class="m2"><f><e><l id=1049>пров<v>е</v>рка достов<v>е</v>рности <a href="abbr/информ.">информ.</a> — validity check</e></f></div>
+    <div class="m2"><f><e><l id=1049>пров<v>е</v>рка чётности <a href="abbr/информ.">информ.</a> — parity check</e></f></div>
+    <div class="m2"><f><e><l id=1049>пров<v>е</v>рка орфогр<v>а</v>фии <a href="abbr/информ.">информ.</a> — spell checking</e></f></div>
+    <div class="m1"><b><span class="ca" style="color:green">3)</span></b> <n><c>(<i><l id=1049>контроль, надзор</i>)</l></c> checkup, control; monitoring <a href="abbr/офиц.">офиц.</a></div>
+    <div class="m2"><f><e><l id=1049>пров<v>е</v>рка исполн<v>е</v>ния</l> — control of work done, work checkup; checking on performance; implementation monitoring <a href="abbr/офиц.">офиц.</a></div>
+    <div class="m1"><b><span class="ca" style="color:green">4)</span></b> <n><c>(<i><l id=1049>испытание</i>)</l></c> test</n></div>
+    <div class="m2"><f><e><l id=1049>пров<v>е</v>рка зн<v>а</v>ний</l> — (knowledge) test, examination</e></f></div>
+    <div class="m2"><f><e><l id=1049>пров<v>е</v>рка на алког<v>о</v>ль <i>(анализатором дыхания)</l></i> — breath test</e></f></div>
+    <div class="m2"><f><e><l id=1049>пров<v>е</v>рка гермет<v>и</v>чности</l> — leak test</e></f></div>
+</body>
+</html>

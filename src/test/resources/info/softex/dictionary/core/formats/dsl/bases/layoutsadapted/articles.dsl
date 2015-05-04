@@ -4,8 +4,10 @@
 
 trivial card
   Trivially simple card. The body of the card starts with spaces or TABs, that's all.<br/><br/>
-  
-trivial card with markup
+
+trivial card with 1 markup
+trivial card with 2{ stress<v>e</v>d word}
+trivial card with 3{ <w>abbrev.</w>}
   Trivially simple card. <div class="m3">Very simple.</div>
   <div class="m2">Two left margin tags</div><div class="m2"> in one line.</div> and line with no tags.
   <br/><div class="m2">Math expressions: 5 &#60; 3 &#60; 2, 2 &#60;=&#62; 2</div>

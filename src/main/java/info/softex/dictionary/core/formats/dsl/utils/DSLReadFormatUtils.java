@@ -23,7 +23,9 @@ import info.softex.dictionary.core.utils.StringUtils;
 
 /**
  * 
- * @since version 4.6, 02/01/2015
+ * @since version 4.6,		02/01/2015
+ * 
+ * @modified version 4.8,	04/28/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -42,6 +44,77 @@ public class DSLReadFormatUtils {
 	protected final static String CHAR_RCBRACE = "&#125;"; // }
 	
 	protected final static String HTML_BR = "<br/>";
+	
+	public static String convertDSLDesignTagsToAdaptedHtml(String s) {
+		// Italic
+		s = s.replaceAll("\\[i\\]", "<i>");
+		s = s.replaceAll("\\[/i\\]", "</i>");
+		
+		// Bold
+		s = s.replaceAll("\\[b\\]", "<b>");
+		s = s.replaceAll("\\[/b\\]", "</b>");
+
+		// Underlined
+		s = s.replaceAll("\\[u\\]", "<u>");
+		s = s.replaceAll("\\[/u\\]", "</u>");
+		
+		// Superscript
+		s = s.replaceAll("\\[sup\\]", "<sup>");
+		s = s.replaceAll("\\[/sup\\]", "</sup>");
+
+		// Subscript
+		s = s.replaceAll("\\[sub\\]", "<sub>");
+		s = s.replaceAll("\\[/sub\\]", "</sub>");
+		
+		// Colored text. The supported colors are the ones defined at MS IE 4.0.
+		s = s.replaceAll("\\[c (.*?)\\]", "<span class=\"ca\" style=\"color:$1\">"); // color in attribute
+		s = s.replaceAll("\\[c\\]", "<span class=\"cd\">"); // color by default
+		s = s.replaceAll("\\[/c\\]", "</span>");
+
+		// Stressed vowels in a word. They are usually highlighted.
+		s = s.replaceAll("\\['\\]", "<v>");
+		s = s.replaceAll("\\[/'\\]", "</v>");
+		
+		// Abbreviations (They can be replaced by the viewer directly at the article or linked as pop up window)
+		s = s.replaceAll("\\[p\\]", "<w>");
+		s = s.replaceAll("\\[/p\\]", "</w>");
+		
+		// Comments zone. This zone provides additional information about the translation.
+		s = s.replaceAll("\\[com(.*?)\\]", "<c$1>");
+		s = s.replaceAll("\\[/com\\]", "</c>");
+		
+		// The language of the word or phrase. These tags are used in cards to mark 
+		// words that are written in a language other than the target language.
+		s = s.replaceAll("\\[lang(.*?)\\]", "<l$1>");
+		s = s.replaceAll("\\[/lang\\]", "</l>");
+		
+		// Transcription zone
+		s = s.replaceAll("\\[t (.*?)\\]", "<t $1>"); // Space is needed to differ it from [trn]
+		s = s.replaceAll("\\[t\\]", "<t>");
+		s = s.replaceAll("\\[/t\\]", "</t>");
+		
+		// Specific conversion for Dictan. It helps wrap and style braces (\[ and \]) around transcriptions
+		// Must be done before the conversion of other comments
+		s = s.replaceAll("\\{\\{t\\}\\}(.*?)\\{\\{/t\\}\\}", "<o>$1</o>");
+		
+		// Translation zone. It contains translation of the head word.
+		s = s.replaceAll("\\[trn\\]", "<n>");
+		s = s.replaceAll("\\[/trn\\]", "</n>");
+		
+		// No text index zone.
+		s = s.replaceAll("\\[!trs\\]", "<m>");
+		s = s.replaceAll("\\[/!trs\\]", "</m>");
+		
+		// Full translation zone mode tags. They can be later processed by the viewer if needed. 
+		s = s.replaceAll("\\[\\*\\]", "<f>");
+		s = s.replaceAll("\\[/\\*\\]", "</f>");
+		
+		// Examples
+		s = s.replaceAll("\\[ex(.*?)\\]", "<e$1>");
+		s = s.replaceAll("\\[/ex\\]", "</e>");
+		
+		return s;
+	}
 	
 	/**
 	 * Converts DSL markup into adapted HTML. 
@@ -75,11 +148,7 @@ public class DSLReadFormatUtils {
 		s = s.replaceAll("\\[ref(.*?)\\](.*?)\\[/ref\\]", "<a href=\"$2\"$1>$2</a>");
 		s = s.replaceAll("&#60;&#60;(.+?)&#62;&#62;", "<a class=\"v2\" href=\"$1\">$1</a>"); // <<link>>,
 		s = s.replaceAll("\\[url(.*?)\\](.*?)\\[/url\\]", "<a class=\"v3\" href=\"$2\"$1>$2</a>"); // external links
-		
-		// Abbreviations (They can be replaced by the viewer directly at the article or linked as pop up window)
-		s = s.replaceAll("\\[p\\]", "<w>");
-		s = s.replaceAll("\\[/p\\]", "</w>");
-		
+				
 		// Media resources. Can't reuse s because it's strike in HTML.
 		s = s.replaceAll("\\[s\\]", "<r>");
 		s = s.replaceAll("\\[/s\\]", "</r>");
@@ -87,42 +156,8 @@ public class DSLReadFormatUtils {
 		// Replace all basic tags
 		s = convertDSLDesignTagsToAdaptedHtml(s);
 		
-		// Specific conversion for Dictan. It helps wrap and style braces (\[ and \]) around transcriptions
-		// Must be done before the conversion of other comments
-		s = s.replaceAll("\\{\\{t\\}\\}(.*?)\\{\\{/t\\}\\}", "<o>$1</o>");
-		
 		// Invisible comments
 		s = s.replaceAll("\\{\\{(.*?)\\}\\}", "<!--$1-->");
-		
-		// Transcription zone
-		s = s.replaceAll("\\[t (.*?)\\]", "<t $1>"); // Space is needed to differ it from [trn]
-		s = s.replaceAll("\\[t\\]", "<t>");
-		s = s.replaceAll("\\[/t\\]", "</t>");
-		
-		// The language of the word or phrase. These tags are used in cards to mark 
-		// words that are written in a language other than the target language.
-		s = s.replaceAll("\\[lang(.*?)\\]", "<l$1>");
-		s = s.replaceAll("\\[/lang\\]", "</l>");
-		
-		// Examples
-		s = s.replaceAll("\\[ex(.*?)\\]", "<e$1>");
-		s = s.replaceAll("\\[/ex\\]", "</e>");
-		
-		// Comments zone. This zone provides additional information about the translation.
-		s = s.replaceAll("\\[com(.*?)\\]", "<c$1>");
-		s = s.replaceAll("\\[/com\\]", "</c>");
-		
-		// Translation zone. It contains translation of the head word.
-		s = s.replaceAll("\\[trn\\]", "<n>");
-		s = s.replaceAll("\\[/trn\\]", "</n>");
-		
-		// Full translation zone mode tags. They can be later processed by the viewer if needed. 
-		s = s.replaceAll("\\[\\*\\]", "<f>");
-		s = s.replaceAll("\\[/\\*\\]", "</f>");
-		
-		// No text index zone.
-		s = s.replaceAll("\\[!trs\\]", "<m>");
-		s = s.replaceAll("\\[/!trs\\]", "</m>");
 		
 		// Before [/m] is formatted, append artificial breaks to all lines which don't end with [/m]
 		s = addDSLLineBreaks(s);
@@ -134,39 +169,6 @@ public class DSLReadFormatUtils {
 		
 		return s;
 		
-	}
-	
-	public static String convertDSLDesignTagsToAdaptedHtml(String s) {
-		// Italic
-		s = s.replaceAll("\\[i\\]", "<i>");
-		s = s.replaceAll("\\[/i\\]", "</i>");
-		
-		// Bold
-		s = s.replaceAll("\\[b\\]", "<b>");
-		s = s.replaceAll("\\[/b\\]", "</b>");
-
-		// Underlined
-		s = s.replaceAll("\\[u\\]", "<u>");
-		s = s.replaceAll("\\[/u\\]", "</u>");
-		
-		// Superscript
-		s = s.replaceAll("\\[sup\\]", "<sup>");
-		s = s.replaceAll("\\[/sup\\]", "</sup>");
-
-		// Subcript
-		s = s.replaceAll("\\[sub\\]", "<sub>");
-		s = s.replaceAll("\\[/sub\\]", "</sub>");
-		
-		// Colored text. The supported colors are the ones defined at MS IE 4.0.
-		s = s.replaceAll("\\[c (.*?)\\]", "<span class=\"ca\" style=\"color:$1\">"); // color in attribute
-		s = s.replaceAll("\\[c\\]", "<span class=\"cd\">"); // color by default
-		s = s.replaceAll("\\[/c\\]", "</span>");
-
-		// Stressed vowels in a word. They are usually highlighted.
-		s = s.replaceAll("\\['\\]", "<v>");
-		s = s.replaceAll("\\[/'\\]", "</v>");
-		
-		return s;
 	}
 
 	/**
@@ -226,11 +228,11 @@ public class DSLReadFormatUtils {
 			result = result.replaceAll("\\\\\\{",  TEMP_REPLACEMENT_1);
 			result = result.replaceAll("\\\\\\}",  TEMP_REPLACEMENT_2);
 			
-			// Replace the non-indexed parts with spaces at both sides
-			result = result.replaceAll(" \\{(.*?)\\} ", " ");
-			
 			// Second replace the ones w/o spaces
 			result = result.replaceAll("\\{(.*?)\\}", "");
+			
+			// Convert any resulted double spaces to one
+			result = result.replaceAll("  ", " ");
 			
 			// Return \{ and \} back
 			result = result.replaceAll(TEMP_REPLACEMENT_1, "\\{");

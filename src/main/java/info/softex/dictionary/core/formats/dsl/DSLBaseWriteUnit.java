@@ -44,19 +44,19 @@ import java.util.TreeMap;
  */
 public class DSLBaseWriteUnit {
 	
-	private final static Charset UTF8 = Charset.forName("UTF-8");
+	protected final static Charset UTF8 = Charset.forName("UTF-8");
 	
 	protected final FileOutputStream outStream;
 	
 	protected final File descFile;
 	protected final File iconFile;
 	
-	private boolean outputStarted = false;
+	protected boolean outputStarted = false;
 	
-	private final TreeMap<Integer, String[]> articles = new TreeMap<Integer, String[]>();
-	private final TreeMap<Integer, List<String>> redirects = new TreeMap<Integer, List<String>>();
+	protected final TreeMap<Integer, String[]> articles = new TreeMap<Integer, String[]>();
+	protected final TreeMap<Integer, List<String>> redirects = new TreeMap<Integer, List<String>>();
 	
-	private int curWordsSize = 0;
+	protected int curWordsSize = 0;
 	
 	public DSLBaseWriteUnit(String inOutDirPath, String nameBasis) throws IOException {
 		

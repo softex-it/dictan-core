@@ -19,6 +19,7 @@
 
 package info.softex.dictionary.core.utils;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.File;
@@ -28,6 +29,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -281,6 +283,18 @@ public class FileUtils {
 	}
 	
 	/**
+	 * Opens a {@link FileOutputStream} for the specified file, checking and
+	 * creating the parent directory if it does not exist.
+	 */
+	public static FileOutputStream openOutputStream(final File file) throws IOException {
+		return openOutputStream(file, false);
+	}
+	
+	public static BufferedWriter openBufferedWriter(File file, String encoding) throws IOException {
+		return new BufferedWriter(new OutputStreamWriter(openOutputStream(file, false), encoding));
+	}
+	
+	/**
 	 * Closes a <code>Closeable</code> unconditionally.
 	 * <p>
 	 * Equivalent to {@link Closeable#close()}, except any exceptions will be ignored. 
@@ -295,14 +309,6 @@ public class FileUtils {
 		} catch (final IOException ioe) {
 			// ignore
 		}
-	}
-	
-	/**
-	 * Opens a {@link FileOutputStream} for the specified file, checking and
-	 * creating the parent directory if it does not exist.
-	 */
-	public static FileOutputStream openOutputStream(final File file) throws IOException {
-		return openOutputStream(file, false);
 	}
 	
 	/**

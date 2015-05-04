@@ -17,28 +17,45 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.dsl.processors;
-
-import info.softex.dictionary.core.utils.StringUtils;
+package info.softex.dictionary.core.processors.impl.jobs;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import info.softex.dictionary.core.processors.api.DataInjector;
+import info.softex.dictionary.core.processors.api.JobData;
+import info.softex.dictionary.core.processors.api.JobRunnable;
+import info.softex.dictionary.core.utils.StringUtils;
+
 /**
  * 
- * @since version 4.6, 02/07/2015
+ * @since version 4.8,		04/29/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
-public class DSLMarkupValidator {
+public class DSLMarkupValidatorJob implements JobRunnable {
 	
 	protected final static Pattern EMPTY_BRACKETS = Pattern.compile("[(.+?)]");
+
+	@Override
+	public JobRunnable injectData(DataInjector dataInjector) throws Exception {
+		return this;
+	}
+
+	@Override
+	public boolean processItem(JobData jobData) throws Exception {
+		return isValidDSL(jobData.getContent());
+	}
+
+	@Override
+	public void finish() throws Exception {
+	}
 	
-	public static boolean isValidDSL(String s) {
+	protected static boolean isValidDSL(String dsl) {
 		
 		// Check for empty brackets [ ]
-		Matcher matcher = EMPTY_BRACKETS.matcher(s);
+		Matcher matcher = EMPTY_BRACKETS.matcher(dsl);
 		while (matcher.find()) {
 			String body = matcher.group(1);
 			if (body != null && StringUtils.isBlank(body)) {

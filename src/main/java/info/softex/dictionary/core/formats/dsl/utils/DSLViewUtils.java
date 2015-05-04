@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
  * @since version 4.6,		02/16/2015
  * 
  * @modified version 4.7,	03/24/2015
+ * @modified version 4.8,	04/29/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -59,11 +60,14 @@ public class DSLViewUtils {
 		put("<o>", "<span class=\"o\">");
 		put("<v ", "<span class=\"v\" ");
 		put("<v>", "<span class=\"v\">");
+		put("<w ", "<span class=\"w\" ");
+		put("<w>", "<span class=\"w\">");
 		put("<e ", "<span class=\"e\" ");
 		put("<e>", "<span class=\"e\">");
 		put("/t>", "/span>");
 		put("/o>", "/span>");
 		put("/v>", "/span>");
+		put("/w>", "/span>");
 		put("/e>", "/span>");
 	}};
 	
@@ -133,8 +137,8 @@ public class DSLViewUtils {
 			word = word.replaceAll("\\\\\\}", CHAR_RCBRACE); // "\}"
 			word = word.replaceAll("\\\\\\(", CHAR_LPAREN);  // "\("
 			word = word.replaceAll("\\\\\\)", CHAR_RPAREN);  // "\)"
-			
 			word = word.replaceAll("\\{(.*?)\\}", "$1");
+			word = convertDSLAbbreviationsToHtml(word);
 		}
 		
 		result.append(word);

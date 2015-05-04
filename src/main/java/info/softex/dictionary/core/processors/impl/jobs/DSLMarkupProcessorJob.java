@@ -17,23 +17,19 @@
  *  along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package info.softex.dictionary.core.formats.dsl.processors;
+package info.softex.dictionary.core.processors.impl.jobs;
 
 import info.softex.dictionary.core.attributes.ArticleInfo;
-import info.softex.dictionary.core.attributes.BaseResourceInfo;
-import info.softex.dictionary.core.attributes.BaseResourceKey;
 import info.softex.dictionary.core.attributes.KeyValueInfo;
-import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.formats.api.BaseFormatException;
-import info.softex.dictionary.core.formats.dsl.DSLBaseReader;
-import info.softex.dictionary.core.formats.dsl.DSLBaseWriter;
+import info.softex.dictionary.core.processors.api.DataInjector;
+import info.softex.dictionary.core.processors.api.JobData;
+import info.softex.dictionary.core.processors.api.JobRunnable;
 import info.softex.dictionary.core.utils.PreconditionUtils;
 import info.softex.dictionary.core.utils.StringUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -43,89 +39,43 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Utility can be used for various pre-processings of the DSL markup.
- * The change of markup may be necessary to improve the view of the cards.
  * 
- * The processor doesn't work with redirects. To work with redirects it repeat 
- * the normal conversion flow.
- * 
- * @since version 4.6,		03/06/2015
- * 
- * @modified version 4.7,	03/23/2015
+ * @since version 4.8,		04/29/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
-public class DSLMarkupProcessor {
-	
-	private final static Logger log = LoggerFactory.getLogger(DSLMarkupProcessor.class);
+public class DSLMarkupProcessorJob extends AbstractDSLJob {
 	
 	protected final static String EMPTY_PAR = "[m1]\\ [/m]";
 	
-	public static void main(String[] args) throws IOException, BaseFormatException {
-		
-		DSLMarkupProcessor dslProc = new DSLMarkupProcessor();
-		//dslProc.process(args[0], args[1], args[2]);
-		dslProc.process("./Oxford_American");
+	private final Logger log = LoggerFactory.getLogger(getClass());
+	
+	public DSLMarkupProcessorJob(String inBasePath) throws IOException {
+		super(inBasePath);
+		log.info("Markup Processor Job is created");
 	}
 	
-	protected void process(String basePath) throws IOException, BaseFormatException {
-		
-		DSLBaseReader r = new DSLBaseReader(new File(basePath));
-		
-		log.info("DSL Reader is created");
-		
-		// Prepare out folder
-		File outDir = new File(basePath + File.separator + "out");
-		if (outDir.exists() && outDir.isDirectory()) {
-			outDir.delete();
-		}
-		outDir.mkdir();
-		
-		// Create writer
-		DSLBaseWriter w = new DSLBaseWriter(outDir);
-		
-		log.info("DSL Writer is created");
-		
-		r.load();
-		
-		log.info("DSL Reader is loaded");
-		
-		w.createBase();
-		
-		log.info("DSL Writer Base is created");
-		
-		// Headers
-		BaseResourceInfo artDslRes = r.getBaseResourceInfo(BaseResourceKey.BASE_ARTICLES_META_DSL.getKey());
-		PreconditionUtils.checkNotNull(artDslRes, "DSL Article Resource is not found");
-		w.saveBaseResourceInfo(artDslRes);
-		
-		log.info("DSL Article Resource is copied");
-		
-		List<String> words = r.getWords();
-		
-		HashSet<String> set = new HashSet<String>();
-		
-		for (int i = 0; i < words.size(); i++) {
-			ArticleInfo articleInfo = r.getRawArticleInfo(new WordInfo(i));
-			
-//			WordInfo wordInfo = articleInfo.getWordInfo();
-//			String lcWord = wordInfo.getWord().toLowerCase();
-//			if (!set.contains(lcWord)) {
-//				wordInfo.setWord(lcWord);
-//				w.saveRawArticleInfo(articleInfo);
-//			}
-			
-			processEntry(articleInfo);
-			
-			w.saveRawArticleInfo(articleInfo);
-			
-		}
-		
-		r.close();
-		w.close();
-		
+	@Override
+	public JobRunnable injectData(DataInjector dataInjector) throws Exception {
+		super.injectData(dataInjector);
+		writer.saveBaseResourceInfo(artDslResource);
+		return this;
 	}
+
+	@Override
+	public boolean processItem(JobData jobData) throws Exception {
+		
+		PreconditionUtils.checkNotNull(artDslResource, 
+			"Article DSL Resource can't be null, it has to be injected before processing");
+		
+		ArticleInfo articleInfo = (ArticleInfo)jobData;
+		processEntry(articleInfo);
+		writer.saveRawArticleInfo(articleInfo);
+		return true;
+	}
+	
+	// Processing methods ------------------------------------------------------------
 	
 	protected void processEntry(KeyValueInfo<String, String> article) throws IOException, BaseFormatException {
 		

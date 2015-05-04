@@ -47,14 +47,14 @@ public class DSLBaseLayoutsContent {
 	protected final static String PATH_BASE_DSL_LAYOUTS_ORIG = "/info/softex/dictionary/core/formats/dsl/bases/layouts";
 	protected final static String PATH_BASE_DSL_LAYOUTS_ADAPTED = "/info/softex/dictionary/core/formats/dsl/bases/layoutsadapted";
 	
-	protected final static int WORDS_NUMBER = 29;
-	protected final static int WORDS_NUMBER_UNIQUE = 27;
+	protected final static int WORDS_NUMBER = 31;
+	protected final static int WORDS_NUMBER_UNIQUE = 29;
 	
-	protected final static int WORDS_MAPPINGS_NUMBER = 16;
-	protected final static int WORDS_MAPPINGS_NUMBER_UNIQUE = 15;
+	protected final static int WORDS_MAPPINGS_NUMBER = 18;
+	protected final static int WORDS_MAPPINGS_NUMBER_UNIQUE = 17;
 	
-	protected final static int REDIRECTS_NUMBER = 17;
-	protected final static int REDIRECTS_NUMBER_UNIQUE = 16;
+	protected final static int REDIRECTS_NUMBER = 19;
+	protected final static int REDIRECTS_NUMBER_UNIQUE = 18;
 	
 	protected final static int ARTICLES_ACTUAL_NUMBER = 12;
 	protected final static int ARTICLES_ACTUAL_NUMBER_UNIQUE = 11;
@@ -68,14 +68,16 @@ public class DSLBaseLayoutsContent {
 	@SuppressWarnings("serial")
 	public static final TreeMap<Integer, Integer> REDIRECTS_ORIG = new TreeMap<Integer, Integer>() {{
 		
+		put(2, 1); put(3, 1);
+		
 		// specialchars
-		put(3, 2);
+		put(5, 4);
 		
 		// -ae1
-		put(6, 5); put(7, 5); put(8, 5); put(9, 5); put(10, 5); put(11, 5); put(12, 5); put(13, 5); put(14, 5); put(15, 5);
+		put(8, 7); put(9, 7); put(10, 7); put(11, 7); put(12, 7); put(13, 7); put(14, 7); put(15, 7); put(16, 7); put(17, 7);
 		
 		// sample entry
-		put(20, 19); put(21, 19); put(22, 19); put(23, 19); put(24, 19); put(25, 19);
+		put(22, 21); put(23, 21); put(24, 21); put(25, 21); put(26, 21); put(27, 21);
 		
 	}};
 	
@@ -91,6 +93,9 @@ public class DSLBaseLayoutsContent {
 		// specialchars
 		put(20, 19);
 		
+		// trivial card
+		put(23, 22); put(24, 22);
+		
 	}};
 	
 	@SuppressWarnings("serial")
@@ -104,6 +109,9 @@ public class DSLBaseLayoutsContent {
 		
 		// specialchars
 		put(20, 19);
+		
+		// trivial card
+		put(23, 22); put(24, 22);
 		
 	}};
 	
@@ -155,7 +163,7 @@ public class DSLBaseLayoutsContent {
 	
 	@SuppressWarnings("serial")
 	public static final Map<String, String> WORDS_ARTICLES_ADAPTED_SELECTIVE = new LinkedHashMap<String, String>() {{
-		put("trivial card with markup", 
+		put("trivial card with 1 markup", 
 			"Trivially simple card. <div class=\"m3\">Very simple.</div>\r\n" + 
 			"<div class=\"m2\">Two left margin tags</div><div class=\"m2\"> in one line.</div> and line with no tags.\r\n" + 
 			"<br/><div class=\"m2\">Math expressions: 5 &#60; 3 &#60; 2, 2 &#60;=&#62; 2</div>\r\n" + 

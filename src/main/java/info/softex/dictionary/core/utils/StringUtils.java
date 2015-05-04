@@ -24,8 +24,10 @@ import java.util.Objects;
 
 /**
  * 
- * @since version 4.6, 02/03/2015
- * 
+ * @since version 4.6,      02/03/2015
+ *
+ * @modified version 4.8,   05/01/2015
+ *
  * @author Dmitry Viktorov
  * 
  */
@@ -170,5 +172,13 @@ public class StringUtils {
 	public static String defaultString(final String str) {
 		return str == null ? EMPTY : str;
 	}
+
+    /**
+     * <p>Returns either the passed in String, or if the String is
+     * {@code null}, the value of {@code defaultStr}.</p>
+     */
+    public static String defaultString(final String str, final String defaultStr) {
+        return str == null ? defaultStr : str;
+    }
 
 }

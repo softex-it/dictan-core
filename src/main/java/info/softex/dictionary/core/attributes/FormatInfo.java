@@ -82,9 +82,10 @@ public class FormatInfo {
 		return extensions;
 	}
 	
-	public String getSupportedExtension(String fileName) {
+	public String getSupportedExtension(final String fileName) {
+        String fileNameLC = fileName.toLowerCase(LOCALE_DEFAULT);
 		for (String curExt : this.extensions) {
-			if (fileName.toLowerCase(LOCALE_DEFAULT).endsWith(curExt)) {
+			if (fileNameLC.endsWith(curExt)) {
 				return curExt;
 			}
 		}

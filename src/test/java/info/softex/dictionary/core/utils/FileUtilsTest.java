@@ -48,7 +48,7 @@ public class FileUtilsTest {
 		-70, 32, 97, 110, 100, 32, 117, 109, 98, 114, 101, 108, 108, 97, 32, -30, -104, -126
 	}; 
 
-	protected final static String ST_SAMPLE_FILE = "/info/softex/dictionary/core/utils/sample.txt";
+	protected final static String ST_SAMPLE_FILE = "/info/softex/dictionary/core/utils/unicode_samples.txt";
 
 	protected final static byte[] ST_SAMPLE_FILE_BT = new byte[] { 
 		115, 111, 109, 101, 32, 105, 110, 112, 117, 116, 32, 119, 105, 116, 104, 32, 85, 110, 

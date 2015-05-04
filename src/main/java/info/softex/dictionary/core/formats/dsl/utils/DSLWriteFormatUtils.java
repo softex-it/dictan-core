@@ -23,7 +23,9 @@ import info.softex.dictionary.core.utils.StringUtils;
 
 /**
  * 
- * @since version 4.6, 02/06/2015
+ * @since version 4.6,		02/06/2015
+ * 
+ * @modified version 4.8,	04/28/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -56,6 +58,10 @@ public class DSLWriteFormatUtils {
 		s = s.replaceAll("<sub>", "[sub]");
 		s = s.replaceAll("</sub>", "[/sub]");
 		
+		// Abbreviations 
+		s = s.replaceAll("<w>", "[p]");
+		s = s.replaceAll("</w>", "[/p]");
+		
 		// Stressed vowels in a word. They are usually highlighted.
 		s = s.replaceAll("<v>", "[']");
 		s = s.replaceAll("</v>", "[/']");
@@ -64,6 +70,38 @@ public class DSLWriteFormatUtils {
 		s = s.replaceAll("<span class=\"ca\" style=\"color:(.+?)\">", "[c $1]");
 		s = s.replaceAll("<span class=\"cd\">", "[c]");
 		s = s.replaceAll("</span>", "[/c]");
+		
+		// Comments zone
+		s = s.replaceAll("<c(.*?)>", "[com$1]");
+		s = s.replaceAll("</c>", "[/com]");
+		
+		// The language of the word or phrase.
+		s = s.replaceAll("<l(.*?)>", "[lang$1]");
+		s = s.replaceAll("</l>", "[/lang]");
+		
+		// Specific conversion for Dictan. It helps wrap and style braces (\[ and \]) around transcriptions
+		s = s.replaceAll("<o>(.*?)</o>", "{{t}}$1{{/t}}");
+		
+		// Examples
+		s = s.replaceAll("<e(.*?)>", "[ex$1]");
+		s = s.replaceAll("</e>", "[/ex]");
+		
+		// Transcription zone
+		s = s.replaceAll("<t (.*?)>", "[t $1]"); // Space is needed to differ it from [trn]
+		s = s.replaceAll("<t>", "[t]");
+		s = s.replaceAll("</t>", "[/t]");
+		
+		// Full translation zone
+		s = s.replaceAll("<f>", "[*]");
+		s = s.replaceAll("</f>", "[/*]");
+		
+		// No text index zone.
+		s = s.replaceAll("<m>", "[!trs\\]");
+		s = s.replaceAll("</m>", "\\[/!trs\\]");
+		
+		// Translation zone
+		s = s.replaceAll("<n>", "[trn]");
+		s = s.replaceAll("</n>", "[/trn]");
 		
 		return s;
 		
@@ -84,39 +122,6 @@ public class DSLWriteFormatUtils {
 		// Invisible comments
 		s = s.replaceAll("<!--(.*?)-->", "{{$1}}");
 		
-		// Specific conversion for Dictan. It helps wrap and style braces (\[ and \]) around transcriptions
-		s = s.replaceAll("<o>(.*?)</o>", "{{t}}$1{{/t}}");
-		
-		// Transcription zone
-		s = s.replaceAll("<t (.*?)>", "[t $1]"); // Space is needed to differ it from [trn]
-		s = s.replaceAll("<t>", "[t]");
-		s = s.replaceAll("</t>", "[/t]");
-		
-		// The language of the word or phrase.
-		s = s.replaceAll("<l(.*?)>", "[lang$1]");
-		//s = s.replaceAll("<l>", "[lang]");
-		s = s.replaceAll("</l>", "[/lang]");
-		
-		// Examples
-		s = s.replaceAll("<e(.*?)>", "[ex$1]");
-		s = s.replaceAll("</e>", "[/ex]");
-		
-		// Comments zone
-		s = s.replaceAll("<c(.*?)>", "[com$1]");
-		s = s.replaceAll("</c>", "[/com]");
-		
-		// Translation zone
-		s = s.replaceAll("<n>", "[trn]");
-		s = s.replaceAll("</n>", "[/trn]");
-		
-		// Full translation zone
-		s = s.replaceAll("<f>", "[*]");
-		s = s.replaceAll("</f>", "[/*]");
-		
-		// No text index zone.
-		s = s.replaceAll("<m>", "[!trs\\]");
-		s = s.replaceAll("</m>", "\\[/!trs\\]");
-		
 		// Left paragraph margins
 		s = s.replaceAll("<div class=\"m(.*?)\">", "[m$1]");
 		s = s.replaceAll("</div>", "[/m]");
@@ -125,10 +130,6 @@ public class DSLWriteFormatUtils {
 		s = s.replaceAll("<a href=\"(.*?)\"(.*?)>(.*?)</a>", "\\[ref$2\\]$1\\[/ref\\]");
 		s = s.replaceAll("<a class=\"v2\" href=\"(.*?)\"(.*?)>(.*?)</a>", "<<$1>>");
 		s = s.replaceAll("<a class=\"v3\" href=\"(.*?)\"(.*?)>(.*?)</a>", "\\[url$2\\]$1\\[/url\\]"); // external links
-		
-		// Abbreviations 
-		s = s.replaceAll("<w>", "[p]");
-		s = s.replaceAll("</w>", "[/p]");
 		
 		// Media resources. Can't reuse s because it's strike in html.
 		s = s.replaceAll("<r>", "[s]");

@@ -35,7 +35,7 @@ import org.junit.Test;
 
 /**
  * 
- * @since version 4.5, 04/02/2014
+ * @since version 4.5, 04/02/2015
  * 
  * @author Dmitry Viktorov
  * 

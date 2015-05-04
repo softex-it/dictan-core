@@ -6,7 +6,7 @@
 	<groupId>info.softex.dictionary</groupId>
 	<artifactId>dictan-core</artifactId>
 	<packaging>jar</packaging>
-	<version>4.7</version>
+	<version>4.8</version>
   
   	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -31,6 +31,12 @@
 		</dependency>
 		
 		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		
+		<dependency>
 		     <groupId>org.xerial</groupId>
 		     <artifactId>sqlite-jdbc</artifactId>
 		     <version>${sqlite.jdbc.version}</version>
@@ -41,13 +47,6 @@
 		     <artifactId>junit</artifactId>
 		     <version>${junit.version}</version>
 		     <scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>${slf4j.version}</version>
-			<scope>test</scope>
 		</dependency>
 	 
 	</dependencies>

@@ -5,7 +5,9 @@
 trivial card
   Trivially simple card. The body of the card starts with spaces or TABs, that's all.
 
-trivial card with markup
+trivial card with 1 markup
+trivial card with 2{ stress[']e[/']d word}
+trivial card with 3{ [p]abbrev.[/p]}
   Trivially simple card. [m3]Very simple.[/m]
   [m2]Two left margin tags[/m][m2] in one line.[/m] and line with no tags.
   [m2]Math expressions: 5 < 3 < 2, 2 <=> 2[/m]
