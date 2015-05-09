@@ -21,6 +21,7 @@ package info.softex.dictionary.core.utils;
 
 import static org.junit.Assert.assertEquals;
 import info.softex.dictionary.core.testutils.MavenUtils;
+import info.softex.dictionary.core.utils.ArticleTextFormatter.XmlProcessResult;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -46,16 +47,17 @@ public class ArticleTextFormatterTest {
 	protected final static int TEST_LENGTH = 7;
 	
 	@SuppressWarnings("serial")
-	public static final Map<String, String> ARTICLES = new LinkedHashMap<String, String>() {{
+	protected final static Map<String, String> ARTICLES = new LinkedHashMap<String, String>() {{
 		put(null, null);
 		put("", "");
 		put(" ", " ");
+		put("sim", "sim");
 		put("simple text", "simple text");
 		put("simple text <markup> test</markup>", "simple text  test");
-		put("<div>simple \r\ntext <markup> test</markup><div>", "simple \r\ntext  test");
+		put("<div>simple \r\ntext <markup> test</markup><div>", "simple \r\ntext  test"); // 6
 		put("simple \r\ntext <script> test</script>", "simple \r\ntext ");
 		put("simple \r\ntext <style> test</style>", "simple \r\ntext ");
-		put("<!-- simple \r\ntext <style> test -->", "");
+		put("<!-- simple \r\ntext <style> test -->", ""); // 9
 		put("text <style> error1 \r\n<style> error2 </style> text", "text  text");
 		put("<script> error1 </div>\r\n<style> error2 </style> text 4", "");
 		put("<script> error1 </div>\r\n<style> error2 </script> text 4", " text 4");
@@ -64,12 +66,19 @@ public class ArticleTextFormatterTest {
 		put("sp &amp ecial character &copy;", "sp & ecial character \u00A9");
 		put("<div class=\"header\">butter</div><div class=\"m1\"><o>&#91;</o> <t>'bʌtə</t> <o>&#93;</o>", "butter[ 'bʌtə ]");
 	}};
+	
+	protected final static int[] PROCESSED_LENGTHS = new int[] {
+		0, 0, 1, 3, 7, 7, 12, 7, 7, 36,
+		47, 55, 55, 7, 7, 10, 56
+	};
 
 	@Test
 	public void testRemoveXmlHtml() {
 		for (Map.Entry<String, String> entry : ARTICLES.entrySet()) {
-			String value = ArticleTextFormatter.removeXmlHtml(entry.getKey());
-			assertEquals(entry.getValue(), value);
+			XmlProcessResult result = ArticleTextFormatter.removeXmlHtml(entry.getKey());
+			if (result != null) {
+				assertEquals(entry.getValue(), result.getOutput());
+			}
 		}
 	}
 	
@@ -77,10 +86,16 @@ public class ArticleTextFormatterTest {
 	public void testRemoveXmlHtmlMaxLength() {
 		int count = 0;
 		for (Map.Entry<String, String> entry : ARTICLES.entrySet()) {
-			String expValue = entry.getValue();
-			if (expValue != null && expValue.length() >= TEST_LENGTH) {
-				String value = ArticleTextFormatter.removeXmlHtml(entry.getKey(), TEST_LENGTH);
-				assertEquals("Lines at #" + count + " don't match", expValue.substring(0, TEST_LENGTH), value);
+			String entryValue = entry.getValue();
+			if (entryValue != null) {
+				if (entryValue.length() >= TEST_LENGTH) {
+					entryValue = entryValue.substring(0, TEST_LENGTH);
+				}
+				XmlProcessResult result = ArticleTextFormatter.removeXmlHtml(entry.getKey(), TEST_LENGTH);
+				System.out.println(result.getOutput());
+				assertEquals(entryValue.length(), result.getOutput().length());
+				assertEquals("Processed lengths at #" + count + " '" + entryValue + "' don't match", PROCESSED_LENGTHS[count], result.getProcessedLength());
+				assertEquals("Lines at #" + count + " don't match", entryValue, result.getOutput());
 			}
 			count++;
 		}
@@ -90,14 +105,14 @@ public class ArticleTextFormatterTest {
 	public void testRemoveXmlHtmlFromFullArticle() throws UnsupportedEncodingException, IOException {		
 		String articleOrig = new String(FileUtils.toByteArray(MavenUtils.getCodeSourceRelevantFile(FULL_ARTICLE_HTML)), UTF8);
 		String articleNoXml = new String(FileUtils.toByteArray(MavenUtils.getCodeSourceRelevantFile(FULL_ARTICLE_NO_HTML)), UTF8);
-		assertEquals(articleNoXml, ArticleTextFormatter.removeXmlHtml(articleOrig));
+		assertEquals(articleNoXml, ArticleTextFormatter.removeXmlHtml(articleOrig).getOutput());
 	}
 	
 	@Test
 	public void testRemoveXmlHtmlMaxLengthFromFullArticle() throws UnsupportedEncodingException, IOException {		
 		String articleOrig = new String(FileUtils.toByteArray(MavenUtils.getCodeSourceRelevantFile(FULL_ARTICLE_HTML)), UTF8);
 		String articleNoXmlCut = new String(FileUtils.toByteArray(MavenUtils.getCodeSourceRelevantFile(FULL_ARTICLE_NO_HTML_CUT)), UTF8);
-		assertEquals(articleNoXmlCut, ArticleTextFormatter.removeXmlHtml(articleOrig, 400));
+		assertEquals(articleNoXmlCut, ArticleTextFormatter.removeXmlHtml(articleOrig, 400).getOutput());
 	}
 	
 }

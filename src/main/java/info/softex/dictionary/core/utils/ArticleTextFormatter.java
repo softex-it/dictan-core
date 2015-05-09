@@ -11,11 +11,11 @@ import java.util.HashMap;
  */
 public class ArticleTextFormatter {
 	
-	public static String removeXmlHtml(String input, int maxLength) {
+	public static XmlProcessResult removeXmlHtml(String input, int maxLength) {
 		return new XmlHtmlRemover(input, maxLength).removeXmlHtml();
 	}
 	
-	public static String removeXmlHtml(String input) {
+	public static XmlProcessResult removeXmlHtml(String input) {
 		return removeXmlHtml(input, -1);
 	}
 
@@ -25,8 +25,8 @@ public class ArticleTextFormatter {
      */
 	protected static class XmlHtmlRemover {
 
-        protected static final int MIN_ESCAPE = 2;
-        protected static final int MAX_ESCAPE = 6;
+        protected final static int MIN_ESCAPE = 2;
+        protected final static int MAX_ESCAPE = 6;
 		
 		protected final static String STYLE = "style";
 		protected final static String SCRIPT = "script";
@@ -155,11 +155,13 @@ public class ArticleTextFormatter {
 			this.maxLength = inMaxLength;
 		}
 		
-		public String removeXmlHtml() {
+		public XmlProcessResult removeXmlHtml() {
 
 			// Don't process blank input
-			if (StringUtils.isBlank(input)) {
-				return input;
+			if (input == null) {
+				return null;
+			} else if (StringUtils.isBlank(input)) {
+				return new XmlProcessResult(input.length(), input);
 			}
 
             boolean specialCharAppended;
@@ -168,7 +170,8 @@ public class ArticleTextFormatter {
 			StringBuffer lastTag = new StringBuffer();
 			
 			char[] chars = input.toCharArray();
-            for (int i = 0; i < chars.length; i++) {
+			int count = 0;
+            for (; count < chars.length; count++) {
             	
                 if (maxLength > 0 && result.length() >= maxLength) {
                 	break;
@@ -176,7 +179,7 @@ public class ArticleTextFormatter {
 
                 specialCharAppended = false;
 
-                char curChar = chars[i];
+                char curChar = chars[count];
                 if (curChar == '<') {
                     isResultOutput = false;
                     lastTag.setLength(0);
@@ -186,22 +189,22 @@ public class ArticleTextFormatter {
                 	if (STYLE.equalsIgnoreCase(lastTagString) ||
                 			SCRIPT.equalsIgnoreCase(lastTagString) ||
                 				COMMENT_OPEN.equalsIgnoreCase(lastTagString)) {
-                		i = readFullTag(lastTagString, chars, i);
+                		count = readFullTag(lastTagString, chars, count);
                 	}
 
                 	isResultOutput = true;
                 	isLastTagOutput = false;
                 	lastTag.setLength(0);
                 } else if (curChar == '&') {
-                    char[] htmlCharWithEnding = readHtmlSpecialCharacter(chars, i);
+                    char[] htmlCharWithEnding = readHtmlSpecialCharacter(chars, count);
                     if (htmlCharWithEnding != null) {
                         char[] htmlChar = copyOfRange(htmlCharWithEnding, 0, htmlCharWithEnding.length - 1);
                         String resolvedChars = resolveHtmlSpecialCharacter(htmlChar);
                         if (resolvedChars != null) {
                             result.append(resolvedChars);
-                            i += htmlChar.length;
+                            count += htmlChar.length;
                             if (htmlCharWithEnding[htmlCharWithEnding.length - 1] != ';') {
-                            	i--;
+                            	count--;
                             }
                             specialCharAppended = true;
                         }
@@ -224,11 +227,11 @@ public class ArticleTextFormatter {
 
             // Length is never expected to be more than max
             // This check is only for safety
-            if (maxLength > 0) {
+            if (maxLength > 0 && result.length() > maxLength) {
             	result.setLength(maxLength);
             }
-            
-            return result.toString();
+
+            return new XmlProcessResult(count, result.toString());
 		}
 		
 		protected int readFullTag(String openTag, char[] chars, int pointer) {
@@ -330,6 +333,21 @@ public class ArticleTextFormatter {
 
         }
 
+	}
+	
+	public static class XmlProcessResult {
+		private final int processedLength;
+		private final String output;
+		public XmlProcessResult(int inProcessedLength, String inOutput) {
+			this.processedLength = inProcessedLength;
+			this.output = inOutput;
+		}
+		public int getProcessedLength() {
+			return processedLength;
+		}
+		public String getOutput() {
+			return output;
+		}
 	}
 
     /**
