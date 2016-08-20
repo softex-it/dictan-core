@@ -52,6 +52,7 @@ import org.slf4j.LoggerFactory;
  * @since version 4.6,		01/26/2015
  * 
  * @modified version 4.7,	03/23/2015
+ * @modified version 4.9,   12/08/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -158,6 +159,8 @@ public class DSLBaseReader extends SourceBaseReader {
 			if (StringUtils.isNotBlank(wordMapping)) {
 				wordInfo.setWordMapping(wordMapping);
 			}
+			
+			articleInfo.setBaseInfo(getBasePropertiesInfo());
 			
 			return articleInfo;
 		}

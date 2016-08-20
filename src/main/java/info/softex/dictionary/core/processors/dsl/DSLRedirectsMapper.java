@@ -24,7 +24,7 @@ import info.softex.dictionary.core.processors.impl.jobs.RedirectsFinderJob;
 import info.softex.dictionary.core.processors.impl.jobs.RedirectsMapperJob;
 import info.softex.dictionary.core.processors.impl.runners.DSLEntriesJobRunner;
 
-import java.util.TreeMap;
+import java.util.LinkedHashMap;
 
 /**
  * 
@@ -37,20 +37,19 @@ public class DSLRedirectsMapper {
 	
 	public static void main(String[] args) throws Exception {
 		
-		String in = "/processed";
+		String in = "/Volumes/Media/ln/DE_RU_DE_2013/DeRu/DeRu_Active_2013_Lingvo_Win/dictan-utf8_processed_1";
 		String out = "/ext/out";
 		
 		// Find all references
-		RedirectsFinderJob finderJob = new RedirectsFinderJob(out + "/redirects.txt");
+		RedirectsFinderJob finderJob = new RedirectsFinderJob(out + "/redirects_found.txt");
 		JobRunner runner = new DSLEntriesJobRunner(in);
 		runner.run(finderJob);
 		
-		//Collection<LinkedHashSet<Integer>> references = job.getArticleReferences();
+		LinkedHashMap<Integer, Integer> redirects = finderJob.getRedirects();
+		LinkedHashMap<Integer, String> redirectedWords = finderJob.getRedirectedWords();
+		finderJob = null; // Free memory
 		
-		TreeMap<Integer, Integer> redirects = finderJob.getRedirects();
-		finderJob = null; // free memory
-		
-		RedirectsMapperJob mapperJob = new RedirectsMapperJob(out, redirects);
+		RedirectsMapperJob mapperJob = new RedirectsMapperJob(out, redirects, redirectedWords, out + "/redirects_mapped.txt");
 		runner = new DSLEntriesJobRunner(in);
 		runner.run(mapperJob);
 		

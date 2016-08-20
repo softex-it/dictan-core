@@ -23,10 +23,13 @@ import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.processors.api.DataInjector;
 import info.softex.dictionary.core.processors.api.JobData;
 import info.softex.dictionary.core.processors.api.JobRunnable;
+import info.softex.dictionary.core.utils.FileUtils;
 import info.softex.dictionary.core.utils.PreconditionUtils;
 
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
-import java.util.TreeMap;
+import java.util.LinkedHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,12 +44,16 @@ import org.slf4j.LoggerFactory;
 public class RedirectsMapperJob extends AbstractDSLJob {
 		
 	private final Logger log = LoggerFactory.getLogger(getClass());
-	protected final TreeMap<Integer, Integer> redirects;
+	protected final LinkedHashMap<Integer, Integer> redirects;
+	protected final LinkedHashMap<Integer, String> redirectedWords;
+	protected BufferedWriter infoWriter;
 	protected int mappedArticles = 0;
 	
-	public RedirectsMapperJob(String inBasePath, TreeMap<Integer, Integer> inRedirects) throws IOException {
+	public RedirectsMapperJob(String inBasePath, LinkedHashMap<Integer, Integer> inRedirects, LinkedHashMap<Integer, String> inRedirectedWords, String outputFile) throws IOException {
 		super(inBasePath);
 		this.redirects = inRedirects;
+		this.redirectedWords = inRedirectedWords;
+		this.infoWriter = FileUtils.openBufferedWriter(new File(outputFile), UTF8);
 	}
 	
 	@Override
@@ -63,11 +70,13 @@ public class RedirectsMapperJob extends AbstractDSLJob {
 			"Article DSL Resource can't be null, it has to be injected before processing");
 		
 		ArticleInfo articleInfo = (ArticleInfo)jobData.getDataObject();
+		String word = articleInfo.getWordInfo().getWord();
 		int wordId = articleInfo.getWordInfo().getId();
 		
 		Integer redirectTo = redirects.get(wordId);
 		if (redirectTo != null) {
 			articleInfo.getWordInfo().setRedirectToId(redirectTo);
+			infoWriter.write(word + " | " + redirectedWords.get(redirectTo) + "\r\n");
 			mappedArticles++;
 		}
 
@@ -79,6 +88,12 @@ public class RedirectsMapperJob extends AbstractDSLJob {
 	@Override
 	public void finish() throws Exception {
 		log.info("Number of mapped articles: {}", mappedArticles);
+		
+		if (infoWriter != null) {
+			infoWriter.close();
+			infoWriter = null;
+		}
+		
 		super.finish();
 	}
 	

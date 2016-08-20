@@ -56,6 +56,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 4.2,	03/06/2014
  * @modified version 4.6,	01/26/2015
  * @modified version 4.7,	03/23/2015
+ * @modified version 4.9,   12/08/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -281,6 +282,7 @@ public class SourceBaseReader implements BaseReader {
 	public ArticleInfo getRawArticleInfo(WordInfo wordInfo) throws BaseFormatException {
 		ArticleInfo articleInfo = new ArticleInfo(wordInfo, null);
 		if (articleReader.readLine(articleInfo, wordInfo.getId())) {
+			articleInfo.setBaseInfo(getBasePropertiesInfo());
 			return articleInfo;
 		}
 		return null;

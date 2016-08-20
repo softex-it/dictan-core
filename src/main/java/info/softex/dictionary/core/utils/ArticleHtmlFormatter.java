@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ArticleHtmlFormatter {
 	
-	private static final Logger log = LoggerFactory.getLogger(ArticleHtmlFormatter.class.getSimpleName());
+	private static final Logger log = LoggerFactory.getLogger(ArticleHtmlFormatter.class);
 
 	public static String prepareArticle(
 				String word, String article, Set<String> abbreviations, 

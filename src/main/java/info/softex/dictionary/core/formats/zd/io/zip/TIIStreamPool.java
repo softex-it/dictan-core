@@ -45,7 +45,7 @@ public class TIIStreamPool {
 	//private static final int LEVEL_LOW = -2;
 	private static final int LEVEL_HIGH = -3;
 	
-	private static final int minLevelGradeDiff = 16384;
+	private static final int MIN_LEVEL_GRADE_DIF = 16384;
 	
 	private static final Logger log = LoggerFactory.getLogger(TIIStreamPool.class);
 	
@@ -67,7 +67,7 @@ public class TIIStreamPool {
 		
 		this.tiisFactory = tiisFactory;
 		
-		long maxStreamsNumber = Math.max(0, maxUncompressedLength / minLevelGradeDiff - 1);
+		long maxStreamsNumber = Math.max(0, maxUncompressedLength / MIN_LEVEL_GRADE_DIF - 1);
 
 		if (streamsNumber > maxStreamsNumber) {
 			streamsNumber = (int)maxStreamsNumber;

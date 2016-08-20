@@ -24,6 +24,7 @@ import info.softex.dictionary.core.utils.ArticleHtmlBuilder;
 import java.lang.ref.SoftReference;
 
 /**
+ * Main storage for article data.
  * 
  * @since version 1.4,		01/09/2011
  * 
@@ -34,6 +35,7 @@ import java.lang.ref.SoftReference;
  * @modified version 4.0,	02/02/2014
  * @modified version 4.2,	03/07/2014
  * @modified version 4.6,	02/01/2015
+ * @modified version 4.9,	12/06/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -52,6 +54,9 @@ public class ArticleInfo implements Cloneable, KeyValueInfo<String, String> {
 	private SoftReference<String> articleSoftRef = null;
 	
 	private RT referenceType;
+	
+	// Contain information about the base that issued the article
+	private BasePropertiesInfo baseInfo = null;
 	
 	public ArticleInfo(WordInfo inWordInfo, String inArticle) {
 		this.referenceType = RT.STRONG;
@@ -122,7 +127,7 @@ public class ArticleInfo implements Cloneable, KeyValueInfo<String, String> {
 		return ArticleHtmlBuilder.buildHtmlArticle(getArticle(), inFontInfo, inGlobalCSSPath, inSpecificCSS);
 	}
 	
-	public boolean isStrongTranslationRefernce() {
+	public boolean isStrongTranslationReference() {
 		return this.referenceType == RT.STRONG;
 	}
 	
@@ -151,6 +156,14 @@ public class ArticleInfo implements Cloneable, KeyValueInfo<String, String> {
 	
 	public boolean isHttpRelated() {
 		return wordInfo == null ? false : wordInfo.isHttpRelated();
+	}
+	
+	public void setBaseInfo(BasePropertiesInfo baseInfo) {
+		this.baseInfo = baseInfo;
+	}
+	
+	public BasePropertiesInfo getBaseInfo() {
+		return baseInfo;
 	}
 
 	@Override

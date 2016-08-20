@@ -21,15 +21,16 @@ package info.softex.dictionary.core.utils;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,13 +47,18 @@ import org.slf4j.LoggerFactory;
  * 
  * @modified version 3.7,	11/27/2013
  * @modified version 4.6,	02/17/2015
- * 
+ * @modified version 4.8,	05/13/2015
+ *
  * @author Dmitry Viktorov
  * 
  */
 public class FileUtils {
-	
-	private static final int BUF_SIZE = 16384; // 16K
+
+    public static final long ONE_KB = 1024;
+    public static final long ONE_MB = ONE_KB * ONE_KB;
+
+    // The file copy buffer size (30 MB)
+    private static final long FILE_COPY_BUFFER_SIZE = ONE_MB * 30;
 
 	/**
 	 * Returns the extension of the file, e.g.:
@@ -98,7 +104,7 @@ public class FileUtils {
 	public static boolean fileExists(String filePath) {
         if (filePath == null) {
         	return false;
-        } 
+        }
     	File file = new File(filePath);
         return file.exists() && file.isFile();
 	}
@@ -228,7 +234,7 @@ public class FileUtils {
 		if (file.length() > Integer.MAX_VALUE) {
 			throw new IllegalArgumentException("File size is too large to fit in a byte array: " + expectedSize + " bytes");
 		}
-		
+
 		return toByteArray(new FileInputStream(file));
 	}
 	
@@ -237,26 +243,9 @@ public class FileUtils {
 	 */
 	public static byte[] toByteArray(InputStream is) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		copy(is, baos);
+		IOUtils.copy(is, baos);
 		baos.close();
 		return baos.toByteArray();
-	}
-	
-	/**
-	 * Copies input stream to the output stream.
-	 */
-	public static long copy(InputStream from, OutputStream to) throws IOException {
-		byte[] buf = new byte[BUF_SIZE];
-		long total = 0;
-		while (true) {
-			int r = from.read(buf);
-			if (r < 0) {
-				break;
-			}
-			to.write(buf, 0, r);
-			total += r;
-		}
-		return total;
 	}
 	
 	/**
@@ -295,23 +284,6 @@ public class FileUtils {
 	}
 	
 	/**
-	 * Closes a <code>Closeable</code> unconditionally.
-	 * <p>
-	 * Equivalent to {@link Closeable#close()}, except any exceptions will be ignored. 
-	 * This is typically used in finally blocks.
-	 * </p>
-	 */
-	public static void closeQuietly(final Closeable closeable) {
-		try {
-			if (closeable != null) {
-				closeable.close();
-			}
-		} catch (final IOException ioe) {
-			// ignore
-		}
-	}
-	
-	/**
 	 * Writes {@code len} bytes from the specified byte array starting
 	 * at offset {@code off} to a file, creating the file if it does
 	 * not exist.
@@ -323,7 +295,7 @@ public class FileUtils {
 			out.write(data, off, len);
 			out.close(); // Don't swallow close Exception if copy completes normally
 		} finally {
-			closeQuietly(out);
+			IOUtils.closeQuietly(out);
 		}
 	}
 	
@@ -362,7 +334,7 @@ public class FileUtils {
 			write(data, out, encoding);
 			out.close(); // Don't swallow close Exception if copy completes normally
 		} finally {
-			closeQuietly(out);
+			IOUtils.closeQuietly(out);
 		}
 	}
 	
@@ -373,5 +345,111 @@ public class FileUtils {
 	public static void toFile(final File file, final String data, final Charset encoding) throws IOException {
 		toFile(file, data, encoding, false);
 	}
+
+    /**
+     * Copies a file to a new location.
+     * <p>
+     * This method copies the contents of the specified source file
+     * to the specified destination file.
+     * The directory holding the destination file is created if it does not exist.
+     * If the destination file exists, then this method will overwrite it.
+     * <p>
+     * <strong>Note:</strong> Setting <code>preserveFileDate</code> to
+     * {@code true} tries to preserve the file's last modified
+     * date/times using {@link File#setLastModified(long)}, however it is
+     * not guaranteed that the operation will succeed.
+     * If the modification operation fails, no indication is provided.
+     *
+     * @param srcFile  an existing file to copy, must not be {@code null}
+     * @param destFile  the new file, must not be {@code null}
+     * @param preserveFileDate  true if the file date of the copy should be the same as the original
+     *
+     * @throws NullPointerException if source or destination is {@code null}
+     * @throws IOException if source or destination is invalid
+     * @throws IOException if an IO error occurs during copying
+     * @throws IOException if the output file length is not the same as the input file length after the copy completes
+     * @see #doCopyFile(File, File, boolean)
+     */
+    public static void copyFile(final File srcFile, final File destFile, final boolean preserveFileDate) throws IOException {
+        if (srcFile == null) {
+            throw new NullPointerException("Source must not be null");
+        }
+        if (destFile == null) {
+            throw new NullPointerException("Destination must not be null");
+        }
+        if (srcFile.exists() == false) {
+            throw new FileNotFoundException("Source '" + srcFile + "' does not exist");
+        }
+        if (srcFile.isDirectory()) {
+            throw new IOException("Source '" + srcFile + "' exists but is a directory");
+        }
+        if (srcFile.getCanonicalPath().equals(destFile.getCanonicalPath())) {
+            throw new IOException("Source '" + srcFile + "' and destination '" + destFile + "' are the same");
+        }
+        final File parentFile = destFile.getParentFile();
+        if (parentFile != null) {
+            if (!parentFile.mkdirs() && !parentFile.isDirectory()) {
+                throw new IOException("Destination '" + parentFile + "' directory cannot be created");
+            }
+        }
+        if (destFile.exists() && destFile.canWrite() == false) {
+            throw new IOException("Destination '" + destFile + "' exists but is read-only");
+        }
+        doCopyFile(srcFile, destFile, preserveFileDate);
+    }
+
+    /**
+     * Internal copy file method.
+     * This caches the original file length, and throws an IOException
+     * if the output file length is different from the current input file length.
+     * So it may fail if the file changes size.
+     * It may also fail with "IllegalArgumentException: Negative size" if the input file is truncated part way
+     * through copying the data and the new file size is less than the current position.
+     *
+     * @param srcFile  the validated source file, must not be {@code null}
+     * @param destFile  the validated destination file, must not be {@code null}
+     * @param preserveFileDate  whether to preserve the file date
+     * @throws IOException if an error occurs
+     * @throws IOException if the output file length is not the same as the input file length after the copy completes
+     * @throws IllegalArgumentException "Negative size" if the file is truncated so that the size is less than the position
+     */
+    private static void doCopyFile(final File srcFile, final File destFile, final boolean preserveFileDate) throws IOException {
+        if (destFile.exists() && destFile.isDirectory()) {
+            throw new IOException("Destination '" + destFile + "' exists but is a directory");
+        }
+        FileInputStream fis = null;
+        FileOutputStream fos = null;
+        FileChannel input = null;
+        FileChannel output = null;
+        try {
+            fis = new FileInputStream(srcFile);
+            fos = new FileOutputStream(destFile);
+            input  = fis.getChannel();
+            output = fos.getChannel();
+            final long size = input.size(); // TODO See IO-386
+            long pos = 0;
+            long count = 0;
+            while (pos < size) {
+                final long remain = size - pos;
+                count = remain > FILE_COPY_BUFFER_SIZE ? FILE_COPY_BUFFER_SIZE : remain;
+                final long bytesCopied = output.transferFrom(input, pos, count);
+                if (bytesCopied == 0) { // IO-385 - can happen if file is truncated after caching the size
+                    break; // ensure we don't loop forever
+                }
+                pos += bytesCopied;
+            }
+            } finally {
+                IOUtils.closeQuietly(output, fos, input, fis);
+            }
+
+        final long srcLen = srcFile.length(); // TODO See IO-386
+        final long dstLen = destFile.length(); // TODO See IO-386
+        if (srcLen != dstLen) {
+            throw new IOException("Failed to copy full contents from '" + srcFile + "' to '" + destFile + "' Expected length: " + srcLen +" Actual: " + dstLen);
+        }
+        if (preserveFileDate) {
+            destFile.setLastModified(srcFile.lastModified());
+        }
+    }
 	
 }

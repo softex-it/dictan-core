@@ -19,38 +19,48 @@
 
 package info.softex.dictionary.core.utils;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 import org.junit.Test;
 
 /**
  * 
- * @since version 4.6,		02/17/2015
+ * @since version 4.8, 05/13/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
-public class FileTypeUtilsTest {
+public class IOUtilsTest {
+	
+	protected final static String UTF8 = "UTF-8";
+	
+	protected final static String ST_SAMPLE = "unicode smiley \u263A and umbrella \u2602";
 
 	@Test
-	public void testImageExtensions() {
-		assertTrue(FileTypeUtils.isImageExtension("jpg"));
-		assertTrue(FileTypeUtils.isImageExtension("jpEg"));	
-		assertTrue(FileTypeUtils.isImageExtension("Tif"));	
-		assertTrue(FileTypeUtils.isImageExtension("Png"));	
-		assertTrue(FileTypeUtils.isImageExtension("bmp"));	
-	}
-	
-	@Test
-	public void testAudioExtensions() {
-		assertTrue(FileTypeUtils.isAudioExtension("waV"));	
-		assertTrue(FileTypeUtils.isAudioExtension("mp3"));
-		assertTrue(FileTypeUtils.isAudioExtension("oGG"));		
-	}
-	
-	@Test
-	public void testVideoExtensions() {
-		assertTrue(FileTypeUtils.isVideoExtension("avi"));
+	public void testCopy() throws UnsupportedEncodingException, IOException {
+		
+		byte[] stSampleBytes = ST_SAMPLE.getBytes(UTF8);
+		
+		InputStream is = new ByteArrayInputStream(stSampleBytes);
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		
+		long length = IOUtils.copy(is, os);
+		
+		assertEquals(stSampleBytes.length, length);
+		assertEquals(stSampleBytes.length, os.toByteArray().length);
+		
+		assertEquals(Arrays.toString(stSampleBytes), Arrays.toString(os.toByteArray()));
+		
+		is.close();
+		os.close();
+		
 	}
 	
 }

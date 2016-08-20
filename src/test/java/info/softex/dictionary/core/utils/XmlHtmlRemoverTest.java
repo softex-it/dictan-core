@@ -21,7 +21,6 @@ package info.softex.dictionary.core.utils;
 
 import static org.junit.Assert.assertEquals;
 import info.softex.dictionary.core.testutils.MavenUtils;
-import info.softex.dictionary.core.utils.ArticleTextFormatter.XmlProcessResult;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -37,7 +36,7 @@ import org.junit.Test;
  * @author Dmitry Viktorov
  * 
  */
-public class ArticleTextFormatterTest {
+public class XmlHtmlRemoverTest {
 	
 	protected final static String UTF8 = "UTF-8";
 	protected final static String FULL_ARTICLE_HTML = "/info/softex/dictionary/core/utils/article_full_html.txt";
@@ -75,7 +74,7 @@ public class ArticleTextFormatterTest {
 	@Test
 	public void testRemoveXmlHtml() {
 		for (Map.Entry<String, String> entry : ARTICLES.entrySet()) {
-			XmlProcessResult result = ArticleTextFormatter.removeXmlHtml(entry.getKey());
+			XmlHtmlRemover result = XmlHtmlRemover.removeXmlHtml(entry.getKey());
 			if (result != null) {
 				assertEquals(entry.getValue(), result.getOutput());
 			}
@@ -91,8 +90,7 @@ public class ArticleTextFormatterTest {
 				if (entryValue.length() >= TEST_LENGTH) {
 					entryValue = entryValue.substring(0, TEST_LENGTH);
 				}
-				XmlProcessResult result = ArticleTextFormatter.removeXmlHtml(entry.getKey(), TEST_LENGTH);
-				System.out.println(result.getOutput());
+				XmlHtmlRemover result = XmlHtmlRemover.removeXmlHtml(entry.getKey(), TEST_LENGTH);
 				assertEquals(entryValue.length(), result.getOutput().length());
 				assertEquals("Processed lengths at #" + count + " '" + entryValue + "' don't match", PROCESSED_LENGTHS[count], result.getProcessedLength());
 				assertEquals("Lines at #" + count + " don't match", entryValue, result.getOutput());
@@ -105,14 +103,14 @@ public class ArticleTextFormatterTest {
 	public void testRemoveXmlHtmlFromFullArticle() throws UnsupportedEncodingException, IOException {		
 		String articleOrig = new String(FileUtils.toByteArray(MavenUtils.getCodeSourceRelevantFile(FULL_ARTICLE_HTML)), UTF8);
 		String articleNoXml = new String(FileUtils.toByteArray(MavenUtils.getCodeSourceRelevantFile(FULL_ARTICLE_NO_HTML)), UTF8);
-		assertEquals(articleNoXml, ArticleTextFormatter.removeXmlHtml(articleOrig).getOutput());
+		assertEquals(articleNoXml, XmlHtmlRemover.removeXmlHtml(articleOrig).getOutput());
 	}
 	
 	@Test
 	public void testRemoveXmlHtmlMaxLengthFromFullArticle() throws UnsupportedEncodingException, IOException {		
 		String articleOrig = new String(FileUtils.toByteArray(MavenUtils.getCodeSourceRelevantFile(FULL_ARTICLE_HTML)), UTF8);
 		String articleNoXmlCut = new String(FileUtils.toByteArray(MavenUtils.getCodeSourceRelevantFile(FULL_ARTICLE_NO_HTML_CUT)), UTF8);
-		assertEquals(articleNoXmlCut, ArticleTextFormatter.removeXmlHtml(articleOrig, 400).getOutput());
+		assertEquals(articleNoXmlCut, XmlHtmlRemover.removeXmlHtml(articleOrig, 400).getOutput());
 	}
 	
 }

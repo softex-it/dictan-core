@@ -46,11 +46,11 @@ public class BaseConstants {
 	
 	public final static String RESOURCE_INT_IMG_SOUND = "sound_32";
 	
-	protected final static String MODE_DISABLED = "DISABLED";
-	protected final static String MODE_BASIC = "BASIC";
-	protected final static String MODE_FULL = "FULL";
-	protected final static String MODE_DSL = "DSL";
-	protected final static String MODE_AUTO = "AUTO";
-	protected final static String MODE_ALWAYS = "ALWAYS";
+	public final static String MODE_DISABLED = "DISABLED";
+	public final static String MODE_BASIC = "BASIC";
+	public final static String MODE_FULL = "FULL";
+	public final static String MODE_DSL = "DSL";
+	public final static String MODE_AUTO = "AUTO";
+	public final static String MODE_ALWAYS = "ALWAYS";
 	
 }

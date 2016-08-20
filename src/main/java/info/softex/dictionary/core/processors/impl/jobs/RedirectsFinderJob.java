@@ -36,7 +36,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,9 +51,9 @@ public class RedirectsFinderJob implements JobRunnable {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
-	protected Map<String, LinkedHashSet<Integer>> articles = new LinkedHashMap<>();
-	protected TreeMap<Integer, Integer> redirects = new TreeMap<>();
-	protected TreeMap<Integer, String> redirectedWords = new TreeMap<>();
+	protected final Map<String, LinkedHashSet<Integer>> articles = new LinkedHashMap<>();
+	protected final LinkedHashMap<Integer, Integer> redirects = new LinkedHashMap<>();
+	protected final LinkedHashMap<Integer, String> redirectedWords = new LinkedHashMap<>();
 	protected BufferedWriter infoWriter;
 	protected Collection<LinkedHashSet<Integer>> references;
 	
@@ -151,8 +150,12 @@ public class RedirectsFinderJob implements JobRunnable {
 		return references;
 	}
 	
-	public TreeMap<Integer, Integer> getRedirects() {
+	public LinkedHashMap<Integer, Integer> getRedirects() {
 		return redirects;
+	}
+	
+	public LinkedHashMap<Integer, String> getRedirectedWords() {
+		return redirectedWords;
 	}
 
 }

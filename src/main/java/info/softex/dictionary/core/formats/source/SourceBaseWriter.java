@@ -31,7 +31,7 @@ import info.softex.dictionary.core.attributes.ProgressInfo;
 import info.softex.dictionary.core.formats.api.BaseWriter;
 import info.softex.dictionary.core.formats.source.utils.SourceFormatUtils;
 import info.softex.dictionary.core.formats.source.utils.SourceReaderUtils;
-import info.softex.dictionary.core.utils.FileUtils;
+import info.softex.dictionary.core.utils.IOUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -158,7 +158,7 @@ public class SourceBaseWriter implements BaseWriter {
 	public void saveMediaResourceInfo(MediaResourceInfo mediaResourceInfo) throws Exception {
 		InputStream is = mediaResourceInfo.getInputStream();
 	    FileOutputStream fos = new FileOutputStream(mediaDirectory.getAbsoluteFile() + File.separator + mediaResourceInfo.getKey().getResourceKey()); 
-	    FileUtils.copy(is, fos);
+	    IOUtils.copy(is, fos);
 	    fos.close();
 	    is.close();	
 	    mediaResourcesNumber++;

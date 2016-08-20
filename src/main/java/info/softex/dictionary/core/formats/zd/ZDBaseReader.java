@@ -37,8 +37,8 @@ import info.softex.dictionary.core.collation.CollationRulesFactory.SimpleCollati
 import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.api.BaseReader;
 import info.softex.dictionary.core.regional.RegionalResolver;
-import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
 import info.softex.dictionary.core.utils.SearchUtils;
+import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,6 +69,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 4.0,	02/04/2014
  * @modified version 4.6,	02/01/2015
  * @modified version 4.7,   03/26/2015
+ * @modified version 4.9,   12/08/2015
  *  
  * @author Dmitry Viktorov
  * 
@@ -180,6 +181,7 @@ public class ZDBaseReader implements BaseReader {
 			}
 
 			articleInfo = new ArticleInfo(wordInfo, getArticle(wordInfo, isRaw));
+			articleInfo.setBaseInfo(getBasePropertiesInfo());
 
 		} catch (Exception e) {
 			log.error("Error", e);

@@ -23,9 +23,7 @@ import static org.junit.Assert.assertEquals;
 import info.softex.dictionary.core.testutils.MavenUtils;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 
@@ -33,7 +31,9 @@ import org.junit.Test;
 
 /**
  * 
- * @since version 4.5, 04/02/2014
+ * @since version 4.5,		04/02/2014
+ * 
+ * @modified version 4.8,	05/04/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -81,26 +81,6 @@ public class FileUtilsTest {
 			new String(ST_SAMPLE_FILE_BT, UTF8), 
 			new String(FileUtils.toByteArray(MavenUtils.getCodeSourceRelevantFile(ST_SAMPLE_FILE)), UTF8)
 		);
-		
-	}
-	
-	@Test
-	public void testCopy() throws UnsupportedEncodingException, IOException {
-		
-		byte[] stSampleBytes = ST_SAMPLE.getBytes(UTF8);
-		
-		InputStream is = new ByteArrayInputStream(stSampleBytes);
-		ByteArrayOutputStream os = new ByteArrayOutputStream();
-		
-		long length = FileUtils.copy(is, os);
-		
-		assertEquals(stSampleBytes.length, length);
-		assertEquals(stSampleBytes.length, os.toByteArray().length);
-		
-		assertEquals(Arrays.toString(stSampleBytes), Arrays.toString(os.toByteArray()));
-		
-		is.close();
-		os.close();
 		
 	}
 	

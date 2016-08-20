@@ -20,6 +20,7 @@
 package info.softex.dictionary.core.io;
 
 import info.softex.dictionary.core.utils.FileUtils;
+import info.softex.dictionary.core.utils.IOUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -58,7 +59,7 @@ public class DataAdapter {
 		File file = new File(tempDir.getAbsolutePath() + File.separator + prefix + name);
 		
 	    FileOutputStream fos = new FileOutputStream(file);
-		FileUtils.copy(is, fos);
+		IOUtils.copy(is, fos);
 	    is.close();
 	    fos.close();
 		

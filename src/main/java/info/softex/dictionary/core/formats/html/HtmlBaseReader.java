@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
  * @since version 4.5,		04/02/2014
  * 
  * @modified version 4.7,	03/23/2015
+ * @modified version 4.9,   12/08/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -69,6 +70,7 @@ public class HtmlBaseReader extends SourceBaseReader {
 			ArticleInfo articleInfo = new ArticleInfo(wordInfo, null);
 			String article = SourceFormatUtils.removeLineBreaks(FileConversionUtils.file2String(file));
 			articleInfo.setArticle(article);
+			articleInfo.setBaseInfo(getBasePropertiesInfo());
 			return articleInfo;
 		} catch (IOException e) {
 			log.error("Error", e);

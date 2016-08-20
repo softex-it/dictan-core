@@ -60,6 +60,7 @@ import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
  * @modified version 4.0,   02/08/2014
  * @modified version 4.6,   01/28/2015
  * @modified version 4.7,   03/26/2015
+ * @modified version 4.9,   12/08/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -152,6 +153,9 @@ public class FDBBaseReader implements BaseReader {
 		}
 		
 		ArticleInfo articleInfo = getBaseForArticle(wordInfo.getId()).getRawArticleInfo(wordInfo);
+		
+		articleInfo.setBaseInfo(getBasePropertiesInfo());
+		
 		return articleInfo;
 	}
 	
