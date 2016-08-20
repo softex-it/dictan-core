@@ -3,7 +3,7 @@ Dictan Core Java Library is an open source Java which presents the core interfac
 
 FDB dictionaries have the following advantages:
 
-Quick load
+- Quick load
 - Fast word search
 - High compression
 - Ability to store media attachments (sounds and images) for the articles
