@@ -1,5 +1,5 @@
-# dictan-core
-Dictan Core Java Library is an open source Java which presents the core interface and functionality to work with FDB (read/write) and ZD/ZPAK (read-only) dictionary bases. The library is under the license of LGPL version 3 or later.
+# Dictan Core Java Library
+It's an open source Java project which presents the core interface and functionality to work with FDB (read/write) and ZD/ZPAK (read-only) dictionary bases. The library is under the license of LGPL version 3 or later.
 
 FDB dictionaries have the following advantages:
 
