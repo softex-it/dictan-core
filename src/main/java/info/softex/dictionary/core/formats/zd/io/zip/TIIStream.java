@@ -19,7 +19,7 @@
 
 package info.softex.dictionary.core.formats.zd.io.zip;
 
-import info.softex.dictionary.core.io.SmartInflaterInputStream;
+import info.softex.dictionary.core.io.ReliableInflaterInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * @author Dmitry Viktorov
  * 
  */
-public class TIIStream extends SmartInflaterInputStream {
+public class TIIStream extends ReliableInflaterInputStream {
 	
 	private final Logger log = LoggerFactory.getLogger(TIIStream.class.getSimpleName());
 

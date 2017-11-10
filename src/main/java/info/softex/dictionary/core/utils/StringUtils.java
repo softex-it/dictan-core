@@ -20,13 +20,13 @@
 package info.softex.dictionary.core.utils;
 
 import java.util.Iterator;
-import java.util.Objects;
 
 /**
  * 
  * @since version 4.6,      02/03/2015
  *
  * @modified version 4.8,   05/01/2015
+ * @modified version 5.1,   02/18/2017
  *
  * @author Dmitry Viktorov
  * 
@@ -104,12 +104,14 @@ public class StringUtils {
 		}
 		final Object first = iterator.next();
 		if (!iterator.hasNext()) {
-			return Objects.toString(first, "");
+            // Should be Objects.toString(first, "") at API 19
+			return objectsToString(first, EMPTY);
 		}
 
 		// Two or more elements
 		// Java default is 16, probably too small
-		final StringBuilder buf = new StringBuilder(256);
+        // Originally 256, changed to 64
+		final StringBuilder buf = new StringBuilder(64);
 		
 		if (first != null) {
 			buf.append(first);
@@ -125,6 +127,10 @@ public class StringUtils {
 			}
 		}
 		return buf.toString();
+	}
+
+	private static String objectsToString(Object o, String nullDefault) {
+		return (o != null) ? o.toString() : nullDefault;
 	}
 	
 	/**

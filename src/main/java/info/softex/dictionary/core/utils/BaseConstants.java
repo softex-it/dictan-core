@@ -27,22 +27,25 @@ package info.softex.dictionary.core.utils;
  * @modified version 3.1, 05/22/2012
  * @modified version 4.1, 02/05/2014
  * @modified version 4.6, 02/07/2015
- *  
+ * @modified version 5.4, 02/17/2017
+ *
  * @author Dmitry Viktorov
  * 
  */
 public class BaseConstants {
-	
+
 	public final static String PATH_SEPARATOR = "/";
+
+	public final static String PATH_PREFIX_INTERNAL = "Jt6iFt4-";
 	
 	// The segment for images, sounds, videos and other resources
-	public final static String URLSEG_ABBREVS = "abbr";
-	public final static String URLSEG_ARTICLE_INDEX = "word-id";
+	public final static String URLSEG_ABBREVS = PATH_PREFIX_INTERNAL + "abbr";
+	public final static String URLSEG_ARTICLE_INDEX = PATH_PREFIX_INTERNAL + "word-id";
 	
-	public final static String URLSEG_IMAGES = "img";
-	public final static String URLSEG_IMAGES_EXTERNAL = "img-ext";
-	public final static String URLSEG_AUDIO = "aud";
-	public final static String URLSEG_VIDEO = "vid";
+	public final static String URLSEG_IMAGES = PATH_PREFIX_INTERNAL + "img";
+	public final static String URLSEG_IMAGES_EXTERNAL = PATH_PREFIX_INTERNAL + "img-ext";
+	public final static String URLSEG_AUDIO = PATH_PREFIX_INTERNAL + "aud";
+	public final static String URLSEG_VIDEO = PATH_PREFIX_INTERNAL + "vid";
 	
 	public final static String RESOURCE_INT_IMG_SOUND = "sound_32";
 	

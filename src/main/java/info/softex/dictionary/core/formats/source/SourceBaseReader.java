@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2017  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,21 +19,8 @@
 
 package info.softex.dictionary.core.formats.source;
 
-import info.softex.dictionary.core.annotations.BaseFormat;
-import info.softex.dictionary.core.attributes.AbbreviationInfo;
-import info.softex.dictionary.core.attributes.ArticleInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingMode;
-import info.softex.dictionary.core.attributes.BaseResourceInfo;
-import info.softex.dictionary.core.attributes.FormatInfo;
-import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
-import info.softex.dictionary.core.attributes.MediaResourceInfo;
-import info.softex.dictionary.core.attributes.MediaResourceKey;
-import info.softex.dictionary.core.attributes.WordInfo;
-import info.softex.dictionary.core.formats.api.BaseFormatException;
-import info.softex.dictionary.core.formats.api.BaseReader;
-import info.softex.dictionary.core.io.DataAdapter;
-import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,8 +30,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import info.softex.dictionary.core.annotations.BaseFormat;
+import info.softex.dictionary.core.attributes.AbbreviationInfo;
+import info.softex.dictionary.core.attributes.ArticleInfo;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFormattingMode;
+import info.softex.dictionary.core.attributes.BaseResourceInfo;
+import info.softex.dictionary.core.attributes.FormatInfo;
+import info.softex.dictionary.core.attributes.IntegrityInfo;
+import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
+import info.softex.dictionary.core.attributes.MediaResourceInfo;
+import info.softex.dictionary.core.attributes.MediaResourceKey;
+import info.softex.dictionary.core.attributes.WordInfo;
+import info.softex.dictionary.core.formats.api.BaseFormatException;
+import info.softex.dictionary.core.formats.api.BaseReader;
+import info.softex.dictionary.core.io.DataAdapter;
+import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
 
 /**
  * Source base reader which mainly follows the ZD source syntax.
@@ -183,6 +184,11 @@ public class SourceBaseReader implements BaseReader {
 	@Override
 	public FormatInfo getFormatInfo() {
 		return FORMAT_INFO;
+	}
+
+	@Override
+	public IntegrityInfo getIntegrityInfo() {
+		return null;
 	}
 
 	/**

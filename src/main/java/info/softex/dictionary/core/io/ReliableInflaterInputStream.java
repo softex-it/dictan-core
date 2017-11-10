@@ -27,30 +27,30 @@ import java.util.zip.InflaterInputStream;
 
 /**
  * 
- * The InflaterInputStream implementation which is reliable in terms 
- * of skipping and reading the data bytes. The class also presents 
- * convenience methods for reading data.
+ * The InflaterInputStream implementation which guarantees the requested number of bytes will be
+ * read or skipped. The class also presents convenience methods.
  * 
  * @since version 1.2, 09/28/2010
  *
  * @modified version 2.6, 09/24/2011
- * 
+ * @modified version 5.1, 02/23/2017
+ *
  * @author Dmitry Viktorov
  * 
  */
-public class SmartInflaterInputStream extends InflaterInputStream {
+public class ReliableInflaterInputStream extends InflaterInputStream {
 	
 	protected long totalBytesPassed;
 	
-	public SmartInflaterInputStream(InputStream is) {
+	public ReliableInflaterInputStream(InputStream is) {
 		super(is);
 	}
 
-	public SmartInflaterInputStream(InputStream is, Inflater inflater) {
+	public ReliableInflaterInputStream(InputStream is, Inflater inflater) {
 		super(is, inflater);
 	}
 	
-	public SmartInflaterInputStream(InputStream is, Inflater inflater, int bufferSize) {
+	public ReliableInflaterInputStream(InputStream is, Inflater inflater, int bufferSize) {
 		super(is, inflater, bufferSize);
 	}
 		

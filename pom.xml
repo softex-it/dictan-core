@@ -6,7 +6,7 @@
 	<groupId>info.softex.dictionary</groupId>
 	<artifactId>dictan-core</artifactId>
 	<packaging>jar</packaging>
-	<version>4.9</version>
+	<version>5.1</version>
   
   	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

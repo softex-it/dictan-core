@@ -23,8 +23,10 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -32,7 +34,9 @@ import org.junit.Test;
 /**
  * Tests functionality of StringUtils.
  * 
- * @since version 4.6, 02/07/2015
+ * @since		version 4.6, 02/07/2015
+ * 
+ * @modified	version 5.1, 02/18/2017
  * 
  * @author Dmitry Viktorov
  * 
@@ -60,6 +64,14 @@ public class StringUtilsTest {
 		put("text \rwith 1 line r", new String[] {"text \rwith 1 line r"});
 		put("text \nwith 2 \rlines", new String[] {"text ", "with 2 \rlines"});
 		put("text \r\nwith 2 lines rn", new String[] {"text ", "with 2 lines rn"});
+	}};
+	
+	@SuppressWarnings("serial")
+	protected final static List<String> STRINGS_LIST = new ArrayList<String>() {{
+		add("first");
+		add("second");
+		add("third");
+		add("forth");
 	}};
 	
 	@Test
@@ -97,4 +109,13 @@ public class StringUtilsTest {
 		}
 	}
 
+	@Test
+	@SuppressWarnings("serial")
+	public void testJoin() throws Exception {
+		assertEquals(null, StringUtils.join((Iterable<?>) null, "/"));
+		assertEquals("", StringUtils.join(new ArrayList<String>(), "/"));
+		assertEquals("one", StringUtils.join(new ArrayList<String>() {{ add("one"); }}, "/"));
+		assertEquals("first/second/third/forth", StringUtils.join(STRINGS_LIST, "/"));
+	}
+	
 }

@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
  * @modified version 3.7,	11/27/2013
  * @modified version 4.6,	02/17/2015
  * @modified version 4.8,	05/13/2015
+ * @modified version 5.3,	11/29/2016
  *
  * @author Dmitry Viktorov
  * 
@@ -134,9 +135,16 @@ public class FileUtils {
 	 */
 	public static boolean isDirectoryEmpty(String inDirectory, FileFilter filter, boolean createNonExistent) {
 		File directoryFile = new File(inDirectory);
+
+        // Check if permission is granted
+        if (!directoryFile.canRead()) {
+            log.error("Read permission is not granted: {}", directoryFile);
+            return true;
+        }
+
 		if (directoryFile.exists()) {
 			File[] dictList = directoryFile.listFiles(filter);
-			return (dictList.length == 0 ? true : false);
+            return (dictList.length == 0 ? true : false);
 		} else if (createNonExistent) {
 			try {
 				directoryFile.mkdirs();

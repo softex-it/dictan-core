@@ -19,19 +19,20 @@
 
 package info.softex.dictionary.core.formats.api;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
+import info.softex.dictionary.core.attributes.IntegrityInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
 import info.softex.dictionary.core.attributes.MediaResourceKey;
 import info.softex.dictionary.core.attributes.WordInfo;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * 
@@ -43,7 +44,8 @@ import java.util.Set;
  * @modified version 4.2,	03/06/2014
  * @modified version 4.6,	02/01/2015
  * @modified version 4.7,	03/26/2015
- *  
+ * @modified version 5.1,	02/20/2017
+ *
  * @author Dmitry Viktorov
  * 
  */
@@ -85,6 +87,12 @@ public interface BaseReader {
 	public BasePropertiesInfo getBasePropertiesInfo();
 	public FormatInfo getFormatInfo();
 	public LanguageDirectionsInfo getLanguageDirectionsInfo();
+
+    /**
+     * Returns the result of a set of integrity tests. Should return null if integrity check is not
+     * supported.
+     */
+	public IntegrityInfo getIntegrityInfo();
 	
 	public BaseResourceInfo getBaseResourceInfo(String resourceKey) throws BaseFormatException;
 	

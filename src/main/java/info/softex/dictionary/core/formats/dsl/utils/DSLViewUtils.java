@@ -199,7 +199,7 @@ public class DSLViewUtils {
 		    	break;
 		    	case VIDEO:
 				    m.appendReplacement(sb, Matcher.quoteReplacement("<video src=\"" +
-					    BaseConstants.URLSEG_VIDEO + BaseConstants.PATH_SEPARATOR + resName + "\" controls/>"));
+					    BaseConstants.URLSEG_VIDEO + BaseConstants.PATH_SEPARATOR + resName + "\" controls preload=\"auto\"/>"));
 		    	break;
 		    	default:
 				    m.appendReplacement(sb, Matcher.quoteReplacement("<res src=\"" + resName + "\"/>"));	

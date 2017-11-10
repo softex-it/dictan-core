@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2017  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -27,6 +27,7 @@ import info.softex.dictionary.core.attributes.BasePropertiesInfo.AbbreviationsFo
 import info.softex.dictionary.core.attributes.BasePropertiesInfo.ArticlesFormattingMode;
 import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
+import info.softex.dictionary.core.attributes.IntegrityInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
 import info.softex.dictionary.core.attributes.MediaResourceKey;
@@ -166,7 +167,7 @@ public class ZDBaseReader implements BaseReader {
 	
 	protected ArticleInfo getArticleInfo(WordInfo wordInfo, boolean isRaw) throws BaseFormatException {
 		
-		ArticleInfo articleInfo = null;
+		ArticleInfo articleInfo;
 		
 		try {
 			if (!wordInfo.hasIndex()) {
@@ -391,7 +392,12 @@ public class ZDBaseReader implements BaseReader {
 	public FormatInfo getFormatInfo() {
 		return FORMAT_INFO;
 	}
-	
+
+	@Override
+	public IntegrityInfo getIntegrityInfo() {
+		return null;
+	}
+
 	@Override
 	public BasePropertiesInfo getBasePropertiesInfo() {
     	return this.baseInfo;

@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2017  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -25,31 +25,32 @@ import java.util.RandomAccess;
 import java.util.TreeMap;
 
 /**
- * Adapter which represents a Map with Integer keys as List. 
- * The original Map may have it's own unordered sequence of elements.
+ * Adapter List which represents a Map with Integer keys as List. The original Map may have its
+ * own unordered sequence of elements. It's mainly used to represent a word list for the results
+ * of "like" queries.
  * 
- * @since version 4.7, 03/29/2015
+ * @since       version 4.7, 03/29/2015
+ *
+ * @modified    version 5.1, 02/27/2017
  * 
  * @author Dmitry Viktorov
  * 
  */
-public class IntegerMappedList<E> extends AbstractList<E> implements RandomAccess {
+public class WordsNavigationMappedList<E, M> extends AbstractList<E> implements MetaAwareList<E, M>, RandomAccess {
 
-	private final Map<Integer, E> map;
-	
 	private final TreeMap<Integer, Integer> indexMap = new TreeMap<>();
-	
-	public IntegerMappedList(Map<Integer, E> inMap) {
+
+    private final Map<Integer, E> map;
+
+	public WordsNavigationMappedList(Map<Integer, E> inMap) {
 		if (inMap == null) {
 			throw new NullPointerException();
 		}
 		this.map = inMap;
-
 		int count = 0;
 		for (Integer key : inMap.keySet()) {
 			indexMap.put(count++, key);
 		}
-		
 	}
 	
 	@Override
@@ -58,11 +59,23 @@ public class IntegerMappedList<E> extends AbstractList<E> implements RandomAcces
 		return origIndex != null ? map.get(origIndex) : null;
 	}
 
-    public int getOriginalIndex(int index) {
+    @Override
+    public int getMetaIndex(int index) {
         Integer origIndex = indexMap.get(index);
         return origIndex != null ? origIndex : -1;
     }
-    	
+
+    /**
+     * Meta information is not supported.
+     *
+     * @param index
+     * @return
+     */
+    @Override
+    public M getMetaInfo(int index) {
+        return null;
+    }
+
 	@Override
 	public int size() {
 		return map.size();

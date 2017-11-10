@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2017  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -50,24 +50,29 @@ import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.collation.AbstractCollatorFactory;
 import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.fdb.collections.FDBDynamicListSet;
-import info.softex.dictionary.core.io.SmartInflaterInputStream;
+import info.softex.dictionary.core.io.SQLBlobInputStream;
+import info.softex.dictionary.core.io.ReliableInflaterInputStream;
 import info.softex.dictionary.core.utils.SearchUtils;
 
 /**
  * 
- * @since version 2.9, 11/11/2011
+ * @since       version 2.9, 11/11/2011
  * 
- * @modified version 4.0, 02/04/2014
- * @modified version 4.2, 03/05/2014
- * @modified version 4.6, 01/28/2015
- * @modified version 4.7, 03/26/2015
- * 
+ * @modified    version 4.0, 02/04/2014
+ * @modified    version 4.2, 03/05/2014
+ * @modified    version 4.6, 01/28/2015
+ * @modified    version 4.7, 03/26/2015
+ * @modified    version 5.1, 02/18/2017
+ *
  * @author Dmitry Viktorov
  * 
  */
 public class FDBBaseReadUnit {
-	
+
+    private static final Logger log = LoggerFactory.getLogger(FDBBaseReadUnit.class.getSimpleName());
+
 	protected final static String ENC_UTF8 = "UTF-8";
+    protected final static int MAX_BLOB_SIZE = 900000;
 
 	protected BasePropertiesInfo baseInfo = null;
 	protected LanguageDirectionsInfo langDirections = null;
@@ -96,8 +101,11 @@ public class FDBBaseReadUnit {
 
 	protected PreparedStatement selArticleBlockByIdSt;
 	protected PreparedStatement selMediaResourceIdByKey;
-	protected PreparedStatement selMediaResourceBlockById; 
-	
+	//protected PreparedStatement selMediaResourceBlockById;
+	protected PreparedStatement selMediaResourceBlockPartByResourceId;
+    protected PreparedStatement selMediaResourceBlockPartByBlockId;
+    protected PreparedStatement selMediaResourceBlockLengthByResourceId;
+
 	protected PreparedStatement selBaseResourceByKey;
 	
 	protected final AbstractCollatorFactory collatorFactory;
@@ -129,12 +137,13 @@ public class FDBBaseReadUnit {
     			log.info("FDB version 3 or higher is detected");
 			}
 		}
-		selMediaResourceBlockById = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_BY_MEDIA_RESOURCE_ID);
-		selArticleBlockByIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_ARTICLE_BLOCK_BY_ID);
+		//selMediaResourceBlockById = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_BY_MEDIA_RESOURCE_ID);
+        selMediaResourceBlockPartByResourceId = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_PART_BY_MEDIA_RESOURCE_ID);
+        selMediaResourceBlockPartByBlockId = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_PART_BY_MEDIA_RESOURCE_BLOCK_ID);
+        selMediaResourceBlockLengthByResourceId = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_LENGTH_BY_MEDIA_RESOURCE_BLOCK_ID);
+        selArticleBlockByIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_ARTICLE_BLOCK_BY_ID);
 		
 	}
-	
-	private static final Logger log = LoggerFactory.getLogger(FDBBaseReadUnit.class.getSimpleName());
 	
 	public BasePropertiesInfo loadBasePropertiesInfo() throws BaseFormatException {
 		
@@ -374,24 +383,42 @@ public class FDBBaseReadUnit {
 
 			byte[] resourceData = null;
 			
-			selMediaResourceBlockById.setInt(1, resourceId);
-			ResultSet resRS = selMediaResourceBlockById.executeQuery();
+//			selMediaResourceBlockById.setInt(1, resourceId);
+//			ResultSet resRS = selMediaResourceBlockById.executeQuery();
+
+            selMediaResourceBlockPartByResourceId.setInt(1, 1);
+            selMediaResourceBlockPartByResourceId.setInt(2, MAX_BLOB_SIZE);
+            selMediaResourceBlockPartByResourceId.setInt(3, resourceId);
+            ResultSet resRS = selMediaResourceBlockPartByResourceId.executeQuery();
 			
 			if (resRS.next()) {
-				
-				log.debug("Retrieving article: media_resource_id: {}, media_resource_block_id: {}", resourceId, resRS.getInt(1));
-				int segmentNumber = resourceId - resRS.getInt(1);
-				
-				resourceData = readSegmentBytesFromStream(
-					new SmartInflaterInputStream(new ByteArrayInputStream(resRS.getBytes(2))), segmentNumber
-				);
-				
+
+                int blockId = resRS.getInt(1);
+                byte[] block = resRS.getBytes(2);
+                int segmentNumber = resourceId - blockId;
+
+                log.debug("Media Resource - media_resource_id: {}, media_resource_block_id: {}", resourceId, blockId);
+                log.debug("Media Resource - block length on primary query: {}", block.length);
+
+                SQLBlobInputStream blobIS = null;
+                if (block.length >= MAX_BLOB_SIZE) {
+                    selMediaResourceBlockLengthByResourceId.setInt(1, blockId);
+                    ResultSet blockSizeRS = selMediaResourceBlockLengthByResourceId.executeQuery();
+                    blockSizeRS.next(); // Don't verify since it's already checked the columns exists
+                    int blockSize = blockSizeRS.getInt(1);
+                    blockSizeRS.close();
+                    log.debug("Media Resource - block length determined: {}", blockSize);
+                    blobIS = new SQLBlobInputStream(block, selMediaResourceBlockPartByBlockId, blockId, blockSize);
+                } else {
+                    blobIS = new SQLBlobInputStream(block);
+                }
+                resourceData = readSegmentBytesFromStream(new ReliableInflaterInputStream(blobIS), segmentNumber);
+
 			} else {
 				resRS.close();
 				throw new BaseFormatException("Data for media resourceId " + resourceId + " doesn't exist, possible base corruption");
 			}
 			resRS.close();
-
 			return resourceData;
 
 		} catch (Exception e) {
@@ -557,7 +584,7 @@ public class FDBBaseReadUnit {
 	
 	//------------------------------------------
 	
-	protected byte[] readSegmentBytesFromStream(SmartInflaterInputStream is, int segmentNumber) throws IOException {
+	protected byte[] readSegmentBytesFromStream(ReliableInflaterInputStream is, int segmentNumber) throws IOException {
 
 		long start = System.currentTimeMillis();
 		
@@ -613,7 +640,7 @@ public class FDBBaseReadUnit {
 				int segmentNumber = articleId - blockId;
 				
 				byte[] decompBytes = readSegmentBytesFromStream(
-					new SmartInflaterInputStream(new ByteArrayInputStream(rs.getBytes(2))), segmentNumber
+					new ReliableInflaterInputStream(new ByteArrayInputStream(rs.getBytes(2))), segmentNumber
 				);
 				
 				articleInfo = new ArticleInfo(wordInfo, new String(decompBytes, ENC_UTF8));

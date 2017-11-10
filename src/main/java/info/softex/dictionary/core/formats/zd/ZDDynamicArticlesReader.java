@@ -24,7 +24,7 @@ import info.softex.dictionary.core.formats.zd.collections.ZDDynamicListSet;
 import info.softex.dictionary.core.formats.zd.io.LittleEndianDataInputStream;
 import info.softex.dictionary.core.formats.zd.io.LittleEndianRandomAccessFile;
 import info.softex.dictionary.core.formats.zd.io.zip.TIIStream;
-import info.softex.dictionary.core.io.SmartInflaterInputStream;
+import info.softex.dictionary.core.io.ReliableInflaterInputStream;
 import info.softex.dictionary.core.regional.RegionalResolver;
 
 import java.io.ByteArrayInputStream;
@@ -207,7 +207,7 @@ public class ZDDynamicArticlesReader {
 		raf.read(compressedData);
 				
 		byte[] uncompressedData = readBytesFromStream(
-				new SmartInflaterInputStream(new ByteArrayInputStream(compressedData)), size
+				new ReliableInflaterInputStream(new ByteArrayInputStream(compressedData)), size
 			);
 
 		String csName = zdHeader.getTransCodepageName();

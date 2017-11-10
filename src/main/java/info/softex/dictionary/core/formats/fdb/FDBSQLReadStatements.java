@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2017  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -26,7 +26,8 @@ package info.softex.dictionary.core.formats.fdb;
  * @modified version 4.2, 03/05/2014
  * @modified version 4.6, 02/01/2015
  * @modified version 4.7, 03/26/2015
- * 
+ * @modified version 5.1, 02/18/2017
+ *
  * @author Dmitry Viktorov
  * 
  */
@@ -68,7 +69,7 @@ public class FDBSQLReadStatements {
 	
 	public static final String SELECT_WORD_RELATION_REDIRECT_BY_WORD_ID =
 		"SELECT r.to_word_id, w.word FROM " + FDBTables.words_relations + " r, " + 
-		FDBTables.words + " w WHERE r.word_id=(?) AND r.to_word_id = w.word_id AND relation_type IN (1,2)";
+		FDBTables.words + " w WHERE r.word_id=(?) AND r.to_word_id=w.word_id AND relation_type IN (1,2)";
 
 	public static final String SELECT_WORD_MAPPING_BY_WORD_ID =
 		"SELECT word_mapping_1,word_mapping_2 FROM " + FDBTables.words_mappings + " WHERE word_id=(?)";
@@ -80,12 +81,25 @@ public class FDBSQLReadStatements {
 	
 	public static final String SELECT_MEDIA_RESOURCE_ID_BY_MEDIA_RESOURCE_KEY =	
 		"SELECT media_resource_id from " + FDBTables.media_resource_keys + " WHERE media_resource_key=(?)";
-	
-	public static final String SELECT_MEDIA_RESOURCE_BLOCK_BY_MEDIA_RESOURCE_ID =	
-		"SELECT media_resource_block_id, media_resource_block FROM " + FDBTables.media_resource_blocks + 
+
+//    public static final String SELECT_MEDIA_RESOURCE_BLOCK_BY_MEDIA_RESOURCE_ID =
+//            "SELECT media_resource_block_id, media_resource_block FROM " + FDBTables.media_resource_blocks +
+//            " WHERE media_resource_block_id=(SELECT MAX(media_resource_block_id) FROM " +
+//            FDBTables.media_resource_blocks + " WHERE media_resource_block_id<=(?))";
+
+    public static final String SELECT_MEDIA_RESOURCE_BLOCK_LENGTH_BY_MEDIA_RESOURCE_BLOCK_ID =
+        "SELECT length(media_resource_block) FROM " + FDBTables.media_resource_blocks +
+        " WHERE media_resource_block_id=(?)";
+
+    public static final String SELECT_MEDIA_RESOURCE_BLOCK_PART_BY_MEDIA_RESOURCE_BLOCK_ID =
+        "SELECT media_resource_block_id, substr(media_resource_block, ?, ?) FROM " + FDBTables.media_resource_blocks +
+        " WHERE media_resource_block_id=(?)";
+
+	public static final String SELECT_MEDIA_RESOURCE_BLOCK_PART_BY_MEDIA_RESOURCE_ID =
+		"SELECT media_resource_block_id, substr(media_resource_block, ?, ?) FROM " + FDBTables.media_resource_blocks +
 		" WHERE media_resource_block_id=(SELECT MAX(media_resource_block_id) FROM " + 
 		FDBTables.media_resource_blocks + " WHERE media_resource_block_id<=(?))";
-	
+
 	public static final String SELECT_ALL_MEDIA_RESOURCE_KEYS =
 		"SELECT media_resource_key FROM " + FDBTables.media_resource_keys;
 	

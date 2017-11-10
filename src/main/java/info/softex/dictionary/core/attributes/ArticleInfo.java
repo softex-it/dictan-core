@@ -19,9 +19,9 @@
 
 package info.softex.dictionary.core.attributes;
 
-import info.softex.dictionary.core.utils.ArticleHtmlBuilder;
-
 import java.lang.ref.SoftReference;
+
+import info.softex.dictionary.core.utils.ArticleHtmlBuilder;
 
 /**
  * Main storage for article data.
@@ -158,8 +158,8 @@ public class ArticleInfo implements Cloneable, KeyValueInfo<String, String> {
 		return wordInfo == null ? false : wordInfo.isHttpRelated();
 	}
 	
-	public void setBaseInfo(BasePropertiesInfo baseInfo) {
-		this.baseInfo = baseInfo;
+	public void setBaseInfo(BasePropertiesInfo inBaseInfo) {
+		this.baseInfo = inBaseInfo;
 	}
 	
 	public BasePropertiesInfo getBaseInfo() {

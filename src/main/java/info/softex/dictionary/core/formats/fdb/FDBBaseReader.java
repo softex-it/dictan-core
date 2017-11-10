@@ -39,6 +39,7 @@ import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
+import info.softex.dictionary.core.attributes.IntegrityInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
 import info.softex.dictionary.core.attributes.MediaResourceKey;
@@ -61,6 +62,7 @@ import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
  * @modified version 4.6,   01/28/2015
  * @modified version 4.7,   03/26/2015
  * @modified version 4.9,   12/08/2015
+ * @modified version 5.1,   02/20/2017
  * 
  * @author Dmitry Viktorov
  * 
@@ -114,7 +116,21 @@ public class FDBBaseReader implements BaseReader {
 		return FORMAT_INFO;
 	}
 
-	@Override
+    @Override
+    public IntegrityInfo getIntegrityInfo() {
+
+        IntegrityInfo intInfo = new IntegrityInfo();
+
+        // This test is done at the init
+        intInfo.addTestResult("Number of base parts", true, null);
+
+        intInfo.addTestResult("Size of base parts", true, null);
+
+        return intInfo;
+
+    }
+
+    @Override
 	public ArticleInfo getArticleInfo(WordInfo wordInfo) throws BaseFormatException {
 		ArticleInfo articleInfo = getRawArticleInfo(wordInfo);
 		if (articleInfo != null) {
@@ -140,9 +156,14 @@ public class FDBBaseReader implements BaseReader {
 				return null;
 			}
 			wordInfo.setId(wordId);
-		} else if (wordInfo.getWord() == null) {
-			wordInfo.setWord(getWords().get(wordInfo.getId()));
 		}
+
+//        else if (wordInfo.getWord() == null) {
+//			wordInfo.setWord(getWords().get(wordInfo.getId()));
+//		}
+
+        // Always reset the word since lower/uppercase words can be used;
+        wordInfo.setWord(getWords().get(wordInfo.getId()));
 		
 		if (hasWordsRelations) {
 			mainBase.getWordRedirect(wordInfo);
@@ -153,10 +174,9 @@ public class FDBBaseReader implements BaseReader {
 		}
 		
 		ArticleInfo articleInfo = getBaseForArticle(wordInfo.getId()).getRawArticleInfo(wordInfo);
-		
 		articleInfo.setBaseInfo(getBasePropertiesInfo());
-		
 		return articleInfo;
+
 	}
 	
 	@Override
@@ -215,7 +235,8 @@ public class FDBBaseReader implements BaseReader {
 				missingParts.add(i);
 			}
 		}
-		
+
+		// Check all parts of the base are presented
 		if (!missingParts.isEmpty()) {
 			String missingPartsString = "";
 			String fileName = new File(mainBaseFilePath).getName();
@@ -338,7 +359,7 @@ public class FDBBaseReader implements BaseReader {
 		return mainBase.isLoaded();
 	}
 	
-	// Protected / Private -----------------------------------------
+	// Protected / Private ------------------------------------------------------------------------
 	protected FDBBaseReadUnit getBaseForArticle(int articleId) throws BaseFormatException {
 		return getBaseForId(dbArticlesRanges, articleId);
 	}
