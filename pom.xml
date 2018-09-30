@@ -6,7 +6,7 @@
 	<groupId>info.softex.dictionary</groupId>
 	<artifactId>dictan-core</artifactId>
 	<packaging>jar</packaging>
-	<version>5.1</version>
+	<version>5.2</version>
   
   	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -18,8 +18,8 @@
 		<maven.compiler.plugin.version>3.2</maven.compiler.plugin.version>
 		<maven.surefire.plugin.version>2.18.1</maven.surefire.plugin.version>
 		
-		<compiler.source.version>1.7</compiler.source.version>
-		<compiler.target.version>1.7</compiler.target.version>
+		<compiler.source.version>1.8</compiler.source.version>
+		<compiler.target.version>1.8</compiler.target.version>
 	</properties>
   
 	<dependencies>
