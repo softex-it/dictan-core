@@ -1,5 +1,14 @@
 package info.softex.dictionary.core.processors.impl.runners;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BaseResourceInfo;
 import info.softex.dictionary.core.attributes.BaseResourceKey;
@@ -11,16 +20,9 @@ import info.softex.dictionary.core.processors.api.JobRunner;
 import info.softex.dictionary.core.processors.impl.BasicJobData;
 import info.softex.dictionary.core.utils.PreconditionUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * @since version 4.8,		04/29/2015
+ * @modified version 5.2,	09/30/2018
  * 
  * @author Dmitry Viktorov
  * 
@@ -35,7 +37,7 @@ public class DSLEntriesJobRunner implements JobRunner {
 	public DSLEntriesJobRunner(File inBaseFile) throws IOException {
 		this.baseFile = inBaseFile;
 		this.reader = new DSLBaseReader(inBaseFile);
-		log.info("DSL Reader is created at {}", inBaseFile);
+		log.info("DSL Reader is created at: {}", inBaseFile);
 	}
 	
 	public DSLEntriesJobRunner(String inBasePath) throws IOException {
@@ -53,8 +55,12 @@ public class DSLEntriesJobRunner implements JobRunner {
 		
 		// Headers
 		BaseResourceInfo artDslRes = reader.getBaseResourceInfo(BaseResourceKey.BASE_ARTICLES_META_DSL.getKey());
+		
+		// Media keys
+		Set<String> mediaResourceKeys = reader.getMediaResourceKeys();
+		
 		PreconditionUtils.checkNotNull(artDslRes, "DSL Article Resource is not found");
-		job.injectData(new DSLHeaderInjector(artDslRes));
+		job.injectData(new DSLHeaderInjector(artDslRes, mediaResourceKeys));
 		
 		List<String> words = reader.getWords();
 		
@@ -94,14 +100,17 @@ public class DSLEntriesJobRunner implements JobRunner {
 	
 	protected class DSLHeaderInjector implements DataInjector {
 		protected final BaseResourceInfo artDslResource;
+		protected final Set<String> mediaResourceKeys;
 		
-		public DSLHeaderInjector(BaseResourceInfo inDslResource) {
+		public DSLHeaderInjector(BaseResourceInfo inDslResource, Set<String> mediaResourceKeys) {
 			this.artDslResource = inDslResource;
+			this.mediaResourceKeys = mediaResourceKeys;
 		}
 
 		@Override
 		public void inject(Map<DataKey, Object> dataMap) {
 			dataMap.put(DataInjector.DataKey.DATA_OBJECT_1, artDslResource);
+			dataMap.put(DataInjector.DataKey.DATA_OBJECT_2, mediaResourceKeys);
 		}
 	}
 

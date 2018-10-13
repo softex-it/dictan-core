@@ -37,7 +37,7 @@ public class DSLRedirectsMapper {
 	
 	public static void main(String[] args) throws Exception {
 		
-		String in = "/Volumes/Media/ln/DE_RU_DE_2013/DeRu/DeRu_Active_2013_Lingvo_Win/dictan-utf8_processed_1";
+		String in = "/ext/utf8_processed_2";
 		String out = "/ext/out";
 		
 		// Find all references

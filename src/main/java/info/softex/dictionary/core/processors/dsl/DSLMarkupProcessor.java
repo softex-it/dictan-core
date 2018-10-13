@@ -27,6 +27,7 @@ import info.softex.dictionary.core.processors.impl.runners.DSLEntriesJobRunner;
 /**
  * 
  * @since version 4.8,		04/29/2015
+ * @modified version 5.2,	09/30/2018
  * 
  * @author Dmitry Viktorov
  * 
@@ -35,11 +36,13 @@ public class DSLMarkupProcessor {
 	
 	public static void main(String[] args) throws Exception {
 		
-		String root = "/ext/processed";
+		// BasicConfigurator.configure();
 		
-		JobRunner runner = new DSLEntriesJobRunner(root);
+		String in = "/ext/dsl_input";
+		String out = "/ext/dsl_output";
 		
-		JobRunnable job = new DSLMarkupProcessorJob("/ext/output.txt");
+		JobRunner runner = new DSLEntriesJobRunner(in);
+		JobRunnable job = new DSLMarkupProcessorJob(out);
 		
 		runner.run(job);
 	}

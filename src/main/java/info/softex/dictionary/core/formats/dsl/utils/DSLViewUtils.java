@@ -192,7 +192,7 @@ public class DSLViewUtils {
 		    	break;
 		    	case AUDIO:
 		    		String replAud = "<a href=\"" + BaseConstants.URLSEG_AUDIO + BaseConstants.PATH_SEPARATOR + 
-		    			resName + "\"><img src=\"" + BaseConstants.URLSEG_IMAGES_EXTERNAL + BaseConstants.PATH_SEPARATOR + 
+		    			resName + "\"><img src=\"" + BaseConstants.URLSEG_IMAGES_APP + BaseConstants.PATH_SEPARATOR + 
 		    			BaseConstants.RESOURCE_INT_IMG_SOUND + "\" border=\"0\" style=\"vertical-align:middle\"/></a>";
 		    		
 				    m.appendReplacement(sb, Matcher.quoteReplacement(replAud));
@@ -217,7 +217,7 @@ public class DSLViewUtils {
 		Matcher m = PT_DSL_ABBREV.matcher(s);
 		while (m.find()) {
 			String resName = cleanDSLResource(m.group(1));
-			m.appendReplacement(sb, Matcher.quoteReplacement("<a href=\"abbr/" + resName + "\">" + resName + "</a>"));	
+			m.appendReplacement(sb, Matcher.quoteReplacement("<a href=\"" + BaseConstants.URLSEG_ABBREVS + "/" + resName + "\">" + resName + "</a>"));	
 		}
 		m.appendTail(sb);
 		return sb.toString();

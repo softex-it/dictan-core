@@ -28,7 +28,9 @@ import info.softex.dictionary.core.utils.PreconditionUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +38,7 @@ import org.slf4j.LoggerFactory;
 /**
  * 
  * @since version 4.8,		04/29/2015
+ * @modified version 5.2,	09/30/2018
  * 
  * @author Dmitry Viktorov
  * 
@@ -47,13 +50,17 @@ public abstract class AbstractDSLJob implements JobRunnable {
 	protected final File baseFile;
 	protected final DSLBaseWriter writer;
 	
+	protected final Set<String> usedMediaResourceKeys = new LinkedHashSet<>();
+	
+	// Injected data
 	protected BaseResourceInfo artDslResource;
+	protected Set<String> mediaResourceKeys;
 	
 	public AbstractDSLJob(File inBaseFile) throws IOException {
 		this.baseFile = inBaseFile;
 		this.writer = new DSLBaseWriter(inBaseFile);
 		this.writer.createBase();
-		log.info("DSL base is created at {}", baseFile);
+		log.info("DSL base is created at: {}", baseFile);
 	}
 	
 	public AbstractDSLJob(String inBasePath) throws IOException {
@@ -67,8 +74,15 @@ public abstract class AbstractDSLJob implements JobRunnable {
 		
 		dataInjector.inject(injectedData);
 		
-		artDslResource = (BaseResourceInfo)injectedData.get(DataInjector.DataKey.DATA_OBJECT_1);
+		artDslResource = (BaseResourceInfo) injectedData.get(DataInjector.DataKey.DATA_OBJECT_1);
 		PreconditionUtils.checkNotNull(artDslResource, "Article DSL Resource can't be null");
+		
+		mediaResourceKeys = (Set<String>) injectedData.get(DataInjector.DataKey.DATA_OBJECT_2);
+		PreconditionUtils.checkNotNull(mediaResourceKeys, "Media Resource Keys can't be null. An empty set should be used if they are not available.");
+		
+		if (mediaResourceKeys.isEmpty()) {
+			log.warn("Set of Media Resource Keys is empty");
+		}
 		
 		log.info("Data is injected");
 		
@@ -80,7 +94,17 @@ public abstract class AbstractDSLJob implements JobRunnable {
 		if (writer != null) {
 			writer.close();
 		}
-		log.info("The job is finished");
+		
+		Set<String> notFoundMediaResourceKeys = new LinkedHashSet<>(usedMediaResourceKeys);
+		notFoundMediaResourceKeys.removeAll(mediaResourceKeys);
+		
+		Set<String> notUsedMediaResourceKeys = new LinkedHashSet<>(mediaResourceKeys);
+		notUsedMediaResourceKeys.removeAll(usedMediaResourceKeys);
+
+		log.info("Used media resources: {}", usedMediaResourceKeys.size());
+		log.info("Not found media resources ({}): {}", notFoundMediaResourceKeys.size(), notFoundMediaResourceKeys);
+		log.info("Not used media resources ({}): {}", notUsedMediaResourceKeys.size(), notUsedMediaResourceKeys);
+		log.info("The main job is finished");
 	}
 
 }

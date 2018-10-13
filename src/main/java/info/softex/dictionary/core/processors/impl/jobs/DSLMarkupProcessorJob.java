@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 /**
  * 
  * @since version 4.8,		04/29/2015
+ * @modified version 5.2,	09/30/2018
  * 
  * @author Dmitry Viktorov
  * 
@@ -69,7 +70,7 @@ public class DSLMarkupProcessorJob extends AbstractDSLJob {
 		PreconditionUtils.checkNotNull(artDslResource, 
 			"Article DSL Resource can't be null, it has to be injected before processing");
 		
-		ArticleInfo articleInfo = (ArticleInfo)jobData;
+		ArticleInfo articleInfo = (ArticleInfo) jobData.getDataObject();
 		processEntry(articleInfo);
 		writer.saveRawArticleInfo(articleInfo);
 		return true;
@@ -81,9 +82,11 @@ public class DSLMarkupProcessorJob extends AbstractDSLJob {
 		
 		List<String> lines = new LinkedList<String>(Arrays.asList(StringUtils.splitByLineBreaks(article.getValue())));
 		
+		checkAssets(lines);
+		
 		//lines = resLowerCase(lines);
 		
-		lines = endWithM(lines);
+		//lines = endWithM(lines);
 		
 		//lines = processTranscriptions(lines);
 		//lines = wrapIfStartsFromBNum(lines);
@@ -95,6 +98,19 @@ public class DSLMarkupProcessorJob extends AbstractDSLJob {
 		
 		article.setValue(text);
 		
+	}
+	
+	protected void checkAssets(List<String> list) {
+		Pattern p = Pattern.compile("\\[s\\](.*?)\\[/s\\]");
+		list.forEach(s -> {
+			Matcher m = p.matcher(s);
+			while (m.find()) {
+				String resourceKey = (m.group(1));
+				usedMediaResourceKeys.add(resourceKey);
+				//log.info("File " + m.group(1));
+			}
+
+		});
 	}
 	
 	protected static void addEmptyParagraphConditionally(List<String> list, String s) throws IOException, BaseFormatException {
