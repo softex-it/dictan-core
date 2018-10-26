@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,8 +19,6 @@
 
 package info.softex.dictionary.core.attributes;
 
-import info.softex.dictionary.core.utils.StringUtils;
-
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -29,27 +27,32 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
+import info.softex.dictionary.core.utils.StringUtils;
+
 /**
  * 
- * @since version 2.0,		03/12/2011
+ * @since       version 2.0, 03/12/2011
  * 
- * @modified version 2.6,	08/27/2011
- * @modified version 2.9,	11/13/2011
- * @modified version 3.9,	12/05/2013
- * @modified version 4.0,	02/02/2014
- * @modified version 4.5,	03/29/2014
- * @modified version 4.6,	01/19/2015
- * 
+ * @modified    version 2.6, 08/27/2011
+ * @modified    version 2.9, 11/13/2011
+ * @modified    version 3.9, 12/05/2013
+ * @modified    version 4.0, 02/02/2014
+ * @modified    version 4.5, 03/29/2014
+ * @modified    version 4.6, 01/19/2015
+ * @modified    version 5.2, 10/21/2018
+ *
  * @author Dmitry Viktorov
  * 
  */
 public class BasePropertiesInfo implements Cloneable {
+
+    public static final String PATH_SEPARATOR = "/";
 	
 	public static enum PrimaryKey {
-		
 		FORMAT_NAME("format.name"),
 		FORMAT_VERSION("format.version"),
-		
+
+        BASE_UID("base.uid"),
 		BASE_VERSION("base.version"),
 		BASE_TYPE("base.type"),
 		BASE_DATE("base.date"),
@@ -159,20 +162,44 @@ public class BasePropertiesInfo implements Cloneable {
 	private String wordsCodepageName = null;
 	
 	// Meta base file parameters
-	private String baseFilePath;
-	private long baseFileSize;	
+	private String basePath;
+	private long baseFileSize;
 	
-	public String getBaseFilePath() {
-		return baseFilePath;
+	public String getBasePath() {
+		return basePath;
 	}
 	
-	public void setBaseFilePath(String dictionaryFilePath) {
-		baseFilePath = dictionaryFilePath;
+	public void setBaseFilePath(String inPath) {
+		basePath = inPath;
 	}
 
 	public String getBaseFileName() {
-		return getBaseFilePath() == null ? null : new File(getBaseFilePath()).getName();
+		return getBasePath() == null ? null : new File(getBasePath()).getName();
 	}
+
+    /**
+     * Unique Identifier of the base. It should not match any base, even the one compiled
+     * with the same parameters.
+     */
+    public String getBaseUid() {
+	    // Support of UID is added on 10/21/2018, use MD5 otherwise
+	    String result = (String) primaryParams.get(PrimaryKey.BASE_UID.getKey());
+        if (result == null) {
+            result = getSecurityMD5();
+        }
+        return result;
+    }
+
+    public void setBaseUid(String baseId) {
+        primaryParams.put(PrimaryKey.BASE_UID.getKey(), baseId);
+    }
+
+    /**
+     * URL based on Base ID.
+     */
+    public String getBaseUidUrl() {
+        return getBaseUid() + PATH_SEPARATOR;
+    }
 	
 	public String getBaseVersion() {
 		return (String) primaryParams.get(PrimaryKey.BASE_VERSION.getKey());
@@ -214,6 +241,10 @@ public class BasePropertiesInfo implements Cloneable {
 	public void setFormatName(String formatName) {
 		primaryParams.put(PrimaryKey.FORMAT_NAME.getKey(), formatName);
 	}
+
+    public String getSecurityMD5() {
+        return (String) primaryParams.get(PrimaryKey.BASE_SECURITY_PROPERTIES_MD5.getKey());
+    }
 	
 	public String getBaseFullName() {
 		return StringUtils.defaultString((String) primaryParams.get(PrimaryKey.BASE_NAME_FULL.getKey()));
@@ -258,7 +289,7 @@ public class BasePropertiesInfo implements Cloneable {
 	public ArticlesFormattingMode getArticlesFormattingModeResolved() {
 		Object mode = primaryParams.get(PrimaryKey.ARTICLES_FORMATTING_MODE.getKey());
 		if (mode instanceof String) {
-			if ("MEDIA".equalsIgnoreCase((String)mode)) { // Except the obsolete MEDIA formatting
+			if ("MEDIA".equalsIgnoreCase((String) mode)) { // Except the obsolete MEDIA formatting
 				return ArticlesFormattingMode.BASIC;
 			}
 			return ArticlesFormattingMode.valueOf(mode.toString());
@@ -379,7 +410,7 @@ public class BasePropertiesInfo implements Cloneable {
 	}
 	
 	/**
-	 * @return - Total number of words, media resources, and abbreviations
+	 * Total number of words, media resources, and abbreviations
 	 */
 	public int getWmraNumber() {
 		return getWordsNumber() + getMediaResourcesNumber() + getAbbreviationsNumber();
@@ -409,20 +440,6 @@ public class BasePropertiesInfo implements Cloneable {
 	public void setAbbreviationsNumber(int abbreviationsNumber) {
 		primaryParams.put(PrimaryKey.ABBREVIATIONS_NUMBER.getKey(), abbreviationsNumber);
 	}
-	
-//	public Locale getBaseLocale() {
-//		Object obj = this.primaryParams.get(PrimaryKeys.BASE_LOCALE);
-//		if (obj instanceof Locale) {
-//			return (Locale)obj;
-//		} else if (obj instanceof String) {
-//			return new Locale((String)obj);
-//		}
-//		return null;
-//	}
-//
-//	public void setBaseLocale(Locale locale) {
-//		this.primaryParams.put(PrimaryKeys.BASE_LOCALE, locale);
-//	}
 	
 	public void setCompilationCreatorName(String name) {
 		primaryParams.put(PrimaryKey.INFO_COMPILATION_CREATOR_NAME.getKey(), name);
@@ -525,12 +542,6 @@ public class BasePropertiesInfo implements Cloneable {
 			return null;
 		}
 	}
-//	
-//	public void skipNumbers() {
-//		setArticlesNumber(0);
-//		setMediaResourcesNumber(0);
-//		setAbbreviationsNumber(0);
-//	}
 	
 	// Private methods ------------------------------------------------------------
 
@@ -545,18 +556,6 @@ public class BasePropertiesInfo implements Cloneable {
 		}
 		return -1;
 	}
-	
-//	private boolean getBooleanValue(String keyString, boolean defValue) {
-//		Object obj = primaryParams.get(keyString);
-//		if (obj instanceof Boolean) {
-//			return (Boolean)obj;
-//		} else if (obj instanceof String) {
-//			return Boolean.parseBoolean((String)obj);
-//		} else if (obj != null) {
-//			throw new IllegalArgumentException("The key " + keyString + " cannot be cast to boolean");
-//		}
-//		return defValue;
-//	}
 	
 	private String dateToString(Date date) {
 		//2012-03-06T08:00:00,000Z
