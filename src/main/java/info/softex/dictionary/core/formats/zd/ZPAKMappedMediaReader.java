@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,14 +19,14 @@
 
 package info.softex.dictionary.core.formats.zd;
 
-import info.softex.dictionary.core.formats.api.BaseFormatException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
@@ -35,15 +35,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.InflaterInputStream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import info.softex.dictionary.core.formats.api.BaseFormatException;
 
 /**
  * 
- * @since version 2.0, 03/06/2011
+ * @since       version 2.0, 03/06/2011
  * 
- * @modified version 2.6, 09/17/2011
- * @modified version 3.4, 07/07/2012
+ * @modified    version 2.6, 09/17/2011
+ * @modified    version 3.4, 07/07/2012
+ * @modified    version 5.2, 10/26/2018
  * 
  * @author Dmitry Viktorov
  *
@@ -52,25 +52,30 @@ public class ZPAKMappedMediaReader {
 	
 	private final Logger log = LoggerFactory.getLogger(ZPAKMappedMediaReader.class);
 	
-	protected File mediaFile = null;
+	protected File mediaFile;
 	protected RandomAccessFile raf = null;
 	protected MappedByteBuffer fileBuffer = null;
 	protected ZPAKHeader zpakHeader = null;
 	protected Map<String, ZPAKResourceMetaInfo> resources = null;
 
-	public ZPAKMappedMediaReader(File file) throws IOException {
-		this.mediaFile = file;
-		this.raf = new RandomAccessFile(file, "r");
+	public ZPAKMappedMediaReader(File mediaFile) {
+		this.mediaFile = mediaFile;
+	}
+
+	public void initialize() throws IOException {
+		raf = new RandomAccessFile(mediaFile, "r");
 		FileChannel fileChannel = raf.getChannel();
-		this.fileBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0L, raf.length());
-		this.fileBuffer.order(ByteOrder.LITTLE_ENDIAN);
+		fileBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0L, raf.length());
+		fileBuffer.order(ByteOrder.LITTLE_ENDIAN);
 	}
 
 	public void close() throws IOException {
-		raf.close();
+	    if (raf != null) {
+	        raf.close();
+        }
 	}
 
-	public void load() throws BaseFormatException, UnsupportedEncodingException {
+	public void load() throws BaseFormatException {
 	    if (this.zpakHeader == null) {
 	        loadZPAKHeader();
 	    }
@@ -78,9 +83,7 @@ public class ZPAKMappedMediaReader {
 	}
 
 	public ZPAKHeader loadZPAKHeader() throws BaseFormatException {
-		
         log.debug("Loading Header");
-        
 		this.zpakHeader = new ZPAKHeader();
 		
 		byte[] prefix = new byte[4];
@@ -90,7 +93,7 @@ public class ZPAKMappedMediaReader {
 		prefix[3] = fileBuffer.get();
 		
 		if (prefix[0] != 90 || prefix[1] != 112 || prefix[2] != 97 || prefix[3] != 107) {
-			throw new BaseFormatException("ZPAK File Header is not recognized");
+			throw new BaseFormatException("ZPAK File Header is not recognized: " + mediaFile.getAbsolutePath());
 		} else {
 			zpakHeader.setMark(prefix);
 			zpakHeader.setMediaFormatVersion(fileBuffer.getShort());
@@ -102,9 +105,9 @@ public class ZPAKMappedMediaReader {
 		}
 	}
 
-	private void loadMediaResources() throws BaseFormatException, UnsupportedEncodingException {
+	private void loadMediaResources() {
 		StringBuffer sb = new StringBuffer();
-		this.resources = new HashMap<String, ZPAKResourceMetaInfo>();
+		this.resources = new HashMap<>();
 		
 		long startTime = System.currentTimeMillis();
 		
@@ -162,8 +165,8 @@ public class ZPAKMappedMediaReader {
 		return decompData;
 	}
 
-	public boolean isResourceAvailble(String itemName) {
-		return this.resources.get(itemName) == null ? false : true;
+	public boolean isResourceAvailable(String itemName) {
+		return resources.get(itemName) != null;
 	}
 	
 	public String getFilePath() {

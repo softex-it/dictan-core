@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,6 +19,18 @@
 
 package info.softex.dictionary.core.conversions;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.text.Collator;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Observer;
+import java.util.Set;
+
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BaseResourceInfo;
@@ -32,23 +44,13 @@ import info.softex.dictionary.core.collation.BasicCollatorFactory;
 import info.softex.dictionary.core.formats.api.BaseReader;
 import info.softex.dictionary.core.formats.api.BaseWriter;
 
-import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Observer;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
- * Provides main utilities for base conversions.
+ * Utilities for base conversions.
  * 
- * @since version 4.6, 		02/26/2015
- * 
+ * @since		version 4.6, 02/26/2015
+ *
+ * @modified	version 5.2, 10/21/2018
+ *
  * @author Dmitry Viktorov
  *
  */
@@ -68,7 +70,6 @@ public class ConversionUtils {
 	 * @throws Exception 
 	 */
 	public static void convert(BaseReader reader, BaseWriter writer, Observer observer) throws Exception {
-        
 		ProgressInfo progress = new ProgressInfo();
 		
 		// Apply simplified conversion when the output base contains keys only
@@ -84,7 +85,6 @@ public class ConversionUtils {
 			convertArticles(reader, writer, observer, progress);
 			convertMediaResources(reader, writer, observer, progress);
         }
-		
 	}
 	
 	/**
@@ -115,7 +115,6 @@ public class ConversionUtils {
 	}
 	
 	protected static void convertAbbreviations(BaseReader reader, BaseWriter writer, Observer observer, ProgressInfo progress) throws Exception {
-		
 		Set<String> keys = reader.getAbbreviationKeys();
 		if (keys == null) {
 			log.info("No abbreviations available");
@@ -159,11 +158,9 @@ public class ConversionUtils {
 		}
 		
 		writer.flush();
-
 	}
 	
 	protected static void convertArticles(BaseReader reader, BaseWriter writer, Observer observer, ProgressInfo progress) throws Exception {
-		
 		log.info("Started converting articles: Size {}", reader.getWords().size());
 		
 		// Update progress
@@ -179,7 +176,7 @@ public class ConversionUtils {
         // Create Collator and sort articles
 		Collator collator = createCollator(writer);
 		
-		// Create and initialize words mapper
+		// Create and loadBaseInfo words mapper
 		ConversionWordsMapper wordsMapper = new ConversionWordsMapper(collator, srcWords, srcMappings, srcRedirects);
 		wordsMapper.init();
 				
@@ -195,8 +192,7 @@ public class ConversionUtils {
 			
 			// Word info to retrieve articles. Can't be moved outside because 
 			// it' overridden every time article is retrieved.
-			WordInfo oldWordInfo = new WordInfo(oldWordId);
-			oldWordInfo.setId(oldWordId);
+			WordInfo oldWordInfo = new WordInfo(null, oldWordId);
 			
 			ArticleInfo inArticleInfo = reader.getAdaptedArticleInfo(oldWordInfo);
 			
@@ -205,7 +201,7 @@ public class ConversionUtils {
 				throw new IllegalStateException("Couldn't find article for " + oldWordInfo);
 			}
 			
-			WordInfo newWordInfo = new WordInfo(i, curWord);
+			WordInfo newWordInfo = new WordInfo(null, i, curWord);
 			
 			// Add mapping if any
 			String newMapping = wordsMapper.getNewWordMappingByOldWordId(oldWordId);
@@ -228,11 +224,9 @@ public class ConversionUtils {
 		}
 
 		writer.flush();
-		
 	}
 	
 	protected static void convertMediaResources(BaseReader reader, BaseWriter writer, Observer observer, ProgressInfo progress) throws Exception {
-		
 		Set<String> keys = reader.getMediaResourceKeys();
 		if (keys == null) {
 			log.info("No media resources available");
@@ -262,13 +256,12 @@ public class ConversionUtils {
 		
 		for (Iterator<String> iterator = sortedKeys.iterator(); iterator.hasNext();) {
 			String sortedKey = iterator.next();
-			MediaResourceInfo mediaInfo = reader.getMediaResourceInfo(new MediaResourceKey(sortedKey));
+			MediaResourceInfo mediaInfo = reader.getMediaResourceInfo(new MediaResourceKey(null, sortedKey));
 			mediaInfo.getKey().setResourceKey(mediaInfo.getKey().getResourceKey());
 			writer.saveMediaResourceInfo(mediaInfo);			
 		}
 		
 		writer.flush();
-		
 	}
 	
 	protected static void convertAbbreviationsKeys(BaseReader reader, BaseWriter writer) throws Exception {
@@ -282,7 +275,7 @@ public class ConversionUtils {
 	
 	protected static void convertArticlesKeys(BaseReader reader, BaseWriter writer) throws Exception {
 		List<String> words = reader.getWords();
-		ArticleInfo articleInfo = new ArticleInfo(new WordInfo(""), "");
+		ArticleInfo articleInfo = new ArticleInfo(new WordInfo(null, ""), "");
 		for (String word : words) {
 			articleInfo.getWordInfo().setWord(word);
 			writer.saveAdaptedArticleInfo(articleInfo);
@@ -291,7 +284,7 @@ public class ConversionUtils {
 	
 	protected static void convertMediaResourcesKeys(BaseReader reader, BaseWriter writer) throws Exception {
 		Set<String> mediaKeys = reader.getMediaResourceKeys();
-		MediaResourceInfo resourceInfo = new MediaResourceInfo(new MediaResourceKey(""), null);
+		MediaResourceInfo resourceInfo = new MediaResourceInfo(new MediaResourceKey(null, ""), null);
 		for (String mkey : mediaKeys) {
 			resourceInfo.getKey().setResourceKey(mkey);
 			writer.saveMediaResourceInfo(resourceInfo);

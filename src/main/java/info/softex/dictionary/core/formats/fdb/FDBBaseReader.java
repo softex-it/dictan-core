@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.UUID;
 
 import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
@@ -50,51 +51,57 @@ import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.api.BaseReader;
 import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
 
+import static info.softex.dictionary.core.formats.api.BaseFormatException.ERROR_CANT_LOAD_BASE_PROPERTIES;
+
 /**
  * FDB (Free Dictionary Base) base reader.
  * 
- * @since version 2.6,      08/21/2011
+ * @since       version 2.6, 08/21/2011
  * 
- * @modified version 2.9,   11/11/2011
- * @modified version 3.4,   07/04/2012
- * @modified version 3.9,   01/25/2014
- * @modified version 4.0,   02/08/2014
- * @modified version 4.6,   01/28/2015
- * @modified version 4.7,   03/26/2015
- * @modified version 4.9,   12/08/2015
- * @modified version 5.1,   02/20/2017
- * 
+ * @modified    version 2.9, 11/11/2011
+ * @modified    version 3.4, 07/04/2012
+ * @modified    version 3.9, 01/25/2014
+ * @modified    version 4.0, 02/08/2014
+ * @modified    version 4.6, 01/28/2015
+ * @modified    version 4.7, 03/26/2015
+ * @modified    version 4.9, 12/08/2015
+ * @modified    version 5.1, 02/20/2017
+ * @modified    version 5.2, 10/26/2018
+ *
  * @author Dmitry Viktorov
  * 
  */
 @BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb", ".fdl"}, sortingExpected = true, likeSearchSupported = true)
 public class FDBBaseReader implements BaseReader {
-	
-	private final static Logger log = LoggerFactory.getLogger(FDBBaseReader.class);
 
-	public final static FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(FDBBaseReader.class);
-		
+	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(FDBBaseReader.class);
+
+	private static final Logger log = LoggerFactory.getLogger(FDBBaseReader.class);
+
 	protected final String mainBaseFilePath;
+    protected final String mainBaseLocationUid;
 
-	protected final FDBBaseReadUnit mainBase;
-	protected final TreeMap<Integer, FDBBaseReadUnit> dbs = new TreeMap<Integer, FDBBaseReadUnit>();
-	protected ArrayList<BaseRange> dbArticlesRanges;
+	protected final TreeMap<Integer, FDBBaseReadUnit> dbs = new TreeMap<>();
+    protected FDBBaseReadUnit mainBase;
+    protected ArrayList<BaseRange> dbArticlesRanges;
 	protected ArrayList<BaseRange> dbMediaResourcesRanges;
 	
 	protected final DatabaseConnectionFactory conFactory;
-	
 	protected final Map<String, String> dbParams;
-	
 	protected final int wordListBlockSize;
+
+    protected final AbstractCollatorFactory collatorFactory;
 	
 	protected boolean hasWordsRelations = false;
 	protected boolean hasWordsMappings = false;
+
+    protected boolean loaded = false;
+    protected boolean closed = false;
 	
 	public FDBBaseReader(File fdbFile, DatabaseConnectionFactory conFactory, Map<String, ?> inParams, AbstractCollatorFactory collatorFactory) throws SQLException {
-		dbParams = new HashMap<String, String>();
-		dbParams.put(DatabaseConnectionFactory.DB_NO_LOCALIZED_COLLATORS, "true");
-		dbParams.put(DatabaseConnectionFactory.DB_OPEN_READ_ONLY, "true");
-		
+        this.dbParams = new HashMap<>();
+        this.dbParams.put(DatabaseConnectionFactory.DB_NO_LOCALIZED_COLLATORS, "true");
+        this.dbParams.put(DatabaseConnectionFactory.DB_OPEN_READ_ONLY, "true");
 		int wordListBlockSize = FDBConstants.VALUE_WORD_LIST_BLOCK_SIZE_DEFAULT;
 		if (inParams != null) {
 			Object wlbSize = inParams.get(FDBConstants.PARAM_KEY_WORD_LIST_BLOCK_SIZE);
@@ -102,13 +109,12 @@ public class FDBBaseReader implements BaseReader {
 				wordListBlockSize = (Integer) wlbSize;
 			}
 		}
-
 		log.debug("WordList Block Size: {}", wordListBlockSize);
 		this.wordListBlockSize = wordListBlockSize;
 		this.mainBaseFilePath = fdbFile.getAbsolutePath();
-		this.conFactory = conFactory;
-		this.mainBase = new FDBBaseReadUnit(true, mainBaseFilePath, conFactory.createConnection(mainBaseFilePath, dbParams), wordListBlockSize, collatorFactory);
-		this.dbs.put(1, mainBase);
+        this.mainBaseLocationUid = UUID.nameUUIDFromBytes(mainBaseFilePath.getBytes()).toString();
+        this.conFactory = conFactory;
+        this.collatorFactory = collatorFactory;
 	}
 	
 	@Override
@@ -118,16 +124,11 @@ public class FDBBaseReader implements BaseReader {
 
     @Override
     public IntegrityInfo getIntegrityInfo() {
-
         IntegrityInfo intInfo = new IntegrityInfo();
-
         // This test is done at the init
         intInfo.addTestResult("Number of base parts", true, null);
-
         intInfo.addTestResult("Size of base parts", true, null);
-
         return intInfo;
-
     }
 
     @Override
@@ -136,6 +137,7 @@ public class FDBBaseReader implements BaseReader {
 		if (articleInfo != null) {
 			BasePropertiesInfo baseInfo = mainBase.getBasePropertiesInfo();
 			String article = ArticleHtmlFormatter.prepareArticle(
+                baseInfo.getBaseLocationUid(),
 				wordInfo.getArticleWord(),
 				articleInfo.getArticle(), getAbbreviationKeys(), 
 				baseInfo.getArticlesFormattingMode(),
@@ -158,10 +160,6 @@ public class FDBBaseReader implements BaseReader {
 			wordInfo.setId(wordId);
 		}
 
-//        else if (wordInfo.getWord() == null) {
-//			wordInfo.setWord(getWords().get(wordInfo.getId()));
-//		}
-
         // Always reset the word since lower/uppercase words can be used;
         wordInfo.setWord(getWords().get(wordInfo.getId()));
 		
@@ -172,11 +170,10 @@ public class FDBBaseReader implements BaseReader {
 		if (hasWordsMappings) {
 			mainBase.getWordMapping(wordInfo);
 		}
-		
-		ArticleInfo articleInfo = getBaseForArticle(wordInfo.getId()).getRawArticleInfo(wordInfo);
-		articleInfo.setBaseInfo(getBasePropertiesInfo());
-		return articleInfo;
 
+		ArticleInfo articleInfo = getBaseForArticle(wordInfo.getId()).getRawArticleInfo(wordInfo);
+		articleInfo.setBaseInfo(getBaseInfo());
+		return articleInfo;
 	}
 	
 	@Override
@@ -186,44 +183,43 @@ public class FDBBaseReader implements BaseReader {
 		
 	@Override
 	public void load() throws BaseFormatException {
-		
-		loadBasePropertiesInfo();
-		
+		loadBaseInfo();
 		mainBase.load();
-		
 		BasePropertiesInfo baseProps = mainBase.getBasePropertiesInfo();
 		int depPartsNumber = baseProps.getBasePartsTotalNumber() <= 0 ? 0 : baseProps.getBasePartsTotalNumber() - 1;
-		
 		log.debug("Total dependent parts number: {}", depPartsNumber);
 		
-		dbArticlesRanges = new ArrayList<BaseRange>(depPartsNumber);
-		dbMediaResourcesRanges = new ArrayList<BaseRange>(depPartsNumber);
+		dbArticlesRanges = new ArrayList<>(depPartsNumber);
+		dbMediaResourcesRanges = new ArrayList<>(depPartsNumber);
 		for (int i = 2; i < depPartsNumber + 2; i++) {
-			
 			int startArtId = baseProps.getBasePartsArticlesBlockIdStart(i);
 			if (startArtId >= 0) {
 				dbArticlesRanges.add(new BaseRange(startArtId, i));
 				log.trace("Added articles block id start: {}", startArtId);
 			}
-			
 			int startResId = baseProps.getBasePartsMediaResourcesBlockIdStart(i);
 			if (startResId >= 0) {
 				dbMediaResourcesRanges.add(new BaseRange(startResId, i));
 				log.debug("Added media resources block id start: {}", startResId);				
 			}
-			
 		}
-		
+        loaded = true;
 	}
 	
 	@Override
-	public BasePropertiesInfo loadBasePropertiesInfo() throws BaseFormatException {
-		
-		BasePropertiesInfo props = mainBase.loadBasePropertiesInfo();
+	public BasePropertiesInfo loadBaseInfo() throws BaseFormatException {
+	    // Initialize Base
+        try {
+            mainBase = new FDBBaseReadUnit(true, mainBaseFilePath, conFactory.createConnection(mainBaseFilePath, dbParams), wordListBlockSize, collatorFactory);
+        } catch (SQLException e) {
+            throw new BaseFormatException("Couldn't initialise FDBBaseReadUnit: " + e.getSQLState(), ERROR_CANT_LOAD_BASE_PROPERTIES);
+        }
+        dbs.put(1, mainBase);
 
+        // Base Info
+		BasePropertiesInfo props = mainBase.loadBaseInfo();
 		long size = props.getBaseFileSize();
-		
-		Set<Integer> missingParts = new TreeSet<Integer>();
+		Set<Integer> missingParts = new TreeSet<>();
 		
 		for (int i = 2; i <= props.getBasePartsTotalNumber(); i++) {
 			File partFile = new File(mainBaseFilePath + i);
@@ -251,11 +247,11 @@ public class FDBBaseReader implements BaseReader {
 		}
 		
 		// Define the flags of words relations and mappings to speed up requests
-		hasWordsRelations = props.getWordsRelationsNumber() > 0 ? true : false;
-		hasWordsMappings = props.getWordsMappingsNumber() > 0 ? true : false;
-		
+		hasWordsRelations = props.getWordsRelationsNumber() > 0;
+		hasWordsMappings = props.getWordsMappingsNumber() > 0;
 		props.setBaseFileSize(size);
-
+        props.setBaseLocation(getBaseLocation());
+        props.setBaseLocationUid(getBaseLocationUid());
 		return props;
 	}
 	
@@ -295,14 +291,15 @@ public class FDBBaseReader implements BaseReader {
 	}
 	
 	@Override
-	public void close() throws Exception {
+	public void close() throws SQLException {
+	    closed = true;
 		for (Integer dbn : dbs.keySet()) {
 			dbs.get(dbn).close();
 		}
 	}
 	
 	@Override
-	public BasePropertiesInfo getBasePropertiesInfo() {
+	public BasePropertiesInfo getBaseInfo() {
 		return mainBase.getBasePropertiesInfo();		
 	}
 	
@@ -356,10 +353,25 @@ public class FDBBaseReader implements BaseReader {
 	
 	@Override
 	public boolean isLoaded() {
-		return mainBase.isLoaded();
+		return loaded;
 	}
-	
-	// Protected / Private ------------------------------------------------------------------------
+
+    @Override
+    public boolean isClosed() {
+        return closed;
+    }
+
+    @Override
+    public String getBaseLocation() {
+        return mainBaseFilePath;
+    }
+
+    @Override
+    public String getBaseLocationUid() {
+        return mainBaseLocationUid;
+    }
+
+    // Protected / Private ------------------------------------------------------------------------
 	protected FDBBaseReadUnit getBaseForArticle(int articleId) throws BaseFormatException {
 		return getBaseForId(dbArticlesRanges, articleId);
 	}
@@ -384,13 +396,14 @@ public class FDBBaseReader implements BaseReader {
 	
 	
 	protected FDBBaseReadUnit getBase(int baseNumber) throws BaseFormatException {
-		log.debug("Base Part requesed: {}", baseNumber);
+		log.debug("Base Part requested: {}", baseNumber);
 		FDBBaseReadUnit base = dbs.get(baseNumber);
 		if (base == null) {
 			try {
 				base = new FDBBaseReadUnit(false, mainBaseFilePath + baseNumber, conFactory.createConnection(mainBaseFilePath + baseNumber, dbParams), wordListBlockSize, null);
+				base.initialize();
 			} catch (Exception e) {
-				throw new BaseFormatException("Couldn't open base " + mainBaseFilePath + baseNumber + ": " + e.getMessage(), BaseFormatException.ERROR_CANT_OPEN_BASE);
+				throw new BaseFormatException("Couldn't open base " + mainBaseFilePath + baseNumber + ": " + e.getMessage(), BaseFormatException.ERROR_CANT_LOAD_BASE);
 			}
 			dbs.put(baseNumber, base);
 		}
@@ -405,5 +418,5 @@ public class FDBBaseReader implements BaseReader {
 			this.baseNum = baseNum;
 		}
 	}
-	
+
 }

@@ -41,7 +41,9 @@ import java.util.Set;
 /**
  * Main test utilities for assertions.
  * 
- * @since version 4.6, 		03/01/2015
+ * @since		4.6, 03/01/2015
+ * 
+ * @modified		5.2, 10/26/2018
  * 
  * @author Dmitry Viktorov
  * 
@@ -63,7 +65,7 @@ public class BaseReaderAssertUtils {
 		String formatName = formatInfo.getName();
 		assertNotNull(formatName);
 		
-		BasePropertiesInfo props = reader.getBasePropertiesInfo();
+		BasePropertiesInfo props = reader.getBaseInfo();
 		assertNotNull(props);
 		
 		// Words
@@ -158,8 +160,8 @@ public class BaseReaderAssertUtils {
 	public static void assertBaseRawArticlesEqual(BaseReader expected, BaseReader actual) throws BaseFormatException {
 		List<String> wordsExp = expected.getWords();		
 		for (int i = 0; i < wordsExp.size(); i++) {
-			ArticleInfo artExp = expected.getRawArticleInfo(new WordInfo(i));
-			ArticleInfo artAct = actual.getRawArticleInfo(new WordInfo(i));
+			ArticleInfo artExp = expected.getRawArticleInfo(new WordInfo(null, i));
+			ArticleInfo artAct = actual.getRawArticleInfo(new WordInfo(null, i));
 			assertEquals(artExp.getArticle(), artAct.getArticle());
 		}
 	}
@@ -195,8 +197,8 @@ public class BaseReaderAssertUtils {
 		assertEquals("Abbreviations", resExp.size(), resAct.size());
 		for (String resKeyExp: resExp) {
 			assertTrue(resAct.contains(resKeyExp));
-			MediaResourceInfo resInfoExp = expected.getMediaResourceInfo(new MediaResourceKey(resKeyExp));
-			MediaResourceInfo resInfoAct = actual.getMediaResourceInfo(new MediaResourceKey(resKeyExp));
+			MediaResourceInfo resInfoExp = expected.getMediaResourceInfo(new MediaResourceKey(null, resKeyExp));
+			MediaResourceInfo resInfoAct = actual.getMediaResourceInfo(new MediaResourceKey(null, resKeyExp));
 			assertEquals(resInfoExp.getByteArray().length, resInfoAct.getByteArray().length);
 		}
 	}
@@ -206,7 +208,7 @@ public class BaseReaderAssertUtils {
 		assertBaseReaderIntegrity(readerAct);
 		
 		// Main Properties
-		BasePropertiesInfo propsAct = readerAct.getBasePropertiesInfo();
+		BasePropertiesInfo propsAct = readerAct.getBaseInfo();
 		assertMainBasePropertiesEqual(propsExp, propsAct);
 
 		// Words
@@ -260,7 +262,7 @@ public class BaseReaderAssertUtils {
 	 */
 	public static void assertMainBaseReaderParametersEqual(BaseReader expected, BaseReader actual) throws BaseFormatException {
 		
-		assertMainBaseReaderParametersEqualByProperties(expected.getBasePropertiesInfo(), actual);
+		assertMainBaseReaderParametersEqualByProperties(expected.getBaseInfo(), actual);
 		
 		// Words
 		assertEquals("Number of words", expected.getWords().size(), actual.getWords().size());

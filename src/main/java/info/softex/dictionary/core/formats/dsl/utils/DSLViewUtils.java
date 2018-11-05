@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,22 +19,25 @@
 
 package info.softex.dictionary.core.formats.dsl.utils;
 
-import info.softex.dictionary.core.utils.BaseConstants;
-import info.softex.dictionary.core.utils.FileTypeUtils;
-import info.softex.dictionary.core.utils.FileUtils;
-import info.softex.dictionary.core.utils.StringUtils;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import info.softex.dictionary.core.utils.BaseConstants;
+import info.softex.dictionary.core.utils.FileTypeUtils;
+import info.softex.dictionary.core.utils.FileUtils;
+import info.softex.dictionary.core.utils.StringUtils;
+
+import static info.softex.dictionary.core.utils.BaseConstants.EMPTY;
+
 /**
  * 
- * @since version 4.6,		02/16/2015
+ * @since		version 4.6, 02/16/2015
  * 
- * @modified version 4.7,	03/24/2015
- * @modified version 4.8,	04/29/2015
+ * @modified	version 4.7, 03/24/2015
+ * @modified	version 4.8, 04/29/2015
+ * @modified	version 5.2, 10/23/2018
  * 
  * @author Dmitry Viktorov
  * 
@@ -46,12 +49,11 @@ public class DSLViewUtils {
 	
 	protected final static String CHAR_LPAREN = "&#40;"; // (
 	protected final static String CHAR_RPAREN = "&#41;"; // )
-	
-	protected final static Pattern PT_DSL_RESOURCE = Pattern.compile("<r>(.*?)</r>");
-	protected final static Pattern PT_DSL_ABBREV = Pattern.compile("<w>(.*?)</w>");
-	protected final static Pattern PT_DSL_XML = Pattern.compile("<[^>]*>");
-	
-	protected final static String EMPTY = "";
+
+    protected final static Pattern PT_DSL_ARTICLES = Pattern.compile("<a(.+?)href\\s*=\\s*[\"'](.+?)[\"'](.*?)>");
+    protected final static Pattern PT_DSL_RESOURCE = Pattern.compile("<r>(.*?)</r>");
+    protected final static Pattern PT_DSL_ABBREV = Pattern.compile("<w>(.*?)</w>");
+    protected final static Pattern PT_DSL_XML = Pattern.compile("<[^>]*>");
 	
 	@SuppressWarnings("serial")
 	protected final static Map<String, String> DSL_TO_HTML_TAGS = new HashMap<String, String>() {{
@@ -80,20 +82,17 @@ public class DSLViewUtils {
 	 * @return
 	 */
 	public static String convertDSLHtmlToHtml4(String s) {
-		
 		// Don't process blank strings and the ones with length < 3
 		if (StringUtils.isBlank(s) || s.length() < 3) {
 			return s;
 		}
 		
-		StringBuffer result = new StringBuffer();	
-		
+		StringBuffer result = new StringBuffer();
 		char buffer[] = new char[3];
 		
 		for (int i = 0; i < s.length(); i++) {
 			
 			char curChar = s.charAt(i);
-			
 			if (curChar == '<' && s.length() > i + 1) {
 				// Read 2 next chars
 				buffer[0] = curChar;
@@ -124,11 +123,10 @@ public class DSLViewUtils {
 			}
 			
 		}
-
 		return result.toString();
 	}
 	
-	public static String injectDSLWord(String word, final String article) {
+	public static String injectDSLWord(String baseUrl, String word, final String article) {
 		StringBuffer result = new StringBuffer();
 		result.append("<div class=\"header\">");
 		
@@ -138,7 +136,7 @@ public class DSLViewUtils {
 			word = word.replaceAll("\\\\\\(", CHAR_LPAREN);  // "\("
 			word = word.replaceAll("\\\\\\)", CHAR_RPAREN);  // "\)"
 			word = word.replaceAll("\\{(.*?)\\}", "$1");
-			word = convertDSLAbbreviationsToHtml(word);
+			word = convertDSLAbbreviationsToHtml(baseUrl, word);
 		}
 		
 		result.append(word);
@@ -169,55 +167,58 @@ public class DSLViewUtils {
 		}
 		
 		result.append(article);
-
 		return result.toString();
 	}
 	
-	public static String convertDSLResourcesToHtml(String s) {
-		
+	public static String convertDSLResourcesToHtml(String baseUrl, String s) {
 		StringBuffer sb = new StringBuffer(s.length());
-		
 		Matcher m = PT_DSL_RESOURCE.matcher(s);
 		while (m.find()) {
-			
 		    String resName = cleanDSLResource(m.group(1));
-		    
 		    FileTypeUtils.MediaType type = FileTypeUtils.getMediaTypeByExtension(FileUtils.getFileExtension(resName));
 		    switch (type) {
 		    	case IMAGE:
-				    m.appendReplacement(sb, Matcher.quoteReplacement("<img class=\"int\" src=\"" +
-				    	BaseConstants.URLSEG_IMAGES + BaseConstants.PATH_SEPARATOR + resName + "\" />"));
-			    		//BaseConstants.URLSEG_IMAGES + BaseConstants.PATH_SEPARATOR + resName + "\" width=\"139\" />"));
-				    	//BaseConstants.URLSEG_IMAGES + BaseConstants.PATH_SEPARATOR + resName + "\" width=\"139\" height=\"262\" />"));	
+				    m.appendReplacement(sb, Matcher.quoteReplacement("<img class=\"int\" src=\"" + baseUrl +
+				    	BaseConstants.PATH_INTERNAL_IMAGE + BaseConstants.PATH_SEPARATOR + resName + "\" />"));
+			    		//BaseConstants.PATH_INTERNAL_IMAGE + BaseConstants.PATH_SEPARATOR + resName + "\" width=\"139\" />"));
+				    	//BaseConstants.PATH_INTERNAL_IMAGE + BaseConstants.PATH_SEPARATOR + resName + "\" width=\"139\" height=\"262\" />"));
 		    	break;
 		    	case AUDIO:
-		    		String replAud = "<a href=\"" + BaseConstants.URLSEG_AUDIO + BaseConstants.PATH_SEPARATOR + 
-		    			resName + "\"><img src=\"" + BaseConstants.URLSEG_IMAGES_APP + BaseConstants.PATH_SEPARATOR + 
+		    		String replAud = "<a href=\"" + baseUrl + BaseConstants.PATH_INTERNAL_AUDIO + BaseConstants.PATH_SEPARATOR +
+		    			resName + "\"><img src=\"" + baseUrl + BaseConstants.PATH_INTERNAL_IMAGE_APP + BaseConstants.PATH_SEPARATOR +
 		    			BaseConstants.RESOURCE_INT_IMG_SOUND + "\" border=\"0\" style=\"vertical-align:middle\"/></a>";
 		    		
 				    m.appendReplacement(sb, Matcher.quoteReplacement(replAud));
 		    	break;
 		    	case VIDEO:
-				    m.appendReplacement(sb, Matcher.quoteReplacement("<video src=\"" +
-					    BaseConstants.URLSEG_VIDEO + BaseConstants.PATH_SEPARATOR + resName + "\" controls preload=\"auto\"/>"));
+				    m.appendReplacement(sb, Matcher.quoteReplacement("<video src=\"" + baseUrl +
+					    BaseConstants.PATH_INTERNAL_VIDEO + BaseConstants.PATH_SEPARATOR + resName + "\" controls preload=\"auto\"/>"));
 		    	break;
 		    	default:
-				    m.appendReplacement(sb, Matcher.quoteReplacement("<res src=\"" + resName + "\"/>"));	
+				    m.appendReplacement(sb, Matcher.quoteReplacement("<res src=\"" + baseUrl + resName + "\"/>"));
 		    }
 
 		}
-		
 		m.appendTail(sb);
-		
 		return sb.toString();
 	}
+
+    public static String convertDSLArticlesToHtml(String baseUrl, String s) {
+        StringBuffer sb = new StringBuffer(s.length());
+        Matcher m = PT_DSL_ARTICLES.matcher(s);
+        while (m.find()) {
+            m.appendReplacement(sb, Matcher.quoteReplacement("<a href=\"" + baseUrl + BaseConstants.PATH_SEPARATOR + m.group(2) + "\">"));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
 	
-	public static String convertDSLAbbreviationsToHtml(String s) {
+	public static String convertDSLAbbreviationsToHtml(String baseUrl, String s) {
 		StringBuffer sb = new StringBuffer(s.length());
 		Matcher m = PT_DSL_ABBREV.matcher(s);
 		while (m.find()) {
 			String resName = cleanDSLResource(m.group(1));
-			m.appendReplacement(sb, Matcher.quoteReplacement("<a href=\"" + BaseConstants.URLSEG_ABBREVS + "/" + resName + "\">" + resName + "</a>"));	
+			m.appendReplacement(sb, Matcher.quoteReplacement("<a href=\"" + baseUrl + BaseConstants.PATH_INTERNAL_ABBREV + BaseConstants.PATH_SEPARATOR + resName + "\">" + resName + "</a>"));
 		}
 		m.appendTail(sb);
 		return sb.toString();

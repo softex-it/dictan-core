@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,6 +19,9 @@
 
 package info.softex.dictionary.core.formats.zd.io.zip;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.concurrent.ExecutorService;
@@ -27,14 +30,11 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * 
- * @since version 2.1, 04/11/2010
+ * @since		2.1, 04/11/2010
  * 
- * @modified version 3.4, 06/27/2012
+ * @modified	3.4, 06/27/2012
  * 
  * @author Dmitry Viktorov
  *
@@ -62,13 +62,10 @@ public class TIIStreamPool {
 	private final AtomicInteger activeThreadsNumber;
 	
 	public TIIStreamPool(TIIStreamFactory tiisFactory, long maxUncompressedLength, int streamsNumber, int readThreadNumber, int returnThreadNumber) {
-		
 		this.activeThreadsNumber = new AtomicInteger(0);
-		
 		this.tiisFactory = tiisFactory;
 		
 		long maxStreamsNumber = Math.max(0, maxUncompressedLength / MIN_LEVEL_GRADE_DIF - 1);
-
 		if (streamsNumber > maxStreamsNumber) {
 			streamsNumber = (int)maxStreamsNumber;
 		}
@@ -109,15 +106,11 @@ public class TIIStreamPool {
 				executorService.execute(new ReturningTask());
 			}
 		}
-		
 		log.debug("Streams: {}; Reading Threads: {}; Returning Threads: {}", streamsNumber, readThreadNumber, returnThreadNumber);
-		
 	}
 	
 	public TIIStream getIfCloser(long position, long curPosition) {
-		
 		TIIStream resIs = getPrevAvailableStream(position);
-		
 		if (resIs == null) {
 			return null;
 		}
@@ -125,15 +118,12 @@ public class TIIStreamPool {
 		if (resIs.getTotalBytesPassed() < curPosition) {
 			put(resIs);
 			resIs = null;
-		} 
-		
+		}
 		return resIs;
 	}
 	
 	public TIIStream get(long position) {
-				
 		TIIStream is = getPrevAvailableStream(position);
-		
 		if (is != null) {
 			long skipLength = position - is.getTotalBytesPassed();
 			
@@ -143,20 +133,17 @@ public class TIIStreamPool {
 					is = null;
 				}
 			}
-			
 			synchronized (this.activeStreams) { 
 				this.activeStreams.notify();
 			}
 		} else {
 			is = this.tiisFactory.createTIIStream(position);
 		}
-
 		// is must never be null here
 		return is;
 	}
 	
 	public void put(TIIStream is) {
-		
 		if (this.streamsNumber == 0) {
 			return;
 		}
@@ -171,15 +158,10 @@ public class TIIStreamPool {
 	}
 	
 	private void putDirectly(TIIStream is) {
-				
 		boolean saved = false;
-
 		int streamLevel = LEVEL_UNDEFINED;
-		
 		while (!saved) {
-			
 			streamLevel = getNextAvailableLevel(is.getTotalBytesPassed());
-			
 			if (streamLevel == LEVEL_HIGH) {
 				break;
 			}
@@ -191,20 +173,16 @@ public class TIIStreamPool {
 					return;
 				}
 			}
-			
 			saved = activeStreams.compareAndSet(streamLevel, null, is);
 		}
 		
 		if (!saved) {
 			closeStream(is);
-		} 
-
+		}
 	}
 
 	private TIIStream getPrevAvailableStream(long position) {
-		
 		int startStreamLevel = getStreamLevel(position);
-		
 		if (startStreamLevel == LEVEL_HIGH) {
 			startStreamLevel = this.levelGrades.length - 1;
 		} else {
@@ -212,18 +190,14 @@ public class TIIStreamPool {
 		}
 		
 		TIIStream is = null;
-		
 		for (; is == null && startStreamLevel >= 0; startStreamLevel--) {
 			is = this.activeStreams.getAndSet(startStreamLevel, null);
 		}
-	
 		return is;
 	}
 	
 	private int getNextAvailableLevel(long position) {
-		
 		int streamLevel = getStreamLevel(position);
-		
 		if (streamLevel == LEVEL_HIGH) {
 			return LEVEL_HIGH;
 		} 
@@ -234,14 +208,11 @@ public class TIIStreamPool {
 				return i;
 			}
 		}
-		
 		return LEVEL_HIGH;	
 	}
 	
 	private int getNextAvailableLevelsNumber(long position) {
-		
 		int streamLevel = getStreamLevel(position);
-		
 		if (streamLevel < 0) {
 			return 0;
 		} 
@@ -257,24 +228,20 @@ public class TIIStreamPool {
 	}
 	
 	private int getStreamLevel(long position) {
-		
 		if (this.levelGrades.length ==0 || position > this.levelGrades[this.levelGrades.length - 1]) {
 			return LEVEL_HIGH;
 		}
 		
 		int level = 0;
-		
 		for (; level < this.levelGrades.length; level++) {
 			if (position <= this.levelGrades[level]) {
 				break;
 			}
 		}
-				
 		return level;
 	}
 	
 	private static boolean skipStream(TIIStream is, long length) {
-		
 		if (length == 0) {
 			return true;
 		}
@@ -293,7 +260,7 @@ public class TIIStreamPool {
 		try {
 			is.close();
 		} catch (IOException e) {
-			log.info("Couldn't close stream: " + e.getMessage());
+			log.error("Couldn't close stream: " + e.getMessage());
 		}
 		return;
 	}
@@ -313,7 +280,6 @@ public class TIIStreamPool {
 		@Override
 		public void run() {
 			while (true) {
-
 				int availableLevels = getNextAvailableLevelsNumber(0);
 				int activeThreads = activeThreadsNumber.get();
 				if (activeThreads < availableLevels) {
@@ -333,13 +299,9 @@ public class TIIStreamPool {
 						closeStream(iis);
 					}
 				}
-				
 				activeThreadsNumber.decrementAndGet();
-				
 			}
-
 		}
-		
 	}
 	
 	private class ReturningTask implements Runnable {
@@ -356,13 +318,11 @@ public class TIIStreamPool {
 						}
 					}
 					
-					// May lose element after wait if it doesn't get monitor immediately
+					// May lose element after wait if it doesn't get Reader monitor immediately
 					if (returnedStreams.size() > 0) {
 						iis = returnedStreams.removeFirst();
 					}
 				}
-
-
 			}
 			return iis;
 		}
@@ -370,12 +330,10 @@ public class TIIStreamPool {
 		@Override
 		public void run() {
 			while (true) {
-				
 				TIIStream iis = waitAndGetReturnedStream();
-
 				int availableLevels = getNextAvailableLevelsNumber(iis.getTotalBytesPassed());
 				int activeThreads = activeThreadsNumber.get();
-				
+
 				if (activeThreads < availableLevels) {
 					activeThreadsNumber.incrementAndGet();
 					putDirectly(iis);

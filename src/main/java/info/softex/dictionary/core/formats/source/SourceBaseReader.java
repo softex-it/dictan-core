@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2017  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -29,6 +29,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
@@ -50,27 +51,34 @@ import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
 /**
  * Source base reader which mainly follows the ZD source syntax.
  * 
- * @since version 3.4,		07/02/2012
+ * @since       version 3.4, 07/02/2012
  * 
- * @modified version 3.5,	08/06/2012
- * @modified version 4.0,	08/06/2012
- * @modified version 4.2,	03/06/2014
- * @modified version 4.6,	01/26/2015
- * @modified version 4.7,	03/23/2015
- * @modified version 4.9,   12/08/2015
- * 
+ * @modified    version 3.5, 08/06/2012
+ * @modified    version 4.0, 08/06/2012
+ * @modified    version 4.2, 03/06/2014
+ * @modified    version 4.6, 01/26/2015
+ * @modified    version 4.7, 03/23/2015
+ * @modified    version 4.9, 12/08/2015
+ * @modified    version 5.2, 10/21/2018
+ *
  * @author Dmitry Viktorov
  *
  */
 @BaseFormat(name = "BASIC_SOURCE", primaryExtension = "", extensions = {}, sortingExpected = false)
 public class SourceBaseReader implements BaseReader {
 	
-	public final static FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(SourceBaseReader.class);
+	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(SourceBaseReader.class);
 	
-	public final static int BUF_SIZE_ARTICLES = 2097152; // 2.0 MB 
-	public final static int BUF_SIZE_ABBREVS = 131072;   // 128 KB
+	public static final int BUF_SIZE_ARTICLES = 2097152; // 2.0 MB
+	public static final int BUF_SIZE_ABBREVS = 131072;   // 128 KB
 	
-	private final static Logger log = LoggerFactory.getLogger(SourceBaseReader.class);
+	private static final Logger log = LoggerFactory.getLogger(SourceBaseReader.class);
+
+    protected final File sourceDirectory;
+
+    protected final File mediaDirectory;
+    protected final String mediaDirectoryPath;
+    protected final String locationUid;
 
 	protected BasePropertiesInfo baseInfo = null;
 	protected LanguageDirectionsInfo langDirections = null;
@@ -82,28 +90,23 @@ public class SourceBaseReader implements BaseReader {
 	
 	protected Set<String> abbrevKeys;
 	protected Set<String> mediaResources;
-	
-	protected final String mediaDirectoryPath;
-	protected final File mediaDirectory;
-	protected final File sourceDirectory;
 
-	protected boolean isLoaded = false;
-	
+	protected boolean loaded = false;
+	protected boolean closed = false;
+
 	public SourceBaseReader(File inSourceDirectory) throws IOException {
-		
 		if (inSourceDirectory == null || inSourceDirectory.exists() && !inSourceDirectory.isDirectory()) {
 			throw new IOException("The source must be a directory, not a file!");
 		}
-		
 		this.sourceDirectory = inSourceDirectory;
-		
 		this.mediaDirectoryPath = inSourceDirectory + File.separator + SourceFileNames.DIRECTORY_MEDIA;
 		this.mediaDirectory = new File(this.mediaDirectoryPath);
-		
+		this.locationUid = UUID.nameUUIDFromBytes(inSourceDirectory.getAbsolutePath().getBytes()).toString();
 	}
 
 	@Override
 	public void close() throws IOException {
+	    closed = true;
 		if (articleReader != null) {
 			articleReader.close();
 		}
@@ -114,27 +117,26 @@ public class SourceBaseReader implements BaseReader {
 
 	@Override
 	public void load() throws IOException, BaseFormatException {
-				
 		if (baseInfo == null) {
 	        log.debug("Loading BasePropertiesInfo");
-	        loadBasePropertiesInfo();
+	        loadBaseInfo();
 	    }
-		
 		if (langDirections == null) {
 	        log.debug("Loading LanguageDirectionsInfo");
 	        loadLanguageDirectionsInfo();
 	    }
-		
-		isLoaded = true;
-
-		log.debug("Number of Articles: {}", getBasePropertiesInfo().getWordsNumber());
-		
+		loaded = true;
+		log.debug("Number of Articles: {}", getBaseInfo().getWordsNumber());
 	}
 
 	@Override
-	public BasePropertiesInfo loadBasePropertiesInfo() throws IOException, BaseFormatException {
-
+	public BasePropertiesInfo loadBaseInfo() throws IOException, BaseFormatException {
 		baseInfo = new BasePropertiesInfo();
+		baseInfo.setBaseLocation(getBaseLocation());
+        baseInfo.setBaseLocationUid(getBaseLocationUid());
+
+        // TODO: Base it on location but there should be a better choice for Base Id
+        baseInfo.setBaseUid(getBaseLocationUid());
 		
 		// Words & Articles
 		words = loadWords();
@@ -146,7 +148,7 @@ public class SourceBaseReader implements BaseReader {
 		abbrevKeys = loadAbbreviations();
 		baseInfo.setAbbreviationsNumber(abbrevKeys.size());
 		
-		// Set abbreviations formating to disabled if there are no abbreviations
+		// Set abbreviations formatting to disabled if there are no abbreviations
 		if (baseInfo.getAbbreviationsNumber() == 0) {
 			baseInfo.setAbbreviationsFormattingMode(AbbreviationsFormattingMode.DISABLED);
 		}
@@ -154,7 +156,6 @@ public class SourceBaseReader implements BaseReader {
 		baseInfo.setWordsNumber(words.size());
 		baseInfo.setArticlesActualNumber(words.size());
 		baseInfo.setMediaResourcesNumber(mediaResources.size());
-		
 		return baseInfo;
 	}
 
@@ -168,11 +169,16 @@ public class SourceBaseReader implements BaseReader {
 
 	@Override
 	public boolean isLoaded() {
-		return isLoaded;
+		return loaded;
 	}
 
-	@Override
-	public BasePropertiesInfo getBasePropertiesInfo() {
+    @Override
+    public boolean isClosed() {
+        return closed;
+    }
+
+    @Override
+	public BasePropertiesInfo getBaseInfo() {
 		return baseInfo;
 	}
 	
@@ -253,12 +259,12 @@ public class SourceBaseReader implements BaseReader {
 	}
 	
 	@Override
-	public Map<Integer, Integer> getWordsRedirects() throws BaseFormatException {
+	public Map<Integer, Integer> getWordsRedirects() {
 		return null;
 	}
 	
 	@Override
-	public Map<Integer, String> getWordsMappings() throws BaseFormatException {
+	public Map<Integer, String> getWordsMappings() {
 		return null;
 	}
 	
@@ -272,6 +278,7 @@ public class SourceBaseReader implements BaseReader {
 		ArticleInfo articleInfo = getRawArticleInfo(wordInfo);
 		if (articleInfo != null) {
 			String article = ArticleHtmlFormatter.prepareArticle(
+                    baseInfo.getBaseLocationUid(),
 					wordInfo.getArticleWord(),
 					articleInfo.getArticle(), getAbbreviationKeys(), 
 					baseInfo.getArticlesFormattingMode(), 
@@ -288,7 +295,7 @@ public class SourceBaseReader implements BaseReader {
 	public ArticleInfo getRawArticleInfo(WordInfo wordInfo) throws BaseFormatException {
 		ArticleInfo articleInfo = new ArticleInfo(wordInfo, null);
 		if (articleReader.readLine(articleInfo, wordInfo.getId())) {
-			articleInfo.setBaseInfo(getBasePropertiesInfo());
+			articleInfo.setBaseInfo(getBaseInfo());
 			return articleInfo;
 		}
 		return null;
@@ -298,8 +305,18 @@ public class SourceBaseReader implements BaseReader {
 	public ArticleInfo getAdaptedArticleInfo(WordInfo wordInfo) throws BaseFormatException {
 		return getRawArticleInfo(wordInfo);
 	}
-	
-	protected List<String> loadWords() throws IOException, BaseFormatException {
+
+    @Override
+    public String getBaseLocation() {
+        return sourceDirectory.getAbsolutePath();
+    }
+
+    @Override
+    public String getBaseLocationUid() {
+        return locationUid;
+    }
+
+    protected List<String> loadWords() throws IOException, BaseFormatException {
 		File articleFile = new File(sourceDirectory + File.separator + SourceFileNames.FILE_ARTICLES);
 		articleReader = new SourceFileReader(articleFile, BUF_SIZE_ARTICLES);
 		articleReader.load(false);
@@ -328,5 +345,4 @@ public class SourceBaseReader implements BaseReader {
 		}		
 		return resources;
 	}
-	
 }

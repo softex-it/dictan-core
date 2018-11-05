@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2017  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
@@ -50,9 +51,11 @@ import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.collation.AbstractCollatorFactory;
 import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.fdb.collections.FDBDynamicListSet;
-import info.softex.dictionary.core.io.SQLBlobInputStream;
 import info.softex.dictionary.core.io.ReliableInflaterInputStream;
+import info.softex.dictionary.core.io.SQLBlobInputStream;
 import info.softex.dictionary.core.utils.SearchUtils;
+
+import static info.softex.dictionary.core.formats.api.BaseFormatException.ERROR_CANT_LOAD_BASE_PROPERTIES;
 
 /**
  * 
@@ -63,23 +66,27 @@ import info.softex.dictionary.core.utils.SearchUtils;
  * @modified    version 4.6, 01/28/2015
  * @modified    version 4.7, 03/26/2015
  * @modified    version 5.1, 02/18/2017
+ * @modified    version 5.2, 10/24/2018
  *
  * @author Dmitry Viktorov
  * 
  */
 public class FDBBaseReadUnit {
 
-    private static final Logger log = LoggerFactory.getLogger(FDBBaseReadUnit.class.getSimpleName());
+    private static final Logger log = LoggerFactory.getLogger(FDBBaseReadUnit.class);
 
-	protected final static String ENC_UTF8 = "UTF-8";
-    protected final static int MAX_BLOB_SIZE = 900000;
+	protected static final String ENC_UTF8 = "UTF-8";
+    protected static final int MAX_BLOB_SIZE = 900000;
+	
+	protected final String baseFilePath;
+	protected final Connection connection;
+
+    protected final int wordListBlockSize;
+    protected final AbstractCollatorFactory collatorFactory;
+    protected final boolean main;
 
 	protected BasePropertiesInfo baseInfo = null;
 	protected LanguageDirectionsInfo langDirections = null;
-	
-	protected final String baseFilePath;
-	
-	protected final Connection connection;
 	
 	protected List<String> words = null;
 	protected TreeMap<Integer, Integer> wordsRedirects = null;
@@ -88,9 +95,7 @@ public class FDBBaseReadUnit {
 	protected Map<String, String> abbreviations = null;
 	protected Set<String> mediaResources = null; // Initialized only when getMediaResourceKeys is called
 	
-	protected Collator collator = null; 
-	
-	protected final int wordListBlockSize;
+	protected Collator collator = null;
 	
 	protected PreparedStatement selWordIdByWordSt;
 	protected PreparedStatement selWordRedirectByWordIdSt;
@@ -101,74 +106,86 @@ public class FDBBaseReadUnit {
 
 	protected PreparedStatement selArticleBlockByIdSt;
 	protected PreparedStatement selMediaResourceIdByKey;
-	//protected PreparedStatement selMediaResourceBlockById;
+
 	protected PreparedStatement selMediaResourceBlockPartByResourceId;
     protected PreparedStatement selMediaResourceBlockPartByBlockId;
     protected PreparedStatement selMediaResourceBlockLengthByResourceId;
 
 	protected PreparedStatement selBaseResourceByKey;
+
+    protected boolean initialized = false;
 	
-	protected final AbstractCollatorFactory collatorFactory;
-	
-	protected final boolean main;
-	protected boolean loaded;
-	
-	public FDBBaseReadUnit(boolean main, String baseFilePath, Connection connection, int wordListBlockSize, AbstractCollatorFactory collatorFactory) throws SQLException {
+	public FDBBaseReadUnit(boolean main, String baseFilePath, Connection connection, int wordListBlockSize, AbstractCollatorFactory collatorFactory) {
 		this.main = main;
 		this.baseFilePath = baseFilePath;
-		this.connection = connection;
-		this.wordListBlockSize = wordListBlockSize;
-		this.collatorFactory = collatorFactory;
-		
-		// Initialize Prepared Statements
-		if (main) {
-			selWordIdByWordSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_ID_BY_WORD);
-			selMediaResourceIdByKey = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_ID_BY_MEDIA_RESOURCE_KEY);
-			selBaseResourceByKey = connection.prepareStatement(FDBSQLReadStatements.SELECT_BASE_RESOURCE_BY_KEY);
-			
-	        selWordsBy1LikeExpSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORDS_BY_1_LIKE_EXP);
-	        selWordsBy2LikeExpSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORDS_BY_2_LIKE_EXP);
-			
-			// Initialize statements for FDB version 3 and higher
-			ResultSet rs = connection.createStatement().executeQuery(FDBSQLReadStatements.CHECK_TABLE_WORDS_RELATIONS_EXISTS);
-			if (rs.next() && rs.getInt(1) > 0) {
-    			selWordRedirectByWordIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_RELATION_REDIRECT_BY_WORD_ID);
-    			selWordMappingByWordIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_MAPPING_BY_WORD_ID);
-    			log.info("FDB version 3 or higher is detected");
-			}
-		}
-		//selMediaResourceBlockById = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_BY_MEDIA_RESOURCE_ID);
-        selMediaResourceBlockPartByResourceId = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_PART_BY_MEDIA_RESOURCE_ID);
-        selMediaResourceBlockPartByBlockId = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_PART_BY_MEDIA_RESOURCE_BLOCK_ID);
-        selMediaResourceBlockLengthByResourceId = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_LENGTH_BY_MEDIA_RESOURCE_BLOCK_ID);
-        selArticleBlockByIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_ARTICLE_BLOCK_BY_ID);
-		
+        this.connection = connection;
+        this.wordListBlockSize = wordListBlockSize;
+        this.collatorFactory = collatorFactory;
 	}
+
+    public void initialize() throws BaseFormatException {
+	    if (initialized) {
+            log.warn("Base is already initialized!");
+	        return;
+        }
+        log.info("Initializing Base: {}", baseFilePath);
+
+        // Initialize Prepared Statements
+        try {
+            if (main) {
+                selWordIdByWordSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_ID_BY_WORD);
+                selMediaResourceIdByKey = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_ID_BY_MEDIA_RESOURCE_KEY);
+                selBaseResourceByKey = connection.prepareStatement(FDBSQLReadStatements.SELECT_BASE_RESOURCE_BY_KEY);
+                selWordsBy1LikeExpSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORDS_BY_1_LIKE_EXP);
+                selWordsBy2LikeExpSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORDS_BY_2_LIKE_EXP);
+
+                // Initialize statements for FDB version 3 and higher
+                ResultSet rs = connection.createStatement().executeQuery(FDBSQLReadStatements.CHECK_TABLE_WORDS_RELATIONS_EXISTS);
+                if (rs.next() && rs.getInt(1) > 0) {
+                    selWordRedirectByWordIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_RELATION_REDIRECT_BY_WORD_ID);
+                    selWordMappingByWordIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_WORD_MAPPING_BY_WORD_ID);
+                    log.info("FDB version 3 or higher is detected");
+                }
+            }
+            //selMediaResourceBlockById = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_BY_MEDIA_RESOURCE_ID);
+            selMediaResourceBlockPartByResourceId = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_PART_BY_MEDIA_RESOURCE_ID);
+            selMediaResourceBlockPartByBlockId = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_PART_BY_MEDIA_RESOURCE_BLOCK_ID);
+            selMediaResourceBlockLengthByResourceId = connection.prepareStatement(FDBSQLReadStatements.SELECT_MEDIA_RESOURCE_BLOCK_LENGTH_BY_MEDIA_RESOURCE_BLOCK_ID);
+            selArticleBlockByIdSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_ARTICLE_BLOCK_BY_ID);
+        } catch (SQLException e) {
+            String errMessage = "Couldn't loadBaseInfo SQL statements";
+            log.error(errMessage, e);
+            throw new BaseFormatException(errMessage, ERROR_CANT_LOAD_BASE_PROPERTIES);
+        }
+        initialized = true;
+    }
 	
-	public BasePropertiesInfo loadBasePropertiesInfo() throws BaseFormatException {
-		
+	public BasePropertiesInfo loadBaseInfo() throws BaseFormatException {
+	    if (baseInfo != null) {
+	        log.warn("BasePropertiesInfo is already loaded!");
+	        return baseInfo;
+        }
+
+        initialize();
+
+        // Base Info
 		baseInfo = new BasePropertiesInfo();
-		Map<String, Object> dictMap = baseInfo.getPrimaryParameters();
-		
-		baseInfo.setBaseFilePath(baseFilePath);
 		baseInfo.setBaseFileSize(new File(baseFilePath).length());
 		baseInfo.setMediaBaseSeparate(false);
-		
+
+        Map<String, Object> baseParams = baseInfo.getPrimaryParameters();
 		try {
-			
 			Statement statement = connection.createStatement();
 			ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_BASE_PROPERTIES);
-			
 			while (rs.next()) {
 				log.debug(rs.getString(1) + " | " + rs.getString(2) + " | " + rs.getString(3));
 				String key = rs.getString(2);
 				if (key != null) {
-					dictMap.put(key, rs.getString(3));
+					baseParams.put(key, rs.getString(3));
 				} else {
 					log.warn("Key not found: {}", rs.getString(2));
 				}
 			}
-			
 			rs.close();
 			
 			if (baseInfo.getMediaResourcesNumber() > 0) {
@@ -177,7 +194,7 @@ public class FDBBaseReadUnit {
 				baseInfo.setMediaFileSize(baseInfo.getBaseFileSize());
 			}
 			
-			// Set abbreviations formating to disabled if there are no abbreviations
+			// Set abbreviations formatting to disabled if there are no abbreviations
 			if (baseInfo.getAbbreviationsNumber() == 0) {
 				baseInfo.setAbbreviationsFormattingMode(AbbreviationsFormattingMode.DISABLED);
 			}
@@ -190,14 +207,15 @@ public class FDBBaseReadUnit {
 			} else {
 				baseInfo.setArticlesDeprecatedNumber(baseInfo.getWordsNumber());
 			}
-			
+
+            // Support of UID is added on 10/21/2018, use MD5 or path to generate it otherwise
+            String uuidSeed = baseInfo.getSecurityMD5() != null ? baseInfo.getSecurityMD5() : baseFilePath;
+            baseInfo.setBaseUid(baseInfo.getBaseUid() != null ? baseInfo.getBaseUid() : UUID.nameUUIDFromBytes(uuidSeed.getBytes()).toString());
 		} catch (Exception e) {
 			log.error("Error", e);
-			throw new BaseFormatException("Couldn't load BasePropertiesInfo: " + e.getMessage(), BaseFormatException.ERROR_CANT_LOAD_BASE_PROPERIES);
+			throw new BaseFormatException("Couldn't load BasePropertiesInfo: " + e.getMessage(), ERROR_CANT_LOAD_BASE_PROPERTIES);
 		}
-				
 		log.info("Dictionary Info: {}", baseInfo);
-		
 		return baseInfo;
 	}
 
@@ -207,7 +225,7 @@ public class FDBBaseReadUnit {
 	
 	public Set<String> getMediaResourceKeys() throws SQLException {
 		if (mediaResources == null) {
-			mediaResources = new HashSet<String>();
+			mediaResources = new HashSet<>();
 			PreparedStatement selMediaResourceKeys = connection.prepareStatement(FDBSQLReadStatements.SELECT_ALL_MEDIA_RESOURCE_KEYS);
 			ResultSet resRS = selMediaResourceKeys.executeQuery();
 			while (resRS.next()) {
@@ -219,9 +237,7 @@ public class FDBBaseReadUnit {
 	}
 	
 	public BaseResourceInfo getBaseResourceInfo(String resourceKey) throws SQLException {
-		
 		BaseResourceInfo resourceInfo = null;
-		
 		selBaseResourceByKey.setString(1, resourceKey);
 		ResultSet rs = selBaseResourceByKey.executeQuery();
 		if (rs.next()) {
@@ -229,24 +245,16 @@ public class FDBBaseReadUnit {
 			resourceInfo.setInfo1(rs.getString(7));
 			resourceInfo.setInfo2(rs.getString(8));
 		}
-		
 		return resourceInfo;
-		
-	}
-	
-	public boolean isLoaded() {
-		return loaded;
 	}
 	
 	public LanguageDirectionsInfo loadLanguageDirectionsInfo() throws BaseFormatException {
 		langDirections = new LanguageDirectionsInfo();
-		
 		try {
 			Statement statement = connection.createStatement();
-
 			ResultSet dcrRS = statement.executeQuery(FDBSQLReadStatements.SELECT_BASE_RESOURCE_DEFAULT_COLLATION_RULES);
 			if (dcrRS.next()) {
-				this.langDirections.setDefaultCollationProperties(
+				langDirections.setDefaultCollationProperties(
 					new String (dcrRS.getBytes(3), ENC_UTF8), 
 					new String (dcrRS.getBytes(4), ENC_UTF8), 
 					Integer.parseInt(dcrRS.getString(7))
@@ -254,7 +262,6 @@ public class FDBBaseReadUnit {
 				
 			}
 			dcrRS.close();
-			
 			ResultSet lcrRS = statement.executeQuery(FDBSQLReadStatements.SELECT_BASE_RESOURCE_LOCALE_COLLATION_RULES);
 			while (lcrRS.next()) {
 				langDirections.addDirection(
@@ -265,16 +272,12 @@ public class FDBBaseReadUnit {
 					Integer.parseInt(lcrRS.getString(7)), Boolean.parseBoolean(lcrRS.getString(10))
 				);
 			}
-			
 			lcrRS.close();
-
-			log.trace("Loaded Language Directions: {}", this.langDirections);
-			
-			this.collator = collatorFactory.createCollator(this.langDirections.getCombinedCollationRules(), null, null);
-			
+			log.trace("Loaded Language Directions: {}", langDirections);
+			this.collator = collatorFactory.createCollator(langDirections.getCombinedCollationRules(), null, null);
 		} catch (SQLException e) {
 			log.error("SQL Error", e);
-			throw new BaseFormatException("Couldn't load the LanguageDirectionsInfo: " + e.getMessage());
+			throw new BaseFormatException("Couldn't load LanguageDirectionsInfo: " + e.getMessage());
 		} catch (ParseException e) {
 			log.error("Parse Error", e);
 			throw new BaseFormatException("Couldn't parse language data: " + e.getMessage());
@@ -287,16 +290,12 @@ public class FDBBaseReadUnit {
 	}
 	
 	public void load() throws BaseFormatException {
-		   
     	try {
-    		
     		long s1 = System.currentTimeMillis();
-    		
 			if (baseInfo == null) {
 		        log.debug("Loading BasePropertiesInfo");
-		        loadBasePropertiesInfo();
+		        loadBaseInfo();
 		    }
-			
 			long s2 = System.currentTimeMillis();
 			log.debug("BasePropertiesInfo loaded, time: {} ms", s2 - s1);
 			
@@ -321,36 +320,26 @@ public class FDBBaseReadUnit {
 		    
 			long s5 = System.currentTimeMillis();
 			log.debug("Abbreviations loaded, time: {} ms", s5 - s4);
-
     	} catch (Exception e) {
 			log.error("Error", e);
 			throw new BaseFormatException("Couldn't load base: " + e.getMessage());
 		}
-    	
-    	loaded = true;
-		
 	}
 	
 	protected void loadAbbreviations() throws BaseFormatException {
 		try {
-			
 			Statement st = connection.createStatement();
-		
 			ResultSet rs = st.executeQuery(FDBSQLReadStatements.SELECT_ABBREVIATIONS);
-			
-			HashMap<String, String> abbs = new HashMap<String, String>();
+			HashMap<String, String> abbs = new HashMap<>();
 			while (rs.next()) {
 				abbs.put(rs.getString(2), rs.getString(3));
 			}
 			rs.close();
-			
 			this.abbreviations = Collections.unmodifiableMap(abbs);
-			
 		} catch (Exception e) {
 			log.error("Error", e);
-			throw new BaseFormatException("Couldn't load abbreviatins: " + e.getMessage());
+			throw new BaseFormatException("Couldn't load abbreviations: " + e.getMessage());
 		}
-		
 	}
 	
 	/**
@@ -360,17 +349,13 @@ public class FDBBaseReadUnit {
 	 */
 	public int searchMediaResourceKeyIndex(String resourceKey) throws BaseFormatException {
 		try {
-			
 			selMediaResourceIdByKey.setString(1, resourceKey);
 			ResultSet resIdRS = selMediaResourceIdByKey.executeQuery();
-			
 			int resourceId = -1;
 			if (resIdRS.next()) {
 				resourceId = resIdRS.getInt(1);
 			}
-			
 			resIdRS.close();
-			
 			return resourceId;
 		} catch (Exception e) {
 			log.error("Error", e);
@@ -380,23 +365,15 @@ public class FDBBaseReadUnit {
 	
 	public byte[] getMediaResource(int resourceId) throws BaseFormatException {
 		try {
-
-			byte[] resourceData = null;
-			
-//			selMediaResourceBlockById.setInt(1, resourceId);
-//			ResultSet resRS = selMediaResourceBlockById.executeQuery();
-
+			byte[] resourceData;
             selMediaResourceBlockPartByResourceId.setInt(1, 1);
             selMediaResourceBlockPartByResourceId.setInt(2, MAX_BLOB_SIZE);
             selMediaResourceBlockPartByResourceId.setInt(3, resourceId);
             ResultSet resRS = selMediaResourceBlockPartByResourceId.executeQuery();
-			
 			if (resRS.next()) {
-
                 int blockId = resRS.getInt(1);
                 byte[] block = resRS.getBytes(2);
                 int segmentNumber = resourceId - blockId;
-
                 log.debug("Media Resource - media_resource_id: {}, media_resource_block_id: {}", resourceId, blockId);
                 log.debug("Media Resource - block length on primary query: {}", block.length);
 
@@ -413,14 +390,12 @@ public class FDBBaseReadUnit {
                     blobIS = new SQLBlobInputStream(block);
                 }
                 resourceData = readSegmentBytesFromStream(new ReliableInflaterInputStream(blobIS), segmentNumber);
-
 			} else {
 				resRS.close();
 				throw new BaseFormatException("Data for media resourceId " + resourceId + " doesn't exist, possible base corruption");
 			}
 			resRS.close();
 			return resourceData;
-
 		} catch (Exception e) {
 			log.error("Error", e);
 			throw new BaseFormatException("Media resource " + resourceId + " couldn't be loaded: " + e.getMessage());
@@ -430,13 +405,10 @@ public class FDBBaseReadUnit {
 	
 	public AbbreviationInfo getAbbreviationInfo(String abbreviation) {
 		AbbreviationInfo abbreviationInfo = null;
-
 		String definition = abbreviations.get(abbreviation);
-		
 		if (definition != null && definition.length() > 0) {
 			abbreviationInfo = new AbbreviationInfo(abbreviation, definition);
 		}
-		
 		return abbreviationInfo;
 	}
 	
@@ -445,22 +417,13 @@ public class FDBBaseReadUnit {
 	}
 	
 	public TreeMap<Integer, String> getWordsLike(String likeExp, int limit) throws BaseFormatException {
-
 		TreeMap<Integer, String> result = new TreeMap<>();
-
         if (likeExp != null && likeExp.length() > 0) {
-
             likeExp = SearchUtils.escapeSQLLike(likeExp, '!', '%');
-            //System.out.println(likeExp);
-
             String likeExpFLR = SearchUtils.revertFirstLetterRegister(likeExp);
-
             try {
-
-                ResultSet rs = null;
-
+                ResultSet rs;
                 long startTime = System.currentTimeMillis();
-
                 if (likeExpFLR != null) {
                     // Basic versions of SQLite don't support Unicode, so try to search
                     // the exp with first letter reverted
@@ -480,43 +443,35 @@ public class FDBBaseReadUnit {
                     log.info("Iter: {} ms", System.currentTimeMillis() - startTime);
                     result.put(rs.getInt(1), rs.getString(2));
                 }
-
                 rs.close();
-
                 log.info("Time for search and words retrieval: {} ms", System.currentTimeMillis() - startTime);
-
             } catch (Exception e) {
                 log.error("Error", e);
                 throw new BaseFormatException("Couldn't read words by like expression: " + e.getMessage());
             }
         }
-
 		return result;
 	}
 	
 	/**
-	 * Redirects are returned lazy way because they are mainly 
-	 * required at conversions.
+	 * Redirects are returned lazy way because they are mainly required at conversions.
 	 * 
 	 * @return Map of word IDs for redirects
 	 */
 	public TreeMap<Integer, Integer> getWordsRedirects() throws BaseFormatException {
 		if (wordsRedirects == null) {
-			wordsRedirects = new TreeMap<Integer, Integer>();
-			
+			wordsRedirects = new TreeMap<>();
 			// Check if the relations statement for FDB3 is defined
 			if (selWordRedirectByWordIdSt != null) {
 				try {
-					
 					Statement statement = connection.createStatement();
 					ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_WORD_RELATIONS_REDIRECTS);
-					
+
 					// Populate the redirects map
 					while (rs.next()) {
 						wordsRedirects.put(rs.getInt(1), rs.getInt(2));
 					}
 					rs.close();
-					
 				} catch (Exception e) {
 					log.error("Error", e);
 					throw new BaseFormatException("Couldn't load redirects: " + e.getMessage());
@@ -524,20 +479,17 @@ public class FDBBaseReadUnit {
 			} else {
 				log.info("Relations are empty because the FDB version is below 3");
 			}
-			
 		} 
 		return wordsRedirects;
 	}
 	
 	public TreeMap<Integer, String> getWordsMappings() throws BaseFormatException {
 		if (wordsMappings == null) {
-			wordsMappings = new TreeMap<Integer, String>();
+			wordsMappings = new TreeMap<>();
 			
 			// Check if the mappings statement for FDB3 is defined
 			if (selWordMappingByWordIdSt != null) {
-			
 				try {
-					
 					Statement statement = connection.createStatement();
 					ResultSet rs = statement.executeQuery(FDBSQLReadStatements.SELECT_ALL_WORD_MAPPINGS);
 					
@@ -546,16 +498,13 @@ public class FDBBaseReadUnit {
 						wordsMappings.put(rs.getInt(1), rs.getString(2));
 					}
 					rs.close();
-					
 				} catch (Exception e) {
 					log.error("Error", e);
 					throw new BaseFormatException("Couldn't load word mappings: " + e.getMessage());
 				}
-				
 			} else {
 				log.info("Mappings are empty because the FDB version is below 3");
 			}
-			
 		}
 		return wordsMappings;
 	}
@@ -585,29 +534,21 @@ public class FDBBaseReadUnit {
 	//------------------------------------------
 	
 	protected byte[] readSegmentBytesFromStream(ReliableInflaterInputStream is, int segmentNumber) throws IOException {
-
 		long start = System.currentTimeMillis();
-		
-		byte[] readData = null;
-
+		byte[] readData;
 		int blockSize = is.readInt();
 		int segmentStart = 0;
 		for (int i = 0; i < segmentNumber; i++) {
 			segmentStart += is.readInt();
 		}
 		int segmentLength = is.readInt();
-		
 		log.trace("Start {}, Length {}, SN: " + segmentNumber + ", BNS: " + blockSize, segmentStart, segmentLength);
-		
 		is.skip(4 * (blockSize - segmentNumber - 1)); 
 		is.skip(segmentStart);
-		
 		readData = new byte[segmentLength];
 		is.read(readData);
 		is.close();
-		
 		log.debug("Retrieve Segment Time: {}", (System.currentTimeMillis() - start));
-			
 		return readData;
 	}
 	
@@ -618,62 +559,42 @@ public class FDBBaseReadUnit {
 	 * @throws BaseFormatException
 	 */
 	public ArticleInfo getRawArticleInfo(WordInfo wordInfo) throws BaseFormatException {
-		
-		ArticleInfo articleInfo = null;
-		
+		ArticleInfo articleInfo;
 		if (!wordInfo.hasIndex()) {
-			throw new IllegalArgumentException("WordInfo must have an index to get an article");
+			throw new IllegalArgumentException("WordInfo must have an index to getReader an article");
 		}
-		
 		int articleId = wordInfo.getArticleId();
-		
 		try {
-			
 			selArticleBlockByIdSt.setInt(1, articleId);
 			ResultSet rs = selArticleBlockByIdSt.executeQuery();
-
 			if (rs.next()) {
-				
 				int blockId = rs.getInt(1);
-				
-				log.debug("Retrieving article: word_id: {}, article_block_id: {}", articleId, blockId);
+				log.debug("Retrieving article | word_id: {}, article_block_id: {}", articleId, blockId);
 				int segmentNumber = articleId - blockId;
-				
 				byte[] decompBytes = readSegmentBytesFromStream(
 					new ReliableInflaterInputStream(new ByteArrayInputStream(rs.getBytes(2))), segmentNumber
 				);
-				
 				articleInfo = new ArticleInfo(wordInfo, new String(decompBytes, ENC_UTF8));
-				
 			} else {
 				throw new BaseFormatException("Article for the word " + wordInfo.getWord() + " doesn't exist, possible base corruption");
 			}
-			
 			rs.close();
-
 			log.debug("Article: {}", articleInfo);
-
 		} catch (BaseFormatException e) {
 			throw e;
 		} catch (Exception e) {
 			log.error("Error", e);
 			throw new BaseFormatException("Couldn't retrieve the article: " + e.getClass().getName() + ", " + e.getMessage());
 		}
-		
 		return articleInfo;
-		
 	}
 	
 	public void getWordRedirect(WordInfo wordInfo) throws BaseFormatException {
-		
 		if (!wordInfo.hasIndex()) {
-			throw new IllegalArgumentException("WordInfo must have an index to get its redirect");
+			throw new IllegalArgumentException("WordInfo must have an index to getReader its redirect");
 		}
-		
 		int redirectToId = wordInfo.getId();
-		
 		try {
-			
 			// Check if redirect is available
 			selWordRedirectByWordIdSt.setInt(1, redirectToId);
 			ResultSet redirRS = selWordRedirectByWordIdSt.executeQuery();
@@ -684,24 +605,18 @@ public class FDBBaseReadUnit {
 				log.debug("Relation to word_id={} is found from word_id={}", redirectToId, wordInfo.getId()); 
 			}
 			redirRS.close();
-			
 		} catch (Exception e) {
 			log.error("Error", e);
 			throw new BaseFormatException("Couldn't retrieve the relation: " + e.getClass().getName() + ", " + e.getMessage());
 		}
-		
 	}
 	
 	public void getWordMapping(WordInfo wordInfo) throws BaseFormatException {
-		
 		if (!wordInfo.hasIndex()) {
-			throw new IllegalArgumentException("WordInfo must have an index to get its mapping");
+			throw new IllegalArgumentException("WordInfo must have an index to getReader its mapping");
 		}
-		
 		int redirectToId = wordInfo.getId();
-		
 		try {
-			
 			// Check if redirect is available
 			selWordMappingByWordIdSt.setInt(1, redirectToId);
 			ResultSet redirRS = selWordMappingByWordIdSt.executeQuery();
@@ -713,24 +628,22 @@ public class FDBBaseReadUnit {
 				}
 			}
 			redirRS.close();
-			
 		} catch (Exception e) {
 			log.error("Error", e);
 			throw new BaseFormatException("Couldn't retrieve the word mapping: " + e.getClass().getName() + ", " + e.getMessage());
 		}
-		
 	}
 	
 	public Set<String> getAbbreviationKeys() {
 		return abbreviations == null ? null : abbreviations.keySet();
 	}
 	
-	public void close() throws Exception {
+	public void close() throws SQLException {
 		connection.close();
 	}
 	
 	/**
-	 * The method is created for tests
+	 * The method is needed for tests.
 	 */
 	public Statement createStatement() throws SQLException {
 		return connection.createStatement();

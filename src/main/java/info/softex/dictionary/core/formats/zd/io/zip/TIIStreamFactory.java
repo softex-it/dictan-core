@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,19 +19,19 @@
 
 package info.softex.dictionary.core.formats.zd.io.zip;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.zip.Inflater;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * 
- * @since version 2.1, 04/13/2011
+ * @since		2.1, 04/13/2011
  * 
- * @modified version 3.4, 06/27/2012
+ * @modified	3.4, 06/27/2012
  * 
  * @author Dmitry Viktorov
  *
@@ -53,15 +53,15 @@ public class TIIStreamFactory {
 	}
 	
 	public TIIStream createTIIStream() {
-		FileInputStream fis = null;
+		FileInputStream fis;
 		try {
-			fis = new FileInputStream(this.inputFile);
-			fis.skip(this.baseFileSkipLength);
+			fis = new FileInputStream(inputFile);
+			fis.skip(baseFileSkipLength);
 		} catch (IOException e) {
 			log.error("Error", e);
 			throw new RuntimeException("Couldn't create a stream from file: " + e.getMessage());
 		}
-		return new TIIStream(fis, new Inflater(), this.bufferSize);
+		return new TIIStream(fis, new Inflater(), bufferSize);
 	}
 	
 	public TIIStream createTIIStream(long position) {

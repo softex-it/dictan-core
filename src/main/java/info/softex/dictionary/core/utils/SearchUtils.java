@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries.
  *
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as
@@ -24,14 +24,14 @@ import java.util.TreeMap;
 
 /**
  *
- * @since version 4.7, 03/30/2015
+ * @since       4.7, 03/30/2015
  *
  * @author Dmitry Viktorov
  *
  */
 public class SearchUtils {
 
-	protected final static String PERCENT = "%";
+	private final static String PERCENT = "%";
 
     /**
      * Searches for a String in the list based on the SQL 'like' expression
@@ -41,7 +41,6 @@ public class SearchUtils {
      * @return
      */
     public static TreeMap<Integer, String> searchSQLLike(final Collection<String> list, final String likeExp, final int limit) {
-
         TreeMap<Integer, String> result = new TreeMap<>();
 
         // Don's search for null or zero values
@@ -82,22 +81,16 @@ public class SearchUtils {
             if (index >= 0) {
             	// If any character is allowed after the prefix, add it to the result
                 if (anyAfter || strLC.length() == index + strLC.length() || strLC.endsWith(likeExpLC)) {
-                	
                 	result.put(count, str);
-                	
                     // Check if the limit is reached
                     if (result.size() >= limit) {
                         break;
                     }
                 }
             }
-            
             count++;
-
         }
-
         return result;
-
     }
 
     /**
@@ -105,11 +98,9 @@ public class SearchUtils {
      * The like expressions are supposed to have % only the head and tail.
      */
     public static String escapeSQLLike(final String likeExp, final char escaper, final char escaped) {
-
     	if (likeExp == null) {
     		return null;
     	}
-    	
         String escapedString = Character.toString(escaped);
         String escaperString = Character.toString(escaper);
         String replacement = escaperString + escapedString;
@@ -125,9 +116,7 @@ public class SearchUtils {
                 escLike = escLike.substring(0, escLike.length() - 2) + escapedString;
             }
         }
-
         return escLike;
-
     }
 
     /**
@@ -146,14 +135,11 @@ public class SearchUtils {
      *
      */
     public static String revertFirstLetterRegister(final String likeExp) {
-
         // Don't process null or empty strings
         if (likeExp == null || likeExp.length() == 0) {
             return null;
         }
-
         final char[] buffer = likeExp.toCharArray();
-
         Character revertedChar = null;
 
         int charIndex = 0;
@@ -173,9 +159,7 @@ public class SearchUtils {
             buffer[charIndex] = revertedChar;
             return new String(buffer);
         }
-
         return null;
-
     }
 
 }

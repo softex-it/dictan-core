@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -30,10 +30,10 @@ import java.util.zip.InflaterInputStream;
  * The InflaterInputStream implementation which guarantees the requested number of bytes will be
  * read or skipped. The class also presents convenience methods.
  * 
- * @since version 1.2, 09/28/2010
+ * @since		1.2, 09/28/2010
  *
- * @modified version 2.6, 09/24/2011
- * @modified version 5.1, 02/23/2017
+ * @modified	2.6, 09/24/2011
+ * @modified	5.1, 02/23/2017
  *
  * @author Dmitry Viktorov
  * 
@@ -81,7 +81,7 @@ public class ReliableInflaterInputStream extends InflaterInputStream {
 	}
 	
 	public long getTotalBytesPassed() {
-		return this.totalBytesPassed;
+		return totalBytesPassed;
 	}
 
 }

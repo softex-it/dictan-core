@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -40,11 +40,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * @since version 1.3, 11/14/2010
+ * @since		version 1.3, 11/14/2010
  * 
- * @modified version 2.0, 03/12/2011
- * @modified version 2.5, 08/02/2011
- * @modified version 2.6, 09/15/2011
+ * @modified	version 2.0, 03/12/2011
+ * @modified	version 2.5, 08/02/2011
+ * @modified	version 2.6, 09/15/2011
  * 
  * @author Dmitry Viktorov
  *
@@ -352,7 +352,7 @@ public class ZDReadUtils {
 				
 				int readCNT = 0;
 				if (uncompressedDataRest != null) {
-					String lastWordPiece = new String(uncompressedDataRest, dictInfo.getTransCodepageName());
+					String lastWordPiece = new String(uncompressedDataRest, dictInfo.getArticlesCodepageName());
 					log.debug("Last Abbreviation Piece: {}", lastWordPiece);
 					System.arraycopy(uncompressedDataRest, 0, uncompressedData, 0, uncompressedDataRest.length);
 					readCNT = uncompressedDataRest.length;
@@ -378,7 +378,7 @@ public class ZDReadUtils {
 				int startIdx = 0;
 				for (int i = 0; i < curUncompLength; i++) {
 					if (uncompressedData[i] == 0) {				
-						String gram = new String(uncompressedData, startIdx, i - startIdx, dictInfo.getTransCodepageName());
+						String gram = new String(uncompressedData, startIdx, i - startIdx, dictInfo.getArticlesCodepageName());
 						int idx = gram.indexOf("  ");
 						if (idx != -1) {
 							abbs.put(gram.substring(0, idx), gram.substring(idx + 2));
@@ -416,11 +416,11 @@ public class ZDReadUtils {
 	}
 	
 	public static int[] loadBlockOffsets(LittleEndianRandomAccessFile raf, ZDHeader dictInfo) throws IOException {
-		int[] blockOffsets = new int[dictInfo.getTransBlocksNumber()];
+		int[] blockOffsets = new int[dictInfo.getArticlesBlocksNumber()];
 		int newPos = dictInfo.getWordsStartPosition() + dictInfo.getWordsZSize() + dictInfo.getAbbreviationsZSize();
 		raf.seek(newPos);
 
-		int blockCountBytes = 4 * dictInfo.getTransBlocksNumber();
+		int blockCountBytes = 4 * dictInfo.getArticlesBlocksNumber();
 		log.debug("Block Offsests Size: " + blockCountBytes);
 		
 		byte[] blockOffsetsBytes = new byte[blockCountBytes];

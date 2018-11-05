@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,6 +19,8 @@
 
 package info.softex.dictionary.core.formats.api;
 
+import java.util.Observer;
+
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BasePropertiesInfo;
@@ -27,19 +29,18 @@ import info.softex.dictionary.core.attributes.FormatInfo;
 import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
 import info.softex.dictionary.core.attributes.MediaResourceInfo;
 
-import java.util.Observer;
-
 /**
  * 
- * @since version 2.6, 08/21/2011
+ * @since       2.6, 08/21/2011
  * 
- * @since modified 4.4, 03/17/2014
- * @since modified 4.5, 03/30/2014
- *  
+ * @modified    4.4, 03/17/2014
+ * @modified    4.5, 03/30/2014
+ * @modified    5.2, 10/28/2018
+ *
  * @author Dmitry Viktorov
  * 
  */
-public interface BaseWriter {
+public interface BaseWriter extends AutoCloseable {
 	
 	public static final String UTF8 = "UTF-8";
 	
@@ -59,6 +60,8 @@ public interface BaseWriter {
 	public void saveMediaResourceInfo(MediaResourceInfo mediaResourceInfo) throws Exception;
 	
 	public void flush() throws Exception;
+
+	@Override
 	public void close() throws Exception;
 	
 	public FormatInfo getFormatInfo();

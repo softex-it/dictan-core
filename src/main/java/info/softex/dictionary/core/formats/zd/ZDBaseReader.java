@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2017  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018 Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -18,6 +18,21 @@
  */
 
 package info.softex.dictionary.core.formats.zd;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.text.Collator;
+import java.text.ParseException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
 
 import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
@@ -38,85 +53,69 @@ import info.softex.dictionary.core.collation.CollationRulesFactory.SimpleCollati
 import info.softex.dictionary.core.formats.api.BaseFormatException;
 import info.softex.dictionary.core.formats.api.BaseReader;
 import info.softex.dictionary.core.regional.RegionalResolver;
-import info.softex.dictionary.core.utils.SearchUtils;
 import info.softex.dictionary.core.utils.ArticleHtmlFormatter;
-
-import java.io.File;
-import java.io.IOException;
-import java.text.Collator;
-import java.text.ParseException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import info.softex.dictionary.core.utils.SearchUtils;
 
 /**
- * ZD base reader. ZD is an open dictionary base format with its
- * specification of html-like markup.
+ * ZD base reader. ZD is an open base format with its specification of html-like markup.
  * 
- * @since version 1.0,		09/23/2010
+ * @since       version 1.0, 09/23/2010
  * 
- * @modified version 2.0,	03/06/2011
- * @modified version 2.4,	06/10/2011
- * @modified version 2.5,	08/02/2011
- * @modified version 2.6,	09/02/2011
- * @modified version 2.7,	10/23/2011
- * @modified version 3.7,	06/11/2013
- * @modified version 4.0,	02/04/2014
- * @modified version 4.6,	02/01/2015
- * @modified version 4.7,   03/26/2015
- * @modified version 4.9,   12/08/2015
- *  
+ * @modified    version 2.0, 03/06/2011
+ * @modified    version 2.4, 06/10/2011
+ * @modified    version 2.5, 08/02/2011
+ * @modified    version 2.6, 09/02/2011
+ * @modified    version 2.7, 10/23/2011
+ * @modified    version 3.7, 06/11/2013
+ * @modified    version 4.0, 02/04/2014
+ * @modified    version 4.6, 02/01/2015
+ * @modified    version 4.7, 03/26/2015
+ * @modified    version 4.9, 12/08/2015
+ * @modified    version 5.2, 10/21/2018
+ *
  * @author Dmitry Viktorov
  * 
  */
 @BaseFormat(name = "ZD", primaryExtension = ".zd", extensions = {".zd"}, sortingExpected = true, likeSearchSupported = true)
 public class ZDBaseReader implements BaseReader {
-	
+
+	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(ZDBaseReader.class);
 	public static final String FORMAT_ZPAK_NAME = "ZPAK";
 	public static final String FORMAT_ZPAK_EXT = ".zpak";
 	
-	private final Logger log = LoggerFactory.getLogger(ZDBaseReader.class.getSimpleName());
-
-	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(ZDBaseReader.class);
-
-	protected BasePropertiesInfo baseInfo = null;
-	protected LanguageDirectionsInfo languageDirections = null;
+	private final Logger log = LoggerFactory.getLogger(getClass());
 	
-	protected RegionalResolver regionalResolver = null;
-	
-	protected Collator collator = null;	
+	protected RegionalResolver regionalResolver;
 
-	protected ZDDynamicArticlesReader zdReader = null;
-	protected ZPAKMappedMediaReader zpakReader = null;
+    protected final ZDDynamicArticlesReader zdReader;
+    protected final ZPAKMappedMediaReader zpakReader;
+    protected final AbstractCollatorFactory collatorFactory;
+    protected final String location;
+    protected final String locationUid;
 
-	protected Locale locale = null;
-	
-	protected final AbstractCollatorFactory collatorFactory;
+    protected Locale locale = null;
+    protected Collator collator = null;
+
+    protected BasePropertiesInfo baseInfo = null;
+    protected LanguageDirectionsInfo languageDirections = null;
 	
 	protected static final Locale LOCALE_DEFAULT = Locale.ENGLISH;
 	
 	public ZDBaseReader(File zdFile, RegionalResolver regionalResolver, AbstractCollatorFactory collatorFactory) throws IOException {
-		
 		this.regionalResolver = regionalResolver;
 		this.zdReader = new ZDDynamicArticlesReader(regionalResolver, zdFile);
-		this.collatorFactory = collatorFactory;
-		
-		String zdFilePath = stripExtension(zdFile.getPath());
-		
-		File zpakFile = new File(zdFilePath + FORMAT_ZPAK_EXT);
-		if (zpakFile.exists()) {
-			log.info("ZPAK file is found: {}", zpakFile);
-			this.zpakReader = new ZPAKMappedMediaReader(zpakFile);
-		} else {
-			this.zpakReader = null;
-		}
-		
+        this.location = this.zdReader.getFilePath();
+
+        String zdFilePath = stripExtension(this.location);
+        File zpakFile = new File(zdFilePath + FORMAT_ZPAK_EXT);
+        if (zpakFile.exists()) {
+            log.info("ZPAK file is found: {}", zpakFile.getAbsolutePath());
+            this.zpakReader = new ZPAKMappedMediaReader(zpakFile);
+        } else {
+            this.zpakReader = null;
+        }
+        this.locationUid = UUID.nameUUIDFromBytes(this.location.getBytes()).toString();
+        this.collatorFactory = collatorFactory;
 	}
 
 	@Override
@@ -133,17 +132,17 @@ public class ZDBaseReader implements BaseReader {
 	}
 	
 	@Override
-	public Map<Integer, Integer> getWordsRedirects() throws BaseFormatException {
+	public Map<Integer, Integer> getWordsRedirects() {
 		return null;
 	}
 	
 	@Override
-	public Map<Integer, String> getWordsMappings() throws BaseFormatException {
+	public Map<Integer, String> getWordsMappings() {
 		return null;
 	}
 	
 	@Override
-	public Map<Integer, String> getAdaptedWordsMappings() throws BaseFormatException {
+	public Map<Integer, String> getAdaptedWordsMappings() {
 		return null;
 	}
 	
@@ -166,9 +165,7 @@ public class ZDBaseReader implements BaseReader {
 	}
 	
 	protected ArticleInfo getArticleInfo(WordInfo wordInfo, boolean isRaw) throws BaseFormatException {
-		
 		ArticleInfo articleInfo;
-		
 		try {
 			if (!wordInfo.hasIndex()) {
 				int index = searchWordIndex(wordInfo.getWord(), false);
@@ -180,17 +177,13 @@ public class ZDBaseReader implements BaseReader {
 			} else if (wordInfo.getWord() == null) {
 				wordInfo.setWord(getWords().get(wordInfo.getId()));
 			}
-
 			articleInfo = new ArticleInfo(wordInfo, getArticle(wordInfo, isRaw));
-			articleInfo.setBaseInfo(getBasePropertiesInfo());
-
+			articleInfo.setBaseInfo(getBaseInfo());
 		} catch (Exception e) {
 			log.error("Error", e);
 			throw new BaseFormatException("Couldn't retrieve the article: " + e.getMessage());
 		}
-		
 		return articleInfo;
-		
 	}
 	
 	protected String getArticle(WordInfo wordInfo, boolean isRaw) throws Exception {
@@ -198,8 +191,10 @@ public class ZDBaseReader implements BaseReader {
 		String article = zdReader.getArticle(index);
 		if (!isRaw) {
 			article = ArticleHtmlFormatter.prepareArticle(
+                    baseInfo.getBaseLocationUid(),
 					wordInfo.getArticleWord(),
-					zdReader.getArticle(index), getAbbreviationKeys(), 
+					zdReader.getArticle(index),
+                    getAbbreviationKeys(),
 					baseInfo.getArticlesFormattingMode(),
 					baseInfo.getArticlesFormattingInjectWordMode(),
 					baseInfo.getAbbreviationsFormattingMode(),
@@ -214,7 +209,7 @@ public class ZDBaseReader implements BaseReader {
 		boolean zdCloseError = false;
 		boolean zpakCloseError = false;
 		try {
-			this.zdReader.close();
+			zdReader.close();
 		} catch (IOException e) {
 			log.error("ZD Close Error", e);
 			zdCloseError = true;
@@ -236,34 +231,37 @@ public class ZDBaseReader implements BaseReader {
 
 	@Override
     public void load() throws BaseFormatException, IOException, ParseException {
-    	
-	    if (this.baseInfo == null) {
+	    if (baseInfo == null) {
 	        log.debug("Loading DictionaryInfo");
-	        this.loadBasePropertiesInfo();
+	        loadBaseInfo();
 	    }
-    	
 	    zdReader.load();
-	    
+
 	    if(zpakReader != null) {
 	        zpakReader.load();
 	    }
-	    
-	    if (this.languageDirections == null) {
-	    	this.loadLanguageDirectionsInfo();
+	    if (languageDirections == null) {
+	    	loadLanguageDirectionsInfo();
 	    }
-		    
 	    log.debug("Dictionary loaded: {}", this);
     }
     
     @Override
-    public BasePropertiesInfo loadBasePropertiesInfo() throws IOException, BaseFormatException {
+    public BasePropertiesInfo loadBaseInfo() throws IOException, BaseFormatException {
+	    // Init ZD / ZPAK
+        zdReader.initialize();
+        if (zpakReader != null) {
+            zpakReader.initialize();
+        }
+
+        // Base Info
 		baseInfo = new BasePropertiesInfo();
-		
-		baseInfo.setBaseFilePath(zdReader.getFilePath());
+		baseInfo.setBaseLocation(zdReader.getFilePath());
 		baseInfo.setBaseFileSize(new File(zdReader.getFilePath()).length());
-		
 		baseInfo.setMediaBaseSeparate(true);
-		
+        baseInfo.setBaseLocation(getBaseLocation());
+        baseInfo.setBaseLocationUid(getBaseLocationUid());
+
 		ZDHeader zdHeader = zdReader.loadHeader();
 		populateBasePropertiesInfoFromZDHeader(baseInfo, zdHeader);
 		
@@ -281,8 +279,7 @@ public class ZDBaseReader implements BaseReader {
 	        if (zpakHeader != null) {
 	        	populateBasePropertiesInfoFromZPAKHeader(baseInfo, zpakHeader);
 	        } 
-	    } 
-	    
+	    }
 		return baseInfo;
 	}
 
@@ -317,19 +314,25 @@ public class ZDBaseReader implements BaseReader {
 		return zdReader.getAbbreviationKeys();
 	}
 
-	public AbbreviationInfo getAbbreviationInfo(String abbreviation) {
-		
-		AbbreviationInfo abbreviationInfo = null;
+    @Override
+    public String getBaseLocationUid() {
+        return locationUid;
+    }
 
+    @Override
+    public String getBaseLocation() {
+        return location;
+    }
+
+    public AbbreviationInfo getAbbreviationInfo(String abbreviation) {
+		AbbreviationInfo abbreviationInfo = null;
 		String definition = zdReader.getAbbreviations().get(abbreviation);
-		
 		if (definition != null) {
 			definition = definition.trim();
 			if (definition.length() > 0) {
 				abbreviationInfo = new AbbreviationInfo(abbreviation, definition);
 			}
 		}
-		
 		return abbreviationInfo;
 	}
 	
@@ -339,12 +342,10 @@ public class ZDBaseReader implements BaseReader {
 		if (index >= 0) {
 			return index;
 		}
-		
 		if (word.contains(" ") || word.contains("-")) {
 			int start = -1 - index;
 			int max = Math.min(start + 150, getWords().size());
 			int min = Math.max(start - 150, 0);
-			
 			for (int i = min; i < max; i++) {
 				if ((getWords().get(i)).startsWith(word)) {
 					if ((getWords().get(i)).equals(word)) {
@@ -364,12 +365,10 @@ public class ZDBaseReader implements BaseReader {
 		if (index > 0) {
 			int min = index;
 			int max = index;
-			
 			for (; this.collator.compare(word, getWords().get(min)) == 0; min--);
 			for (; this.collator.compare(word, getWords().get(max)) == 0; max++);
 			min++;
 			max--;
-			
 			if (min == max) {
 				return index;
 			}
@@ -379,7 +378,6 @@ public class ZDBaseReader implements BaseReader {
 				}
 			}
 			return min;
-
 		}
 		return index;
 	}
@@ -387,8 +385,13 @@ public class ZDBaseReader implements BaseReader {
 	public boolean isLoaded() {
 		return zdReader.isLoaded();
 	}
-	
-	@Override
+
+    @Override
+    public boolean isClosed() {
+        return zdReader.isClosed();
+    }
+
+    @Override
 	public FormatInfo getFormatInfo() {
 		return FORMAT_INFO;
 	}
@@ -399,7 +402,7 @@ public class ZDBaseReader implements BaseReader {
 	}
 
 	@Override
-	public BasePropertiesInfo getBasePropertiesInfo() {
+	public BasePropertiesInfo getBaseInfo() {
     	return this.baseInfo;
     }
 	
@@ -412,12 +415,10 @@ public class ZDBaseReader implements BaseReader {
 	@Override
 	public LanguageDirectionsInfo loadLanguageDirectionsInfo() throws BaseFormatException, ParseException {
 		this.languageDirections = new LanguageDirectionsInfo();
-		
 		this.languageDirections.addDirection(
 				this.locale.toString(), LanguageDirectionsInfo.UNDEFINED, 
 				"", "", Collator.PRIMARY, Collator.CANONICAL_DECOMPOSITION, 0, true
 			);
-		
 		return this.languageDirections;
 	}
 	
@@ -438,24 +439,21 @@ public class ZDBaseReader implements BaseReader {
 		return name;
 	}
 	
-    private static void populateBasePropertiesInfoFromZDHeader(BasePropertiesInfo dictInfo, ZDHeader zdHeader) {
-    	dictInfo.setWordsNumber(zdHeader.getWordsNumber());
-    	dictInfo.setAbbreviationsNumber(zdHeader.getAbbreviationsNumber());
-    	dictInfo.setFormatVersion(zdHeader.getFormatVersion());
-    	dictInfo.setBaseFileSize(zdHeader.getDictionaryFileSize());
-    	
-    	dictInfo.setArticlesCodepageName(zdHeader.getTransCodepageName());
-    	dictInfo.setWordsCodepageName(zdHeader.getWordsCodepageName());
-
-    	//dictInfo.setBaseLocale(resolver.getLanguageLocale(zdHeader.getCollateLocaleId()));
+    private static void populateBasePropertiesInfoFromZDHeader(BasePropertiesInfo baseInfo, ZDHeader zdHeader) {
+        baseInfo.setBaseUid(zdHeader.getUuid().toString());
+    	baseInfo.setWordsNumber(zdHeader.getWordsNumber());
+    	baseInfo.setAbbreviationsNumber(zdHeader.getAbbreviationsNumber());
+    	baseInfo.setFormatVersion(zdHeader.getFormatVersion());
+    	baseInfo.setBaseFileSize(zdHeader.getDictionaryFileSize());
+    	baseInfo.setArticlesCodepageName(zdHeader.getArticlesCodepageName());
+    	baseInfo.setWordsCodepageName(zdHeader.getWordsCodepageName());
 		
     	ArticlesFormattingMode artMode = zdHeader.getFlags().isArticleFormatEnabled() ? ArticlesFormattingMode.FULL : ArticlesFormattingMode.DISABLED;
-		dictInfo.setArticlesFormattingMode(artMode);
+		baseInfo.setArticlesFormattingMode(artMode);
 		
 		AbbreviationsFormattingMode abbrMode = zdHeader.getAbbreviationsNumber() == 0 ? AbbreviationsFormattingMode.DISABLED : AbbreviationsFormattingMode.FULL;  
-    	dictInfo.setAbbreviationsFormattingMode(abbrMode);
-		
-    	dictInfo.setFormatName(FORMAT_INFO.getName());
+    	baseInfo.setAbbreviationsFormattingMode(abbrMode);
+    	baseInfo.setFormatName(FORMAT_INFO.getName());
     }
     
     private static void populateBasePropertiesInfoFromZPAKHeader(BasePropertiesInfo dictInfo, ZPAKHeader zpakHeader) {
@@ -467,33 +465,25 @@ public class ZDBaseReader implements BaseReader {
     
     /**
      * 
-     * @since version 1.0, 09/23/2010
+     * @since       version 1.0, 09/23/2010
      * 
-     * @modified version 2.0, 03/19/2011
-     * @modified version 3.7, 06/11/2013
+     * @modified    version 2.0, 03/19/2011
+     * @modified    version 3.7, 06/11/2013
      *
      */
 	private Collator getCollator(Locale locale) {
-
-		Collator col = null; 
-		
+		Collator col = null;
 		SimpleCollationProperties collationProps = CollationRulesFactory.createFullPredefinedCollationProperties(locale);
-    		
 		log.info("Predefined collation properties for locale {}: {}", locale, collationProps);
-		
 		try {
-			
 			if (collationProps != null) {
 				col = collatorFactory.createCollator(collationProps.getCollationRules(), null, null);			
 			} else {
 				col = collatorFactory.createCollator(locale, null, null);
 			}
-		
 		} catch (ParseException e) {
 			log.error("Error", e);
-		}	
-		
+		}
 		return col;
 	}
-
 }

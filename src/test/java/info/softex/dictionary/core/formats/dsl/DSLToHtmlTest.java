@@ -89,16 +89,15 @@ public class DSLToHtmlTest {
 		assertEquals(redirectsOrig, redirectsAdapted);
 		for (int i = 0; i < wordsOrig.size(); i++) {
 			processTestArticle(
-				readerOrig.getRawArticleInfo(new WordInfo(i)),
-				readerOrig.getAdaptedArticleInfo(new WordInfo(i)),
-				readerAdapted.getRawArticleInfo(new WordInfo(i))
+				readerOrig.getRawArticleInfo(new WordInfo(null, i)),
+				readerOrig.getAdaptedArticleInfo(new WordInfo(null, i)),
+				readerAdapted.getRawArticleInfo(new WordInfo(null, i))
 			);
 		}
 		
 	}
 	
 	private void processTestArticle(ArticleInfo origRaw, ArticleInfo origAdapted, ArticleInfo adaptedRaw) throws IOException {
-		
 		String origWordRaw = origRaw.getWordInfo().getWord();
 		assertNotNull(origWordRaw);
 		
@@ -129,7 +128,7 @@ public class DSLToHtmlTest {
 		
 		assertEquals(origAdaptedWord, adaptedMappedWord);
 		assertEquals(origRawWord, DSLWriteFormatUtils.convertAdaptedHtmlToDSL(origAdaptedWord));
-		
+	
 	}
 
 }

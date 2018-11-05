@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,24 +19,33 @@
 
 package info.softex.dictionary.core.utils;
 
-import info.softex.dictionary.core.formats.dsl.utils.DSLViewUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import info.softex.dictionary.core.formats.dsl.utils.DSLViewUtils;
+
+import static info.softex.dictionary.core.utils.BaseConstants.PATH_INTERNAL_ABBREV;
+import static info.softex.dictionary.core.utils.BaseConstants.PATH_INTERNAL_AUDIO;
+import static info.softex.dictionary.core.utils.BaseConstants.PATH_INTERNAL_IMAGE;
+import static info.softex.dictionary.core.utils.BaseConstants.PATH_INTERNAL_IMAGE_APP;
+import static info.softex.dictionary.core.utils.BaseConstants.PATH_SEPARATOR;
+import static info.softex.dictionary.core.utils.BaseConstants.RESOURCE_INT_IMG_SOUND;
+import static info.softex.dictionary.core.utils.StringUtils.EMPTY;
 
 /**
  * 
- * @since version 2.6, 08/18/2011 
+ * @since		version 2.6, 08/18/2011
  * 
- * @modified version 3.3, 06/15/2012
- * @modified version 3.5, 08/01/2012
- * @modified version 4.0, 02/06/2014
- * @modified version 4.1, 02/25/2014 
- * @modified version 4.6, 02/01/2015 
+ * @modified	version 3.3, 06/15/2012
+ * @modified	version 3.5, 08/01/2012
+ * @modified	version 4.0, 02/06/2014
+ * @modified	version 4.1, 02/25/2014
+ * @modified	version 4.6, 02/01/2015
+ * @modified	version 5.2, 11/11/2017
  * 
  * @author Dmitry Viktorov
  *
@@ -46,55 +55,53 @@ public class ArticleHtmlFormatter {
 	private static final Logger log = LoggerFactory.getLogger(ArticleHtmlFormatter.class);
 
 	public static String prepareArticle(
-				String word, String article, Set<String> abbreviations, 
+				String baseUrl, String word, String article, Set<String> abbreviations,
 				String articleFormatMode, String articleFormatIWM, 
 				String abbrFormatMode, boolean isMediaAvailable
 			) {
-		
 		long t1 = System.currentTimeMillis();
+
+		// Normalize Base URL
+        baseUrl = (baseUrl != null) ? baseUrl : EMPTY;
+		if (!baseUrl.endsWith(PATH_SEPARATOR)) {
+		    baseUrl += PATH_SEPARATOR;
+        }
 		
 		// DSL Formatting
 		if (BaseConstants.MODE_DSL.equalsIgnoreCase(articleFormatMode)) {
-			article = DSLViewUtils.convertDSLResourcesToHtml(article);
-			article = DSLViewUtils.convertDSLAbbreviationsToHtml(article);
-			article = DSLViewUtils.injectDSLWord(word, article);
+            article = DSLViewUtils.convertDSLArticlesToHtml(baseUrl, article);
+            article = DSLViewUtils.convertDSLResourcesToHtml(baseUrl, article);
+			article = DSLViewUtils.convertDSLAbbreviationsToHtml(baseUrl, article);
+			article = DSLViewUtils.injectDSLWord(baseUrl, word, article);
 		// ZD/HTML Formatting
 		} else {
-			article = applyArticleFormat(article, articleFormatMode, isMediaAvailable);
-			article = applyAbbreviationsFormat(article, abbreviations, abbrFormatMode);
+			article = applyArticleFormat(baseUrl, article, articleFormatMode, isMediaAvailable);
+			article = applyAbbreviationsFormat(baseUrl, article, abbreviations, abbrFormatMode);
 			article = injectWord(word, article, articleFormatIWM);			
 		}
-		
 		log.debug("Prepare Article | Total time: {} ms", System.nanoTime() - t1);
 		log.debug("Prepare Article | Output: {}", article);
-		
 		return article;
-		
 	}
 	
     // \\W - Non-word character
 	// \\w - A word character: [a-zA-Z_0-9]
 	// \\S - A non-whitespace character: [^\s]
     // \\s - A whitespace character: [ \t\n\x0B\f\r]
-	private static String applyArticleFormat(String a, String articlesFormatMode, boolean isMediaAvailable) {
-		
+	private static String applyArticleFormat(String baseUrl, String a, String articlesFormatMode, boolean isMediaAvailable) {
 		// Always process essential replacements
-		a = applyEssentialReplacements(a, isMediaAvailable);
+		a = applyEssentialReplacements(baseUrl, a, isMediaAvailable);
 		
 		if (BaseConstants.MODE_DISABLED.equalsIgnoreCase(articlesFormatMode)) {
 			log.debug("Prepare Article | Article formatting is disabled");
 			return a;
 		}
-		
 		// log.debug("Prepare Article | Input: {}", t);
-		
 		long t1 = System.currentTimeMillis();
 		
 		// If formatting is not disabled try to remove unnecessary html tags
 		if (icMatches(a, ".*?\\<html.*?\\>.*?")) {
-			
 			log.debug("Prepare Article | Raw HTML is found, removing");
-			
 			a = icReplaceAll(a, "<.?!doctype.*?\\>", "");
 			a = icReplaceAll(a, "<.?html.*?\\>", "");
 			a = icReplaceAll(a, "<.?head.*?\\>", "");
@@ -102,23 +109,19 @@ public class ArticleHtmlFormatter {
 			a = icReplaceAll(a, "<.?meta.*?\\>", "");
 			a = icReplaceAll(a, "<.?body.*?\\>", "");
 			a = icReplaceAll(a, "\\Q<style>\\E(.+)\\Q</style>\\E", "");
-			
 		}
 			
-		a = applyBasicReplacements(a, isMediaAvailable);
+		a = applyBasicReplacements(baseUrl, a, isMediaAvailable);
 		
 		if (BaseConstants.MODE_FULL.equalsIgnoreCase(articlesFormatMode)) {
 			log.debug("Applying advanced replacements");
 			a = applyAdvancedReplacements(a, isMediaAvailable);
 		}
-
 		log.debug("Apply Article | Time for replacements: {} ms", System.currentTimeMillis() - t1);
-		
 		return a;
 	}
 	
-	private static String applyAbbreviationsFormat(String a, Set<String> abbreviations, String abbrFormatMode) {
-		
+	private static String applyAbbreviationsFormat(String baseUrl, String a, Set<String> abbreviations, String abbrFormatMode) {
 		if (abbreviations == null || abbreviations.isEmpty()) {
 			log.debug("Apply Abbreviations | Abbreviations don't exist");
 			return a;
@@ -127,7 +130,7 @@ public class ArticleHtmlFormatter {
 		long t1 = System.currentTimeMillis();
 		
 		// Always process the <abbr> tag
-		a = icReplaceAll(a, "\\Q<abbr>\\E([^<]++)\\Q</abbr>\\E", "<a href=\"" + BaseConstants.URLSEG_ABBREVS + "/$1\">$1</a>");
+		a = icReplaceAll(a, "\\Q<abbr>\\E([^<]++)\\Q</abbr>\\E", "<a href=\"" + baseUrl + PATH_INTERNAL_ABBREV + PATH_SEPARATOR + "$1\">$1</a>");
 		
 		if (BaseConstants.MODE_DISABLED.equalsIgnoreCase(abbrFormatMode)) {
 			log.debug("Apply Abbreviations | Abbreviations formatting is disabled, only essential rules are applied");
@@ -136,66 +139,61 @@ public class ArticleHtmlFormatter {
 		
 		if (BaseConstants.MODE_FULL.equalsIgnoreCase(abbrFormatMode)) {
 			for (Iterator<String> iterator = abbreviations.iterator(); iterator.hasNext();) {
-	
 	            String key = iterator.next();
 	            String modKey = key;
-	            
 	            if (key.startsWith("_")) {
 	                modKey = modKey.substring(1);
 	                String searchKey = "(^|\\s)" + key + "($|\\s|\\<)";
-	                a = a.replaceAll(searchKey, "$1<a href=\"" + BaseConstants.URLSEG_ABBREVS + "/" + key + "\">" + modKey + "</a>$2");
+	                a = a.replaceAll(searchKey, "$1<a href=\"" + baseUrl + PATH_INTERNAL_ABBREV + PATH_SEPARATOR + key + "\">" + modKey + "</a>$2");
 	            }
-	
 			}
 		}
-		
 		// This replacements applies to Basic and Full modes
-		a = icReplaceAll(a, "\\Q<c>\\E([^<]++)\\Q</c>\\E", "<a href=\"" + BaseConstants.URLSEG_ABBREVS + "/$1\">$1</a>");
+		a = icReplaceAll(a, "\\Q<c>\\E([^<]++)\\Q</c>\\E", "<a href=\"" + baseUrl + PATH_INTERNAL_ABBREV + PATH_SEPARATOR + "$1\">$1</a>");
 
-		int abbrSize = abbreviations == null ? 0 : abbreviations.size();
+		int abbrSize = abbreviations != null ? abbreviations.size() : 0;
 		log.debug("Prepare Abbreviations | Time for replacements: {} ms | Size: {}", System.currentTimeMillis() - t1, abbrSize);
-		
 		return a;
 	}
 
-	private static String applyEssentialReplacements(String a, boolean isMediaAvailable) {
-		
+	private static String applyEssentialReplacements(String baseUrl, String a, boolean isMediaAvailable) {
+		// For HTML, rewrite all <a href> to include base URL
+		a = icReplaceAll(a, "<a(.+?)href\\s*=\\s*[\"'](.+?)[\"'](.*?)>", "<a href=\"" + baseUrl + "$2\">");
+
 		// Rewrite paths to images and audio if media is available
 		if (isMediaAvailable) {
-			
 			// Images
-			a = icReplaceAll(a, "<img(.+?)src\\s*=\\s*[\"'](.+?)[\"'](.*?)/{0,1}>", "<img$1src=\"" + BaseConstants.URLSEG_IMAGES + "/$2\"$3/>");
+			a = icReplaceAll(a, "<img(.+?)src\\s*=\\s*[\"'](.+?)[\"'](.*?)/{0,1}>",
+                    "<img$1src=\"" + baseUrl + PATH_INTERNAL_IMAGE + PATH_SEPARATOR + "$2\"$3/>");
 			
 			 // Audio (added in HTML5)
 			a = icReplaceAll(a, "<audio(.+?)src\\s*=\\s*[\"'](.+?)[\"'](.*?)>(.*?)</audio>", 
-				"<a href=\"" + BaseConstants.URLSEG_AUDIO + "/$2\"><img src=\"" + 
-				BaseConstants.URLSEG_IMAGES_EXTERNAL + "/" + 
-				BaseConstants.RESOURCE_INT_IMG_SOUND + "\" border=\"0\" style=\"vertical-align:middle\"/></a>"); // audio tag added in HTML5
+				"<a href=\"" + baseUrl + PATH_INTERNAL_AUDIO + PATH_SEPARATOR + "$2\"><img src=\"" +
+                        baseUrl + PATH_INTERNAL_IMAGE_APP + PATH_SEPARATOR + RESOURCE_INT_IMG_SOUND +
+                        "\" border=\"0\" style=\"vertical-align:middle\"/></a>"); // audio tag added in HTML5
 		}
 		return a;
 		
 	}
 	
-	private static String applyBasicReplacements(String t, boolean isMediaAvailable) {
-		
-        t = icReplaceAll(t, "\\Q<r>\\E([^<]++)\\Q</r>\\E", "<a href=\"$1\">$1</a>");
+	private static String applyBasicReplacements(String baseUrl, String t, boolean isMediaAvailable) {
+        t = icReplaceAll(t, "\\Q<r>\\E([^<]++)\\Q</r>\\E", "<a href=\"" + baseUrl + "$1\">$1</a>");
         t = icReplaceAll(t, "\\Q<t>\\E([^<]+)\\Q</t>\\E", "<b>[ $1 ]</b>");
         
 		if (isMediaAvailable) {
-			t = icReplaceAll(t, "\\Q<wav>\\E(.+)\\Q</wav>\\E", "<br/><a href=\"" + BaseConstants.URLSEG_AUDIO + "/$1\"><img src=\"" + BaseConstants.URLSEG_IMAGES_EXTERNAL + "/" + BaseConstants.RESOURCE_INT_IMG_SOUND + "\" border=\"0\"/></a><br/>");
+			t = icReplaceAll(t, "\\Q<wav>\\E(.+)\\Q</wav>\\E", "<br/><a href=\"" + baseUrl + PATH_INTERNAL_AUDIO +
+                    "/$1\"><img src=\"" + baseUrl + PATH_INTERNAL_IMAGE_APP + PATH_SEPARATOR + RESOURCE_INT_IMG_SOUND + "\" border=\"0\"/></a><br/>");
 		} else {
 			t = icReplaceAll(t, "\\<img.*?\\>", ""); // Cut out IMG tags
 	        t = icReplaceAll(t, "\\Q<wav>\\E(.+)\\Q</wav>\\E", ""); // Cut out sounds
 		}
 		return t;
-		
 	}
 	
 	private static String applyAdvancedReplacements(String t, boolean isMediaAvailable) {
-	
 		// Needed only when <br/> are at input
 		t = icReplaceAll(t, "\\<br\\>", "<br/>"); // replace all <br> tags with proper ones <br/>
-		
+
         t = t.replaceAll("(^| |(\\<br/\\>){1,2})\\_([IV]{1,3})\\b", "<br/><br/><font color=\"red\"><b>$3</b></font>");
         //t = t.replaceAll("(^| )([IV]{1,3})\\. ", "<br/><br/><font color=\"red\"><b>$2.</b></font>&nbsp;"); // improper viewing
         //t = t.replaceAll("\\b([IV]{1,3})\\. ", "<br/><br/><font color=\"red\"><b>$1.</b></font>&nbsp;"); // Meriam Webster, impairs other dicts
@@ -216,9 +214,7 @@ public class ArticleHtmlFormatter {
         t = t.replaceAll("\\<br/\\>(\\s*?)(\\w)\\)", "<br/><font color=\"#B35617\"><b>$2)</b></font>"); // For Efremova, Mueller 24
         
         //t = t.replaceAll("(^| )(See: )(.*)\\.", "<br/>$2<a href=\"" + URLSEG_REFS + "/$3\">$3</a>"); // English Idioms
-       
         return t;
-	
 	}
 	
 	/**
@@ -230,7 +226,6 @@ public class ArticleHtmlFormatter {
 	 * @return
 	 */
 	private static String injectWord(String word, String article, String articleInjectWordMode) {
-		
 		if (word == null || article.trim().length() == 0) {
 			log.info("Word is blank, returning article");
 			return article;
@@ -250,7 +245,6 @@ public class ArticleHtmlFormatter {
 			article = "<b>" + word + "</b><br/><br/>" + article;
 			return article;
 		} else { // Auto mode
-			
 			log.debug("Word injection is auto, searching for the word in the article");
 
 			// If (Article.length() > 0) is not pointed, charAt causes the StringIndexOutOfBoundsException.
@@ -265,11 +259,8 @@ public class ArticleHtmlFormatter {
 			}
 			
 			if (subIndex == 0) {
-	
 				article = article.substring(word.length()).trim();
-	            
 				if (article.length() > 0) {
-				
 					char c = article.charAt(0);
 					// u2010 hyphen
 					// u2011 non-breaking hyphen
@@ -283,7 +274,6 @@ public class ArticleHtmlFormatter {
 					log.info("No text is found in the article except the word, returning word");
 					article = word;
 				}
-			
 			}
 	
 			article = removeExcessiveBRFromBeginning(article);
@@ -291,13 +281,9 @@ public class ArticleHtmlFormatter {
 			if (!article.startsWith("<p>") && !article.startsWith("<P>")) {	
 				article = "<br/>" + article;
 			}
-			
 			article = "<b>" + word + "</b><br/>" + article;
-		
 			return article;
-			
 		}
-
 	}
 	
 	private static String removeExcessiveBRFromBeginning(String article) {
@@ -318,13 +304,11 @@ public class ArticleHtmlFormatter {
 	
 	private static String toHTMLString(String string) {
 	    StringBuffer sb = new StringBuffer(string.length());
-
 	    int len = string.length();
 	    char c;
 
 	    for (int i = 0; i < len; i++) {
 	        c = string.charAt(i);
-
             // HTML special chars
             if (c == '"') {
                 sb.append("&quot;");
@@ -341,7 +325,6 @@ public class ArticleHtmlFormatter {
             	sb.append(c);
             }
 	    }
-
 	    return sb.toString();
 	}
 	

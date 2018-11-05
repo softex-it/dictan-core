@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries.
  *
- *  Copyright (C) 2010 - 2017  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as
@@ -24,18 +24,19 @@ import java.util.List;
 import java.util.RandomAccess;
 
 import info.softex.dictionary.core.attributes.ArticleInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo;
 
 /**
  * Adapter List which represents a word list from an article list returned from a BaseReader
  * or utilities.
  *
- * @since    version 5.1, 02/27/2017
+ * @since       version 5.1, 02/27/2017
+ *
+ * @modified    version 6.0, 10/21/2018
  *
  * @author Dmitry Viktorov
  *
  */
-public class WordsNavigationArticleList extends AbstractList<String> implements MetaAwareList<String, BasePropertiesInfo>, RandomAccess {
+public class WordsNavigationArticleList extends AbstractList<String> implements MetaAwareList<String, String>, RandomAccess {
 
     private final List<ArticleInfo> articles;
 
@@ -58,9 +59,10 @@ public class WordsNavigationArticleList extends AbstractList<String> implements 
     }
 
     @Override
-    public BasePropertiesInfo getMetaInfo(int index) {
-        ArticleInfo articleInfo = articles.get(index);
-        return articleInfo.getBaseInfo();
+    public String getMetaInfo(int index) {
+        ArticleInfo article = articles.get(index);
+        String result = article.getWordInfo().getBaseId();
+        return result;
     }
 
     @Override

@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,6 +19,18 @@
 
 package info.softex.dictionary.core.formats.fdb;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Observer;
+
 import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
@@ -33,40 +45,28 @@ import info.softex.dictionary.core.attributes.WordInfo;
 import info.softex.dictionary.core.database.DatabaseConnectionFactory;
 import info.softex.dictionary.core.formats.api.BaseWriter;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Observer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * 
- * @since version 2.6, 08/21/2011
+ * @since       version 2.6, 08/21/2011
  * 
- * @modified version 2.9, 11/19/2011
- * @modified version 3.4, 07/02/2012
- * @modified version 4.5, 03/29/2014
- * @modified version 4.6, 02/01/2015
+ * @modified    version 2.9, 11/19/2011
+ * @modified    version 3.4, 07/02/2012
+ * @modified    version 4.5, 03/29/2014
+ * @modified    version 4.6, 02/01/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
 @BaseFormat(name = "FDB", primaryExtension = ".fdb", extensions = {".fdb", ".fdl"}, sortingExpected = true, likeSearchSupported = true)
 public class FDBBaseWriter implements BaseWriter {
-	
-	private static final Logger log = LoggerFactory.getLogger(FDBBaseWriter.class);
 
-	public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(FDBBaseWriter.class);
+    public static final FormatInfo FORMAT_INFO = FormatInfo.buildFormatInfoFromAnnotation(FDBBaseWriter.class);
+
+    private static final Logger log = LoggerFactory.getLogger(FDBBaseWriter.class);
 
 	protected final ProgressInfo progressInfo = new ProgressInfo();
 	
-	protected final ArrayList<FDBBaseWriteUnit> dbs = new ArrayList<FDBBaseWriteUnit>(1);
+	protected final ArrayList<FDBBaseWriteUnit> dbs = new ArrayList<>(1);
 	protected final FDBBaseWriteUnit mainBase;
 	protected FDBBaseWriteUnit activeBase;
 	
@@ -124,7 +124,6 @@ public class FDBBaseWriter implements BaseWriter {
 			}
 			
 		}
-		
 		log.info("FDB minimum main/secondary base sizes: {} / {}", minMainBaseSize, minSecondaryBaseSize);
 		
 		// Create the parent directory for the base file
@@ -137,7 +136,6 @@ public class FDBBaseWriter implements BaseWriter {
 		this.conFactory = inConFactory;
 		this.mainBase = this.activeBase = new FDBBaseWriteUnit(1, inBaseFilePath, inConFactory.createConnection(inBaseFilePath, null));
 		this.dbs.add(mainBase);
-		
 	}
 	
 	@Override
@@ -158,7 +156,6 @@ public class FDBBaseWriter implements BaseWriter {
 	
 	@Override
 	public void saveRawArticleInfo(ArticleInfo articleInfo) throws Exception {
-		
 		if (wordsNumber == 0) {
 			saveArticlesBlockIdStart4BaseIndex(activeBase.getBaseIndex());
 		}
@@ -202,21 +199,16 @@ public class FDBBaseWriter implements BaseWriter {
 	
 	@Override
 	public void saveMediaResourceInfo(MediaResourceInfo mediaResourceInfo) throws Exception {
-		
 		if (mediaResourcesNumber == 0) {
 			saveMediaResourcesBlockIdStart4BaseIndex(activeBase.getBaseIndex());
 		}
-		
 		mainBase.saveMediaResourceKey(mediaResourceInfo.getKey().getResourceKey(), mediaResourcesNumber);
 		boolean isFlashed = activeBase.saveMediaResource(mediaResourceInfo.getByteArray(), mediaResourcesNumber++);
-		
 		updateProgress();
-		
 		if (isFlashed) {
 			flushMediaResources();
 			reviseBaseFiles();
 		}
-		
 	}
 	
 	@Override
@@ -265,7 +257,15 @@ public class FDBBaseWriter implements BaseWriter {
 		progressInfo.addObserver(observer);
 	}
 
-	// Protected -----------------------------------------------
+    @Override
+    public void flush() throws Exception {
+        if (!isClosed) {
+            flushArticles();
+            flushMediaResources();
+        }
+    }
+
+    // Protected -----------------------------------------------
 		
 	protected void reviseBaseFiles() throws IOException, SQLException, NoSuchAlgorithmException {
 		
@@ -324,7 +324,7 @@ public class FDBBaseWriter implements BaseWriter {
 		}
 		
 	}
-	
+
 	protected void saveArticlesBlockIdStart4BaseIndex(int baseIndex) throws IOException, SQLException, NoSuchAlgorithmException {
 		mainBase.insertBaseProperty(
 			BasePropertiesInfo.PrimaryKey.getBasePartsArticlesBlockIdStartKey(baseIndex),
@@ -339,16 +339,6 @@ public class FDBBaseWriter implements BaseWriter {
 		);
 	}
 	
-	@Override
-	public void flush() throws Exception {
-		if (!isClosed) {
-			flushArticles();
-			flushMediaResources();
-		}
-	}
-
-	// Protected -----------------------------------
-	
 	protected void updateProgress() {
 		int current = abbreviationsNumber + wordsNumber + mediaResourcesNumber;
 		progressInfo.setCurrent(current);
@@ -361,10 +351,8 @@ public class FDBBaseWriter implements BaseWriter {
 		if (activeBase != mainBase) {
 			activeBase.flushArticles(curWordsNumber);
 		}
-		
 		// Only for partial compatibility with old viewers
 		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKey.ARTICLES_NUMBER.getKey(), Integer.toString(wordsNumber));
-		
 		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKey.WORDS_NUMBER.getKey(), Integer.toString(wordsNumber));
 		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKey.WORDS_MAPPINGS_NUMBER.getKey(), Integer.toString(wordsMappingsNumber));
 		mainBase.updateBaseProperty(BasePropertiesInfo.PrimaryKey.WORDS_RELATIONS_NUMBER.getKey(), Integer.toString(wordsRelationsNumber));
@@ -381,7 +369,7 @@ public class FDBBaseWriter implements BaseWriter {
 		curMediaResourcesNumber = mediaResourcesNumber;
 	}
 	
-	protected static long parseLongNoException(String inString) {
+	protected long parseLongNoException(String inString) {
 		try {
 			return Long.parseLong(inString);
 		} catch (Exception e) {

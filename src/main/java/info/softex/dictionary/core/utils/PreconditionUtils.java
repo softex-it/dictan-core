@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -21,8 +21,10 @@ package info.softex.dictionary.core.utils;
 
 /**
  * 
- * @since version 4.6,		02/22/2015
- * 
+ * @since       version 4.6, 02/22/2015
+ *
+ * @modified    version 5.2, 10/21/2018
+ *
  * @author Dmitry Viktorov
  * 
  */
@@ -59,5 +61,21 @@ public class PreconditionUtils {
 		}
 		return reference;
 	}
+
+    /**
+     * Ensures that a string reference passed as a parameter to the calling
+     * method is not blank.
+     *
+     * @param reference - a string reference
+     * @param errorMessage - the exception message to use if the check fails
+     * @return the not blank reference that was validated
+     * @throws IllegalArgumentException - if {@code reference} is blank
+     */
+    public static String checkNotBlank(String reference, Object errorMessage) {
+        if (StringUtils.isBlank(reference)) {
+            throw new IllegalArgumentException(String.valueOf(errorMessage));
+        }
+        return reference;
+    }
 
 }

@@ -5,18 +5,14 @@ import java.util.Map;
 
 /**
  *
- * @since version 5.1, 02/20/2017
+ * @since       version 5.1, 02/20/2017
  *
  * @author Dmitry Viktorov
  *
  */
 public class IntegrityInfo {
 
-    private final Map<String, TestInfo> tests;
-
-    public IntegrityInfo() {
-        this.tests = new LinkedHashMap<String, TestInfo>();
-    }
+    private final Map<String, TestInfo> tests = new LinkedHashMap<>();
 
     public void addTestResult(String inName, boolean inPassed) {
         addTestResult(inName, inPassed, null);

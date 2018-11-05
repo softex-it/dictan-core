@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2017  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -42,11 +42,14 @@ public class WordsNavigationMappedList<E, M> extends AbstractList<E> implements 
 
     private final Map<Integer, E> map;
 
-	public WordsNavigationMappedList(Map<Integer, E> inMap) {
+	private final M baseId;
+
+	public WordsNavigationMappedList(Map<Integer, E> inMap, M baseId) {
 		if (inMap == null) {
 			throw new NullPointerException();
 		}
 		this.map = inMap;
+		this.baseId = baseId;
 		int count = 0;
 		for (Integer key : inMap.keySet()) {
 			indexMap.put(count++, key);
@@ -65,15 +68,9 @@ public class WordsNavigationMappedList<E, M> extends AbstractList<E> implements 
         return origIndex != null ? origIndex : -1;
     }
 
-    /**
-     * Meta information is not supported.
-     *
-     * @param index
-     * @return
-     */
     @Override
     public M getMetaInfo(int index) {
-        return null;
+        return baseId;
     }
 
 	@Override

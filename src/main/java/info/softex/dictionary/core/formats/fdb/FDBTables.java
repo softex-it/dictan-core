@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -22,15 +22,14 @@ package info.softex.dictionary.core.formats.fdb;
 /**
  * Enum of all DB tables at FDB format. 
  * 
- * @since version 2.6, 		08/27/2011
+ * @since		version 2.6, 08/27/2011
  * 
- * @modified version 4.6,	01/28/2015
+ * @modified	version 4.6, 01/28/2015
  * 
  * @author Dmitry Viktorov
  * 
  */
 public enum FDBTables {
-	
 	words,
 	words_mappings,
 	words_relations,
@@ -43,6 +42,5 @@ public enum FDBTables {
 	
 	base_properties,
 	base_resources;
-	
 }
 

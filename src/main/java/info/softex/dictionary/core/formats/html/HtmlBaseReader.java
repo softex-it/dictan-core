@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,6 +19,15 @@
 
 package info.softex.dictionary.core.formats.html;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileFilter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.FormatInfo;
@@ -29,21 +38,12 @@ import info.softex.dictionary.core.formats.source.SourceFileNames;
 import info.softex.dictionary.core.formats.source.utils.SourceFormatUtils;
 import info.softex.dictionary.core.utils.FileConversionUtils;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * 
- * @since version 4.5,		04/02/2014
+ * @since		version 4.5, 04/02/2014
  * 
- * @modified version 4.7,	03/23/2015
- * @modified version 4.9,   12/08/2015
+ * @modified	version 4.7, 03/23/2015
+ * @modified	version 4.9, 12/08/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -70,7 +70,7 @@ public class HtmlBaseReader extends SourceBaseReader {
 			ArticleInfo articleInfo = new ArticleInfo(wordInfo, null);
 			String article = SourceFormatUtils.removeLineBreaks(FileConversionUtils.file2String(file));
 			articleInfo.setArticle(article);
-			articleInfo.setBaseInfo(getBasePropertiesInfo());
+			articleInfo.setBaseInfo(getBaseInfo());
 			return articleInfo;
 		} catch (IOException e) {
 			log.error("Error", e);

@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -21,9 +21,10 @@ package info.softex.dictionary.core.formats.api;
 
 /**
  * 
- * @since version 2.6, 09/01/2011
+ * @since		2.6, 09/01/2011
  * 
- * @modified version 3.9, 01/25/2014
+ * @modified	3.9, 01/25/2014
+ * @modified	5.2, 10/27/2018
  * 
  * @author Dmitry Viktorov
  * 
@@ -32,8 +33,8 @@ package info.softex.dictionary.core.formats.api;
 public class BaseFormatException extends Exception {
 
 	public static final int ERROR_UNDEFINED =					0;
-	public static final int ERROR_CANT_OPEN_BASE =				10;
-	public static final int ERROR_CANT_LOAD_BASE_PROPERIES =	20;
+	public static final int ERROR_CANT_LOAD_BASE =				10;
+	public static final int ERROR_CANT_LOAD_BASE_PROPERTIES =	20;
 	public static final int ERROR_CANT_FIND_BASE_PARTS =		30;
 	public static final int ERROR_CANT_LOAD_MEDIA_KEYS =		90;
 	

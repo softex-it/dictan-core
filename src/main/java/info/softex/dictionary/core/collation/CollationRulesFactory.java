@@ -139,7 +139,7 @@ public class CollationRulesFactory {
 			defRules = new SimpleCollationProperties(defRuleCollator.getRules(), COL_RULES_NATIVE_LOCAL_FULL, true);
 		}
 		if (defRules == null) {
-			throw new UnsupportedCollationException("Couldn't get the default collation rules");
+			throw new UnsupportedCollationException("Couldn't getReader the default collation rules");
 		}
 		return defRules;
 	}

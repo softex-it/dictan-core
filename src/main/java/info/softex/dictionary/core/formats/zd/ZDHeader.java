@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,20 +19,23 @@
 
 package info.softex.dictionary.core.formats.zd;
 
-import info.softex.dictionary.core.regional.RegionalResolver;
-
 import java.io.DataInput;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.UUID;
 import java.util.zip.DataFormatException;
+
+import info.softex.dictionary.core.regional.RegionalResolver;
 
 /**
  * 
- * @since version 1.2, 09/28/2010
+ * @since		version 1.2, 09/28/2010
  * 
- * @modified version 1.3, 12/19/2010
- * @modified version 2.0, 03/12/2011
- * @modified version 2.6, 08/15/2011
- * 
+ * @modified	version 1.3, 12/19/2010
+ * @modified	version 2.0, 03/12/2011
+ * @modified	version 2.6, 08/15/2011
+ * @modified	version 5.2, 10/26/2018
+ *
  * @author Dmitry Viktorov
  * 
  */
@@ -45,9 +48,9 @@ public class ZDHeader {
 	private int abbreviationsSize;
 	private int abbreviationsZSize;
 	
-	private int transBlockSize;
-	private int transBlocksNumber;
-	private int transCodepage;
+	private int articlesBlockSize;
+	private int articlesBlocksNumber;
+	private int articlesCodepage;
 	
 	private int wordsNumber;
 	private int wordsSize;
@@ -60,15 +63,19 @@ public class ZDHeader {
 	private int wordsStartPosition;
 	private long dictionaryFileSize;
 	
-	private String transCodepageName;
+	private String articlesCodepageName;
 	private String wordsCodepageName;
-	
-	public int getTransBlocksNumber() {
-		return transBlocksNumber;
+
+    private UUID uuid;
+
+    private ZDHeader() {}
+
+    public int getArticlesBlocksNumber() {
+		return articlesBlocksNumber;
 	}
 
 	public ZDBaseFlags getFlags() {
-		return new ZDBaseFlags(this.flags);
+		return new ZDBaseFlags(flags);
 	}
 
 	public int getAbbreviationsNumber() {
@@ -83,8 +90,8 @@ public class ZDHeader {
 		return abbreviationsSize;
 	}
 
-	public int getTransCodepage() {
-		return transCodepage;
+	public int getArticlesCodepage() {
+		return articlesCodepage;
 	}
 
 	public short getFormatVersion() {
@@ -103,8 +110,8 @@ public class ZDHeader {
 		return wordsZSize;
 	}
 
-	public void setTransBlocksNumber(int i) {
-		transBlocksNumber = i;
+	public void setArticlesBlocksNumber(int i) {
+		articlesBlocksNumber = i;
 	}
 
 	public void setFlags(int i) {
@@ -123,8 +130,8 @@ public class ZDHeader {
 		abbreviationsZSize = i;
 	}
 
-	public void setTransCodepage(int i) {
-		transCodepage = i;
+	public void setArticlesCodepage(int i) {
+		articlesCodepage = i;
 	}
 
 	public void setFormatVersion(short word0) {
@@ -163,16 +170,16 @@ public class ZDHeader {
 		wordsCodepageName = s;
 	}
 	
-	public void setTransCodepageName(String s) {
-		transCodepageName = s;
+	public void setArticlesCodepageName(String s) {
+		articlesCodepageName = s;
 	}
 	
 	public String getWordsCodepageName() {
 		return wordsCodepageName;
 	}
 	
-	public String getTransCodepageName() {
-		return transCodepageName;
+	public String getArticlesCodepageName() {
+		return articlesCodepageName;
 	}
 	
 	public int getCollateLocaleId() {
@@ -183,12 +190,12 @@ public class ZDHeader {
 		this.collateLocaleId = collateLocaleId;
 	}
 
-	public int getTransBlockSize() {
-		return transBlockSize;
+	public int getArticlesBlockSize() {
+		return articlesBlockSize;
 	}
 
-	public void setTransBlockSize(int transBlockSize) {
-		this.transBlockSize = transBlockSize;
+	public void setArticlesBlockSize(int transBlockSize) {
+		this.articlesBlockSize = transBlockSize;
 	}
 
 	public int getWordsCodepage() {
@@ -199,77 +206,98 @@ public class ZDHeader {
 		this.wordsCodepage = wordsCodepage;
 	}
 
-	public ZDHeader readExternalData(DataInput in, RegionalResolver resolver) throws IOException, DataFormatException {
-		
-		this.setFormatVersion(in.readShort());
-		
-		switch (this.getFormatVersion()) {
-		
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public static ZDHeader load(DataInput in, RegionalResolver resolver) throws IOException, DataFormatException {
+        ZDHeader header = new ZDHeader();
+        header.setFormatVersion(in.readShort());
+		switch (header.getFormatVersion()) {
 			case 5:
-				
-					this.setWordsNumber(in.readInt());
-					this.setWordsSize(in.readInt());
-					this.setWordsZsize(in.readInt());
-					this.setTransBlockSize(in.readInt());
-					this.setTransBlocksNumber(in.readInt());
-					this.setAbbreviationsNumber(in.readInt());
-					this.setAbbreviationsSize(in.readInt());
-					this.setAbbreviationsZSize(in.readInt());
-					this.setFlags(in.readInt());
-					this.setWordsCodepage(in.readInt());
-					this.setTransCodepage(in.readInt());
-					this.setCollateLocaleId(in.readInt());
-					this.setWordsStartPosition(50);
-					
-				break;
+                header.setWordsNumber(in.readInt());
+                header.setWordsSize(in.readInt());
+                header.setWordsZsize(in.readInt());
+                header.setArticlesBlockSize(in.readInt());
+                header.setArticlesBlocksNumber(in.readInt());
+                header.setAbbreviationsNumber(in.readInt());
+                header.setAbbreviationsSize(in.readInt());
+                header.setAbbreviationsZSize(in.readInt());
+                header.setFlags(in.readInt());
+                header.setWordsCodepage(in.readInt());
+                header.setArticlesCodepage(in.readInt());
+                header.setCollateLocaleId(in.readInt());
+                header.setWordsStartPosition(50);
+                break;
 			
 			case 2:
-				
-					in.readShort();
-					this.setWordsNumber(in.readInt());
-					this.setWordsSize(in.readInt());
-					this.setWordsZsize(in.readInt());
-					this.setTransBlockSize(100);
-					this.setTransBlocksNumber(in.readInt());
-					this.setAbbreviationsNumber(in.readInt());
-					this.setAbbreviationsSize(in.readInt());
-					this.setAbbreviationsZSize(in.readInt());
-					this.setFlags(in.readInt());				
-					this.setWordsCodepage(1251);
-					this.setTransCodepage(1251);
-					this.setCollateLocaleId(25);
-					this.setWordsStartPosition(36);
-				
+			    in.readShort();
+                header.setWordsNumber(in.readInt());
+                header.setWordsSize(in.readInt());
+                header.setWordsZsize(in.readInt());
+                header.setArticlesBlockSize(100);
+                header.setArticlesBlocksNumber(in.readInt());
+                header.setAbbreviationsNumber(in.readInt());
+                header.setAbbreviationsSize(in.readInt());
+                header.setAbbreviationsZSize(in.readInt());
+                header.setFlags(in.readInt());
+                header.setWordsCodepage(1251);
+                header.setArticlesCodepage(1251);
+                header.setCollateLocaleId(25);
+                header.setWordsStartPosition(36);
 				break;
 				
 			case 3:
-				
-					this.setWordsNumber(in.readInt());
-					this.setWordsSize(in.readInt());
-					this.setWordsZsize(in.readInt());
-					this.setTransBlockSize(in.readInt());
-					this.setTransBlocksNumber(in.readInt());
-					this.setAbbreviationsNumber(in.readInt());
-					this.setAbbreviationsSize(in.readInt());
-					this.setAbbreviationsZSize(in.readInt());
-					this.setFlags(in.readInt());		
-					this.setWordsCodepage(1251);
-					this.setTransCodepage(1251);
-					this.setCollateLocaleId(25);
-					this.setWordsStartPosition(38);
-				
+                header.setWordsNumber(in.readInt());
+                header.setWordsSize(in.readInt());
+                header.setWordsZsize(in.readInt());
+                header.setArticlesBlockSize(in.readInt());
+                header.setArticlesBlocksNumber(in.readInt());
+                header.setAbbreviationsNumber(in.readInt());
+                header.setAbbreviationsSize(in.readInt());
+                header.setAbbreviationsZSize(in.readInt());
+                header.setFlags(in.readInt());
+                header.setWordsCodepage(1251);
+                header.setArticlesCodepage(1251);
+                header.setCollateLocaleId(25);
+                header.setWordsStartPosition(38);
 				break;
 				
 			default: 
-				throw new DataFormatException("ZD version is not supported: " + this.getFormatVersion());
+				throw new DataFormatException("ZD version is not supported: " + header.getFormatVersion());
 		}
-		
-		// Set Code Pages
-		this.setWordsCodepageName(resolver.toCharsetName(this.getWordsCodepage()));
-		this.setTransCodepageName(resolver.toCharsetName(this.getTransCodepage()));
 
-		return this;
+        // Calculate base UUID
+        header.setUuid(calculateUUID(header));
 		
+		// Set code pages
+        header.setWordsCodepageName(resolver.toCharsetName(header.getWordsCodepage()));
+        header.setArticlesCodepageName(resolver.toCharsetName(header.getArticlesCodepage()));
+
+		return header;
 	}
+
+    private static UUID calculateUUID(ZDHeader header) {
+        ByteBuffer buf = ByteBuffer.allocate(52);
+        buf.putInt(header.getWordsNumber());
+        buf.putInt(header.getWordsSize());
+        buf.putInt(header.getWordsZSize());
+        buf.putInt(header.getArticlesBlockSize());
+        buf.putInt(header.getArticlesBlocksNumber());
+        buf.putInt(header.getAbbreviationsNumber());
+        buf.putInt(header.getAbbreviationsSize());
+        buf.putInt(header.getAbbreviationsZSize());
+        buf.putInt(header.getFlags().getIntFlags());
+        buf.putInt(header.getWordsCodepage());
+        buf.putInt(header.getArticlesCodepage());
+        buf.putInt(header.getCollateLocaleId());
+        buf.putInt(header.getWordsStartPosition());
+        UUID uuid = UUID.nameUUIDFromBytes(buf.array());
+        return uuid;
+    }
 	
 }

@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,29 +19,29 @@
 
 package info.softex.dictionary.core.formats.zd.io.zip;
 
-import info.softex.dictionary.core.io.ReliableInflaterInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.Inflater;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import info.softex.dictionary.core.io.ReliableInflaterInputStream;
 
 /**
  * 
- * @since version 1.2, 09/28/2010
+ * @since		1.2, 09/28/2010
  *
- * @modified version 1.4, 12/19/2010
- * @modified version 2.1, 04/10/2011
- * @modified version 2.2, 05/08/2011
+ * @modified	1.4, 12/19/2010
+ * @modified	2.1, 04/10/2011
+ * @modified	2.2, 05/08/2011
  * 
  * @author Dmitry Viktorov
  * 
  */
 public class TIIStream extends ReliableInflaterInputStream {
 	
-	private final Logger log = LoggerFactory.getLogger(TIIStream.class.getSimpleName());
+	private final Logger log = LoggerFactory.getLogger(TIIStream.class);
 
 	private final int bufferSize;
 
@@ -58,15 +58,11 @@ public class TIIStream extends ReliableInflaterInputStream {
 	}
 
 	public TIIStream createNewZippedSetIS() throws IOException {
-		
 		byte remBuffer[] = getRemainingBuffer();
-
 		log.debug("Load | Remaining Buffer Size: {}", remBuffer.length);
-		
 		Inflater inflater = new Inflater();
 		inflater.setInput(remBuffer);
 		return new TIIStream(in, inflater, bufferSize);
-		
 	}
 		
 }

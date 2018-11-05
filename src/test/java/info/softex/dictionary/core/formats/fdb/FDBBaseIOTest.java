@@ -100,7 +100,7 @@ public class FDBBaseIOTest {
 		
         assertTrue(reader.isLoaded());
 
-		BasePropertiesInfo baseInfo = reader.getBasePropertiesInfo();
+		BasePropertiesInfo baseInfo = reader.getBaseInfo();
 		assertEquals("FDB", baseInfo.getFormatName());
 		assertEquals(FDBConstants.CURRENT_FDB_VERSION, baseInfo.getFormatVersion());
 		assertEquals(FDBBaseSampleContent.SHORT_NAME, baseInfo.getBaseShortName());
@@ -125,7 +125,7 @@ public class FDBBaseIOTest {
 		assertEquals(SW_1002, word1002);
 		
 		for (int i = 0; i < words.size(); i++) {
-			ArticleInfo article2 = reader.getArticleInfo(new WordInfo(i));
+			ArticleInfo article2 = reader.getArticleInfo(new WordInfo(null, i));
 			assertEquals(RT.STRONG, article2.getReferenceType());
 			assertNotNull(article2.getArticle());
 		}
@@ -137,14 +137,14 @@ public class FDBBaseIOTest {
 		assertEquals(REDIRECT_TO_ID_123, (int) redirects.get(2000));
 		assertEquals(REDIRECT_TO_ID_237, (int) redirects.get(3001));
 
-		ArticleInfo article123 = reader.getRawArticleInfo(new WordInfo(123));
-		ArticleInfo article2000 = reader.getRawArticleInfo(new WordInfo(2000));
+		ArticleInfo article123 = reader.getRawArticleInfo(new WordInfo(null, 123));
+		ArticleInfo article2000 = reader.getRawArticleInfo(new WordInfo(null, 2000));
 		assertEquals(article123.getArticle(), article2000.getArticle());
 		//assertEquals(article123.getWordInfo().getWord(), article2000.getWordInfo().getArticleWord());
 		assertEquals(SW_2000_REDIRECT_TO_123, article2000.getWordInfo().getWord());
 		
-		ArticleInfo article237 = reader.getRawArticleInfo(new WordInfo(237));
-		ArticleInfo article3001 = reader.getRawArticleInfo(new WordInfo(3001));
+		ArticleInfo article237 = reader.getRawArticleInfo(new WordInfo(null, 237));
+		ArticleInfo article3001 = reader.getRawArticleInfo(new WordInfo(null, 3001));
 		assertEquals(article237.getArticle(), article3001.getArticle());		
 		
 		// Test redirect
@@ -169,10 +169,10 @@ public class FDBBaseIOTest {
 	protected static int pushSampleToWriter(BaseWriter writer, Map<String, String> sample, Map<Integer, Integer> redirects) throws Exception {
 		int count = 0;
 		for (String word : sample.keySet()) {
-			WordInfo wordInfo = new WordInfo(count, word);
+			WordInfo wordInfo = new WordInfo(null, count, word);
 			Integer redirectId = redirects.get(count);
 			if (redirectId != null) {
-				wordInfo = new WordInfo(count, word, redirectId);
+				wordInfo = new WordInfo(null, count, word, redirectId);
 			}
 			writer.saveRawArticleInfo(new ArticleInfo(wordInfo, sample.get(word)));				
 			count++;

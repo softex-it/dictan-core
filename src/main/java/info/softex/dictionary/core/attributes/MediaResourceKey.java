@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -21,30 +21,44 @@ package info.softex.dictionary.core.attributes;
 
 /**
  * 
- * @since version 4.6,		02/21/2015
- * 
+ * @since       4.6, 02/21/2015
+ *
+ * @modified    5.2, 10/23/2018
+ *
  * @author Dmitry Viktorov
  * 
  */
 public class MediaResourceKey {
-	
+
+	// Base ID of the base that issued the resource.
+	private String baseId = null;
 	private int id = -1;
 	private String resourceKey;
 	
-	public MediaResourceKey(String word) {
-		setResourceKey(word);
+	public MediaResourceKey(String baseId, String key) {
+	    setBaseId(baseId);
+		setResourceKey(key);
 	}
 	
-	public MediaResourceKey(int id) {
+	public MediaResourceKey(String baseId, int id) {
+	    setBaseId(baseId);
 		setId(id);
 	}
 	
-	public MediaResourceKey(int id, String resourceKey) {
+	public MediaResourceKey(String baseId, int id, String resourceKey) {
 		setId(id);
 		setResourceKey(resourceKey);
 	}
-	
-	public int getId() {
+
+    public void setBaseId(String baseId) {
+        this.baseId = baseId;
+    }
+
+    public String getBaseId() {
+        return baseId;
+    }
+
+    public int getId() {
 		return id;
 	}
 	
@@ -67,7 +81,7 @@ public class MediaResourceKey {
 	@Override
 	protected MediaResourceKey clone() {
 		try {
-			return (MediaResourceKey)super.clone();
+			return (MediaResourceKey) super.clone();
 		} catch (CloneNotSupportedException e) {
 			return null;
 		}

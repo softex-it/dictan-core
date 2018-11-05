@@ -52,7 +52,7 @@ public class BasePropertiesInfo implements Cloneable {
 		FORMAT_NAME("format.name"),
 		FORMAT_VERSION("format.version"),
 
-        BASE_UID("base.uid"),
+        BASE_UID("base.uuid"),
 		BASE_VERSION("base.version"),
 		BASE_TYPE("base.type"),
 		BASE_DATE("base.date"),
@@ -91,7 +91,7 @@ public class BasePropertiesInfo implements Cloneable {
 		INFO_COMPILATION_OS_VERSION("info.compilation.os.version"),
 		INFO_COMPILATION_DATE("info.compilation.date");
 		
-		private String key = null;
+		private String key;
 		
 		private PrimaryKey(String inKey) {
 			this.key = inKey;
@@ -162,43 +162,48 @@ public class BasePropertiesInfo implements Cloneable {
 	private String wordsCodepageName = null;
 	
 	// Meta base file parameters
-	private String basePath;
+	private String baseLocation;
+    private String baseLocationUid;
 	private long baseFileSize;
 	
-	public String getBasePath() {
-		return basePath;
+	public String getBaseLocation() {
+		return baseLocation;
 	}
 	
-	public void setBaseFilePath(String inPath) {
-		basePath = inPath;
-	}
-
-	public String getBaseFileName() {
-		return getBasePath() == null ? null : new File(getBasePath()).getName();
+	public void setBaseLocation(String baseLocation) {
+		this.baseLocation = baseLocation;
 	}
 
     /**
-     * Unique Identifier of the base. It should not match any base, even the one compiled
-     * with the same parameters.
+     * Method must be removed or the logic must parse name w/o File.
+     */
+	@Deprecated
+	public String getBaseLocationName() {
+		return getBaseLocation() != null ? new File(getBaseLocation()).getName() : null;
+	}
+
+    /**
+     * Unique Identifier of the base location. It should be different based on the base location.
+     * Two identical DBs in different folders should have different location ID.
+     */
+    public String getBaseLocationUid() {
+        return baseLocationUid;
+    }
+
+    public void setBaseLocationUid(String inUid) {
+        baseLocationUid = inUid;
+    }
+
+    /**
+     * Unique Identifier of the base. It should not depend on a base location but should be
+     * unique to the base.
      */
     public String getBaseUid() {
-	    // Support of UID is added on 10/21/2018, use MD5 otherwise
-	    String result = (String) primaryParams.get(PrimaryKey.BASE_UID.getKey());
-        if (result == null) {
-            result = getSecurityMD5();
-        }
-        return result;
+        return (String) primaryParams.get(PrimaryKey.BASE_UID.getKey());
     }
 
     public void setBaseUid(String baseId) {
         primaryParams.put(PrimaryKey.BASE_UID.getKey(), baseId);
-    }
-
-    /**
-     * URL based on Base ID.
-     */
-    public String getBaseUidUrl() {
-        return getBaseUid() + PATH_SEPARATOR;
     }
 	
 	public String getBaseVersion() {
@@ -475,11 +480,7 @@ public class BasePropertiesInfo implements Cloneable {
 	
 	@Override
 	public String toString() {
-		String prim = this.primaryParams != null ? this.primaryParams.toString() : "";
-		if (getArticleCodepageName() != null) {
-			return "articleCodePage: " + getArticleCodepageName() + " " + prim;
-		}
-		return prim;
+		return primaryParams != null ? primaryParams.toString() : "";
 	}
 	
 	public int getMediaResourcesNumber() {

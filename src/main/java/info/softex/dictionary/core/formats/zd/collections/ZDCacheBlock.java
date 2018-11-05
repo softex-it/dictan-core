@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -24,7 +24,7 @@ import info.softex.dictionary.core.collections.CacheBlockReferenceTypes;
 
 /**
  * 
- * @since version 1.3, 11/13/2010
+ * @since		1.3, 11/13/2010
  * 
  * @author Dmitry Viktorov
  *

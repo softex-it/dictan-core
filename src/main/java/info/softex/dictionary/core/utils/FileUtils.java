@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -18,6 +18,9 @@
  */
 
 package info.softex.dictionary.core.utils;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -38,17 +41,15 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * 
- * @since version 1.0,		06/10/2012
+ * @since		1.0, 06/10/2012
  * 
- * @modified version 3.7,	11/27/2013
- * @modified version 4.6,	02/17/2015
- * @modified version 4.8,	05/13/2015
- * @modified version 5.3,	11/29/2016
+ * @modified	3.7, 11/27/2013
+ * @modified	4.6, 02/17/2015
+ * @modified	4.8, 05/13/2015
+ * @modified	5.0, 11/29/2016
+ * @modified	5.2, 10/29/2018
  *
  * @author Dmitry Viktorov
  * 
@@ -60,6 +61,8 @@ public class FileUtils {
 
     // The file copy buffer size (30 MB)
     private static final long FILE_COPY_BUFFER_SIZE = ONE_MB * 30;
+
+    private static final Logger log = LoggerFactory.getLogger(FileUtils.class);
 
 	/**
 	 * Returns the extension of the file, e.g.:
@@ -91,8 +94,6 @@ public class FileUtils {
 		}
 		return target;
 	}
-	
-	private static final Logger log = LoggerFactory.getLogger(FileUtils.class);
 
 	public static boolean directoryExists(String dirPath) {
         if (dirPath == null) {
@@ -125,6 +126,41 @@ public class FileUtils {
         }
         return fn;
 	}
+
+    public static boolean mkdirsQuiet(File dirFile) {
+        boolean result = true;
+        if (!dirFile.exists()) {
+            try {
+                result = dirFile.mkdirs();
+            } catch (Exception e) {
+                result = false;
+            }
+        }
+        return result;
+    }
+
+    public static File firstExistingParentFile(File file) {
+        if (file == null) {
+            return null;
+        }
+        File parentFile = file.getParentFile();
+        while (parentFile != null && !parentFile.exists()) {
+            parentFile = parentFile.getParentFile();
+        }
+        return parentFile;
+    }
+
+    public static boolean isParentDirectory(String possibleParent, String possibleChild) {
+	    boolean result = false;
+        if (possibleParent != null && possibleChild != null) {
+            String parent = new File(possibleParent).getAbsolutePath();
+            String child = new File(possibleChild).getAbsolutePath();
+            if (parent.startsWith(child)) {
+                result = true;
+            }
+        }
+        return result;
+    }
 	
 	/**
 	 * Checks if the directory is empty. 
@@ -133,21 +169,22 @@ public class FileUtils {
 	 * 
 	 * @return whether the directory is empty
 	 */
-	public static boolean isDirectoryEmpty(String inDirectory, FileFilter filter, boolean createNonExistent) {
-		File directoryFile = new File(inDirectory);
+	public static boolean isDirectoryEmpty(String inDirectory, FileFilter filter,
+                                           boolean createNonExistentDirectory) {
+		File dirFile = new File(inDirectory);
 
         // Check if permission is granted
-        if (!directoryFile.canRead()) {
-            log.error("Read permission is not granted: {}", directoryFile);
+        if (!dirFile.canRead()) {
+            log.error("Read permission is not granted: {}", dirFile);
             return true;
         }
 
-		if (directoryFile.exists()) {
-			File[] dictList = directoryFile.listFiles(filter);
-            return (dictList.length == 0 ? true : false);
-		} else if (createNonExistent) {
+		if (dirFile.exists()) {
+			File[] files = dirFile.listFiles(filter);
+            return files.length == 0;
+		} else if (createNonExistentDirectory) {
 			try {
-				directoryFile.mkdirs();
+				dirFile.mkdirs();
 			} catch (Exception e) {
 				log.error("Directory couldn't be created", e);
 			}
@@ -162,12 +199,10 @@ public class FileUtils {
 	 * @return sorted file list
 	 */
 	public static List<File> sortFiles(File[] filesList) {
-		
 		// Exclude null pointer exceptions
 		if (filesList == null) {
 			return null;
 		}
-		
 		ArrayList<File> fileNames = new ArrayList<File>();
 		ArrayList<File> resultNames = new ArrayList<File>();
 
@@ -177,13 +212,11 @@ public class FileUtils {
 			} else {
 				fileNames.add(filesList[i]);
 			}
-		}	
-		
+		}
 		Collections.sort(resultNames);
 		Collections.sort(fileNames);
 		
 		resultNames.addAll(fileNames);
-		
 		return resultNames;
 	}
 	
@@ -203,7 +236,7 @@ public class FileUtils {
 		log.debug("File list: {}", (Object) filteredFilesList);
 		// List may be null if directory doesn't exist or permission denied
 		if (filteredFilesList == null) {
-			throw new IOException("Couldn't get access to the folder: " + dir.getAbsolutePath());
+			throw new IOException("Couldn't getReader access to the folder: " + dir.getAbsolutePath());
 		}
 		List<File> sortedFiles = sortFiles(filteredFilesList);
 		List<String> sortedFilesPaths = new ArrayList<String>();
@@ -238,11 +271,9 @@ public class FileUtils {
 	 */
 	public static byte[] toByteArray(File file) throws IOException {
 		long expectedSize = file.length();
-		
 		if (file.length() > Integer.MAX_VALUE) {
 			throw new IllegalArgumentException("File size is too large to fit in a byte array: " + expectedSize + " bytes");
 		}
-
 		return toByteArray(new FileInputStream(file));
 	}
 	

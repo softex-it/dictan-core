@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -40,8 +40,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * @since version 4.8,		04/29/2015
- * @modified version 5.2,	09/30/2018
+ * @since		4.8,	 04/29/2015
+ * 
+ * @modified		5.2, 09/30/2018
  * 
  * @author Dmitry Viktorov
  * 
@@ -66,7 +67,6 @@ public class DSLMarkupProcessorJob extends AbstractDSLJob {
 
 	@Override
 	public boolean processItem(JobData jobData) throws Exception {
-		
 		PreconditionUtils.checkNotNull(artDslResource, 
 			"Article DSL Resource can't be null, it has to be injected before processing");
 		
@@ -79,9 +79,7 @@ public class DSLMarkupProcessorJob extends AbstractDSLJob {
 	// Processing methods ------------------------------------------------------------
 	
 	protected void processEntry(KeyValueInfo<String, String> article) throws IOException, BaseFormatException {
-		
 		List<String> lines = new LinkedList<String>(Arrays.asList(StringUtils.splitByLineBreaks(article.getValue())));
-		
 		checkAssets(lines);
 		
 		//lines = resLowerCase(lines);
@@ -95,9 +93,7 @@ public class DSLMarkupProcessorJob extends AbstractDSLJob {
 		//lines = capitalizeParagraphs(lines);
 		
 		String text = StringUtils.joinWithLineBreaks(lines);
-		
 		article.setValue(text);
-		
 	}
 	
 	protected void checkAssets(List<String> list) {
@@ -114,7 +110,6 @@ public class DSLMarkupProcessorJob extends AbstractDSLJob {
 	}
 	
 	protected static void addEmptyParagraphConditionally(List<String> list, String s) throws IOException, BaseFormatException {
-		
 		if (EMPTY_PAR.equals(s)) {
 			return;
 		}
@@ -124,13 +119,12 @@ public class DSLMarkupProcessorJob extends AbstractDSLJob {
 		}
 		
 		if (!list.get(list.size() - 1).equals(EMPTY_PAR)) {
-			//System.out.println(EMPTY_PAR + " | " + list.get(list.size() - 1));
+			//System.out.println(EMPTY_PAR + " | " + list.getReader(list.size() - 1));
 			list.add(EMPTY_PAR);	
 		}
 	}
 	
 	protected static List<String> wrapIfStartsFromBNum(List<String> lines) {
-		
 		List<String> tempLines = new LinkedList<String>();
 		
 		//String mt = "^\\[b\\](.*?)\\.\\[/b\\]";
@@ -138,7 +132,6 @@ public class DSLMarkupProcessorJob extends AbstractDSLJob {
 		Pattern p = Pattern.compile(mt);
 		
 		for (int i = 0; i < lines.size(); i++) {
-			
 			String s = lines.get(i);
 			Matcher m = p.matcher(s);
 			
@@ -147,11 +140,8 @@ public class DSLMarkupProcessorJob extends AbstractDSLJob {
 			} else {
 				tempLines.add(s);
 			}
-
 		}
-
 		return tempLines;
-	
 	}
 	
 	protected static List<String> processTranscriptions(List<String> lines) {

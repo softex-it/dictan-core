@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,21 +19,21 @@
 
 package info.softex.dictionary.core.io;
 
-import info.softex.dictionary.core.utils.FileUtils;
-import info.softex.dictionary.core.utils.IOUtils;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import info.softex.dictionary.core.utils.FileUtils;
+import info.softex.dictionary.core.utils.IOUtils;
+
 /**
  * 
- * @since version 2.5, 06/30/2011
+ * @since		version 2.5, 06/30/2011
  * 
- * @modified version 3.4, 07/07/2012
- * @modified version 4.6, 02/22/2015
+ * @modified	version 3.4, 07/07/2012
+ * @modified	version 4.6, 02/22/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -44,7 +44,7 @@ public class DataAdapter {
 	
 	public DataAdapter(File file) throws IOException {
 		if (file.length() > Integer.MAX_VALUE) {
-            throw new IOException("File is too large!");
+            throw new IOException("File is too big since it exceeds " + Integer.MAX_VALUE);
         }
 		this.is = new FileInputStream(file);
 	}
@@ -54,15 +54,14 @@ public class DataAdapter {
 	}
 	
 	public File toFile(File tempDir, String name, String prefix) throws IOException {
-		
 		prefix = (prefix == null ? "": prefix);		
 		File file = new File(tempDir.getAbsolutePath() + File.separator + prefix + name);
-		
+
 	    FileOutputStream fos = new FileOutputStream(file);
 		IOUtils.copy(is, fos);
 	    is.close();
 	    fos.close();
-		
+
 		return file;
 	}
 	

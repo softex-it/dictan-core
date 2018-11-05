@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2014  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,13 +19,8 @@
 
 package info.softex.dictionary.core.formats.zd;
 
-import info.softex.dictionary.core.formats.api.BaseFormatException;
-import info.softex.dictionary.core.formats.zd.collections.ZDDynamicListSet;
-import info.softex.dictionary.core.formats.zd.io.LittleEndianDataInputStream;
-import info.softex.dictionary.core.formats.zd.io.LittleEndianRandomAccessFile;
-import info.softex.dictionary.core.formats.zd.io.zip.TIIStream;
-import info.softex.dictionary.core.io.ReliableInflaterInputStream;
-import info.softex.dictionary.core.regional.RegionalResolver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -39,17 +34,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.DataFormatException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import info.softex.dictionary.core.formats.api.BaseFormatException;
+import info.softex.dictionary.core.formats.zd.collections.ZDDynamicListSet;
+import info.softex.dictionary.core.formats.zd.io.LittleEndianDataInputStream;
+import info.softex.dictionary.core.formats.zd.io.LittleEndianRandomAccessFile;
+import info.softex.dictionary.core.formats.zd.io.zip.TIIStream;
+import info.softex.dictionary.core.io.ReliableInflaterInputStream;
+import info.softex.dictionary.core.regional.RegionalResolver;
 
 /**
  * 
- * @since version 1.3, 11/13/2010
+ * @since       version 1.3, 11/13/2010
  * 
- * @modified version 2.0, 03/12/2011
- * @modified version 2.5, 08/02/2011
- * @modified version 2.6, 09/18/2011
- * 
+ * @modified    version 2.0, 03/12/2011
+ * @modified    version 2.5, 08/02/2011
+ * @modified    version 2.6, 09/18/2011
+ * @modified    version 5.2, 10/26/2018
+ *
  * @author Dmitry Viktorov
  *
  */
@@ -57,53 +58,51 @@ public class ZDDynamicArticlesReader {
 
 	private final Logger log = LoggerFactory.getLogger(ZDDynamicArticlesReader.class);
 	
-	protected RegionalResolver regionalResolver = null;
-	
-	protected final File dictFile;
+	protected final RegionalResolver regionalResolver;
+	protected final File baseFile;
 	protected LittleEndianRandomAccessFile raf = null;
-	
-	protected ZDDynamicListSet dynamicWords = null;
-	
-	protected Map<String, String> abbreviations = null;
-	protected int[] blockOffsets = null;
-	protected BlockCache lastLoadedBlock = null;
+
 	protected ZDHeader zdHeader = null;
-	//protected final ProgressInfo progressInfo = new ProgressInfo();
-	
+	protected ZDDynamicListSet dynamicWords = null;
+
+	protected Map<String, String> abbreviations = null;
+    protected int[] blockOffsets = null;
+    protected BlockCache lastLoadedBlock = null;
+
 	protected boolean loaded = false;
+    protected boolean closed = false;
 	
 	protected LittleEndianDataInputStream ledis = null;
+
+//	public static class BaseBlockInfo {
+//		int size;
+//		int zsize;
+//		public static final int SIZE = 8;
+//	}
 	
 	protected static class BlockCache {
 		int blockNumber;
 		List<SoftReference<String>> strings;
-		public BlockCache(int blockNumber, int stringsAmount) {
+		public BlockCache(int blockNumber, int stringsNumber) {
 			this.blockNumber = blockNumber;
-			this.strings = new ArrayList<SoftReference<String>>(stringsAmount);
+			this.strings = new ArrayList<>(stringsNumber);
 		}
 	}
 
-	public static class TransBlockInfo {
-		int size;
-		int zsize;
-		public static final int SIZE = 8;
+	public ZDDynamicArticlesReader(RegionalResolver regionalResolver, File baseFile) {
+		this.regionalResolver = regionalResolver;
+		this.baseFile = baseFile;
 	}
 
-	public ZDDynamicArticlesReader(RegionalResolver regionalResolver, File file) throws IOException {
-		
-		this.regionalResolver = regionalResolver;
-		
-		this.lastLoadedBlock = null;
-		this.dictFile = file;
-		this.raf = new LittleEndianRandomAccessFile(file, "r");
-		
-		FileInputStream fis = new FileInputStream(dictFile);
-		ledis = new LittleEndianDataInputStream(fis);
-		
-		log.debug("Dictionary Size: {}", raf.length());
-	}
+    public void initialize() throws IOException {
+        raf = new LittleEndianRandomAccessFile(baseFile, "r");
+        FileInputStream fis = new FileInputStream(baseFile);
+        ledis = new LittleEndianDataInputStream(fis);
+        log.debug("Dictionary Size: {}", raf.length());
+    }
 
 	public void close() throws IOException {
+        closed = true;
 		if (raf != null) {
 			raf.close();
 			raf = null;
@@ -114,58 +113,47 @@ public class ZDDynamicArticlesReader {
 		}
 	}
 
-	public void load() throws IOException, BaseFormatException {
+	public void load() throws BaseFormatException {
 		try {
-		    long l = System.currentTimeMillis();
-		    
-		    if (this.zdHeader == null) {
+		    long start = System.currentTimeMillis();
+		    if (zdHeader == null) {
 		        loadHeader();
 		    }
 		    
 		    this.dynamicWords = new ZDDynamicListSet(
-		    		this.dictFile,
+		    		baseFile,
 		    		ZDConstants.COMPRESSED_BUFFER_SIZE,
 		    		ZDConstants.WORD_LIST_BLOCK_SIZE,
-		    		this.zdHeader.getWordsNumber(),
-		    		this.zdHeader.getWordsStartPosition(), 
-		    		this.zdHeader.getWordsSize(), 
-		    		this.zdHeader.getWordsCodepageName()
+		    		zdHeader.getWordsNumber(),
+		    		zdHeader.getWordsStartPosition(),
+		    		zdHeader.getWordsSize(),
+		    		zdHeader.getWordsCodepageName()
 		    	);
 		    
 		    TIIStream tiis = dynamicWords.getTIIStream().createNewZippedSetIS();
-		    
-		    this.abbreviations = ZDReadUtils.loadAbbreviations(tiis, zdHeader);
-	
+		    abbreviations = ZDReadUtils.loadAbbreviations(tiis, zdHeader);
 		    tiis.close();
+		    blockOffsets = ZDReadUtils.loadBlockOffsets(raf, zdHeader);
+		    loaded = true;
 		    
-		    this.blockOffsets = ZDReadUtils.loadBlockOffsets(raf, zdHeader);
-		    
-		    this.loaded = true;
-		    
-		    long loadTime = System.currentTimeMillis() - l;
+		    long loadTime = System.currentTimeMillis() - start;
 		    log.info("Dictionary Loading Time: {}", loadTime);
-		    
 		} catch (Exception e) {
 			log.error("Error", e);
 			throw new BaseFormatException(e.getMessage());
 		}
-	    
 	}
 
 	public ZDHeader loadHeader() throws IOException, BaseFormatException {
-
         log.debug("Loading ZD Header");
-
         try {
-			this.zdHeader  = new ZDHeader().readExternalData(ledis, regionalResolver);
+			zdHeader = ZDHeader.load(ledis, regionalResolver);
 		} catch (DataFormatException e) {
 			log.error("Error", e);
 			throw new BaseFormatException(e.getMessage());
 		}
-
-		log.debug("ZD Header: {}", this);
-		
-		this.zdHeader.setDictionaryFileSize(this.dictFile.length());
+		log.debug("ZD Header: {}", zdHeader);
+		zdHeader.setDictionaryFileSize(baseFile.length());
 		return zdHeader;
 	}
 
@@ -173,17 +161,17 @@ public class ZDDynamicArticlesReader {
 		if (index < 0 || index > dynamicWords.size()) {
 			throw new IndexOutOfBoundsException("" + index);
 		}
-		int iob = index / zdHeader.getTransBlockSize();
-		int iow = index % zdHeader.getTransBlockSize();
+		int iob = index / zdHeader.getArticlesBlockSize();
+		int iow = index % zdHeader.getArticlesBlockSize();
 		
-		String transResult = null;
+		String article = null;
 		
 		// Check if the translation is available by soft reference, and return if found
 		if (lastLoadedBlock != null && lastLoadedBlock.blockNumber == iob) {
-			transResult = lastLoadedBlock.strings.get(iow).get();
-			if (transResult != null) {
+			article = lastLoadedBlock.strings.get(iow).get();
+			if (article != null) {
 				log.debug("Translation has been retrieved by soft reference");
-				return transResult;
+				return article;
 			} else {
 				log.debug("Translation's reference is lost, recreating");
 				lastLoadedBlock = null;
@@ -193,7 +181,7 @@ public class ZDDynamicArticlesReader {
 		}
 		
 		if (lastLoadedBlock == null) {
-			lastLoadedBlock = new BlockCache(iob, zdHeader.getTransBlockSize());
+			lastLoadedBlock = new BlockCache(iob, zdHeader.getArticlesBlockSize());
 		} else {
 			lastLoadedBlock.blockNumber = iob;
 			lastLoadedBlock.strings.clear();
@@ -210,23 +198,23 @@ public class ZDDynamicArticlesReader {
 				new ReliableInflaterInputStream(new ByteArrayInputStream(compressedData)), size
 			);
 
-		String csName = zdHeader.getTransCodepageName();
+		String csName = zdHeader.getArticlesCodepageName();
 		log.debug("Translate | Codepage: {}", csName);
 		
 		int startIdx = 0;
 		int curTransNumber = -1; 
 		for (int i = 0; i < uncompressedData.length; i++) {
 			if (uncompressedData[i] == 0) {
-				String translation = new String(uncompressedData, startIdx, i - startIdx, csName);
-				lastLoadedBlock.strings.add(new SoftReference<String>(translation));
+				String retrievedArticle = new String(uncompressedData, startIdx, i - startIdx, csName);
+				lastLoadedBlock.strings.add(new SoftReference<>(retrievedArticle));
 				curTransNumber++;
 				if (curTransNumber == iow) {
-					transResult = translation;
+					article = retrievedArticle;
 				}
 				startIdx = i + 1;
 			}
 		}
-		return transResult;
+		return article;
 	}
 	
 	private byte[] readBytesFromStream(InputStream is, int bytesNumber) throws IOException {
@@ -244,18 +232,22 @@ public class ZDDynamicArticlesReader {
 	}
 
 	public String getFileName() {
-		return dictFile.getName();
+		return baseFile.getName();
 	}
 
 	public String getFilePath() {
-		return dictFile.getAbsolutePath();
+		return baseFile.getAbsolutePath();
 	}
 	
 	public boolean isLoaded() {
-		return this.loaded;
+		return loaded;
 	}
-	
-	@Override
+
+    public boolean isClosed() {
+        return closed;
+    }
+
+    @Override
 	protected void finalize() throws Throwable {
 		super.finalize();
 		this.close();

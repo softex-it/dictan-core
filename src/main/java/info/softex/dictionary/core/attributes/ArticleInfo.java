@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -26,17 +26,18 @@ import info.softex.dictionary.core.utils.ArticleHtmlBuilder;
 /**
  * Main storage for article data.
  * 
- * @since version 1.4,		01/09/2011
+ * @since		version 1.4,	01/09/2011
  * 
- * @modified version 1.7,	01/24/2011
- * @modified version 1.10,	02/24/2011
- * @modified version 2.5,	07/24/2011
- * @modified version 2.6,	09/20/2011
- * @modified version 4.0,	02/02/2014
- * @modified version 4.2,	03/07/2014
- * @modified version 4.6,	02/01/2015
- * @modified version 4.9,	12/06/2015
- * 
+ * @modified	version 1.7,	01/24/2011
+ * @modified	version 1.10,	02/24/2011
+ * @modified	version 2.5,	07/24/2011
+ * @modified	version 2.6,	09/20/2011
+ * @modified	version 4.0,	02/02/2014
+ * @modified	version 4.2,	03/07/2014
+ * @modified	version 4.6,	02/01/2015
+ * @modified	version 4.9,	12/06/2015
+ * @modified	version 5.2,	10/21/2018
+ *
  * @author Dmitry Viktorov
  *
  */
@@ -48,15 +49,13 @@ public class ArticleInfo implements Cloneable, KeyValueInfo<String, String> {
 	}
 		
 	private WordInfo wordInfo = null;
-
 	private String article = null;
+
+	// Information about the base that issued the article
+	private BasePropertiesInfo baseInfo = null;
 	
 	private SoftReference<String> articleSoftRef = null;
-	
-	private RT referenceType;
-	
-	// Contain information about the base that issued the article
-	private BasePropertiesInfo baseInfo = null;
+	private RT referenceType;;
 	
 	public ArticleInfo(WordInfo inWordInfo, String inArticle) {
 		this.referenceType = RT.STRONG;
@@ -79,12 +78,10 @@ public class ArticleInfo implements Cloneable, KeyValueInfo<String, String> {
 	public String getArticle() {
 		if (this.referenceType == RT.STRONG) {
 			return this.article;
-		} 
-		
+		}
 		if (this.referenceType == RT.SOFT) {
 			return this.articleSoftRef.get();
 		}
-		
 		return null;
 	}
 	
@@ -93,7 +90,7 @@ public class ArticleInfo implements Cloneable, KeyValueInfo<String, String> {
 			article = inArticle;
 			articleSoftRef = null;
 		} else if (referenceType == RT.SOFT) {
-			articleSoftRef = new SoftReference<String>(inArticle);
+			articleSoftRef = new SoftReference<>(inArticle);
 			article = null;
 		}
 	}
@@ -102,13 +99,12 @@ public class ArticleInfo implements Cloneable, KeyValueInfo<String, String> {
 		if (refType != RT.SOFT && refType != RT.STRONG) {
 			throw new IllegalArgumentException("Reference Type " + refType + " is illegal");
 		}
-		
 		referenceType = refType;
 
 		// Soft reference
 		if (referenceType == RT.SOFT) {
 			if (article != null) {
-				articleSoftRef = new SoftReference<String>(article);
+				articleSoftRef = new SoftReference<>(article);
 				article = null;
 			}
 		}
@@ -120,7 +116,6 @@ public class ArticleInfo implements Cloneable, KeyValueInfo<String, String> {
 				articleSoftRef = null;
 			}
 		}
-	
 	}
 	
 	public String getFullArticle(FontInfo inFontInfo, String inGlobalCSSPath, String inSpecificCSS) {
@@ -142,24 +137,26 @@ public class ArticleInfo implements Cloneable, KeyValueInfo<String, String> {
 
 	public ArticleInfo clone() {
 		try {
-			return (ArticleInfo)super.clone();
+			return (ArticleInfo) super.clone();
 		} catch (CloneNotSupportedException e) {
 			return null;
 		}
 	}
 	
 	public ArticleInfo clone(RT refType) {
-		ArticleInfo transInfo = new ArticleInfo(wordInfo.clone(), article);
-		transInfo.setReferenceType(refType);
-		return transInfo;
+		ArticleInfo result = new ArticleInfo(wordInfo.clone(), article);
+		result.setReferenceType(refType);
+		result.setBaseInfo(baseInfo);
+		return result;
 	}
 	
 	public boolean isHttpRelated() {
-		return wordInfo == null ? false : wordInfo.isHttpRelated();
+		return wordInfo != null && wordInfo.isHttpRelated();
 	}
 	
 	public void setBaseInfo(BasePropertiesInfo inBaseInfo) {
 		this.baseInfo = inBaseInfo;
+		this.wordInfo.setBaseId(inBaseInfo.getBaseLocationUid());
 	}
 	
 	public BasePropertiesInfo getBaseInfo() {

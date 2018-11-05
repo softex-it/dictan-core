@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -21,11 +21,11 @@ package info.softex.dictionary.core.formats.fdb;
 
 /**
  * 
- * @since version 2.6, 08/26/2011
+ * @since		version 2.6, 08/26/2011
  * 
- * @modified version 3.9, 01/29/2014
- * @modified version 4.0, 02/06/2014
- * @modified version 4.6, 01/28/2015
+ * @modified	version 3.9, 01/29/2014
+ * @modified	version 4.0, 02/06/2014
+ * @modified	version 4.6, 01/28/2015
  * 
  * @author Dmitry Viktorov
  * 

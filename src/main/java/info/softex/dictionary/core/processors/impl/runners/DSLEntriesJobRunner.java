@@ -1,13 +1,13 @@
 package info.softex.dictionary.core.processors.impl.runners;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import info.softex.dictionary.core.attributes.ArticleInfo;
 import info.softex.dictionary.core.attributes.BaseResourceInfo;
@@ -76,7 +76,7 @@ public class DSLEntriesJobRunner implements JobRunner {
 				log.info("Processed Items: {}. Total Time: {} sec", totalItems, partTime);
 			}
 			
-			ArticleInfo articleInfo = reader.getRawArticleInfo(new WordInfo(totalItems));
+			ArticleInfo articleInfo = reader.getRawArticleInfo(new WordInfo(null, totalItems));
 			jobData.setDataObject(articleInfo);
 			
 			boolean isProcessed = job.processItem(jobData);
@@ -87,7 +87,6 @@ public class DSLEntriesJobRunner implements JobRunner {
 		}
 		
 		reader.close();
-		
 		job.finish();
 		
 		int processedItems = totalItems - ignoredItems;
@@ -95,7 +94,6 @@ public class DSLEntriesJobRunner implements JobRunner {
 		log.info("Processing complete. Time: {} sec. Items ignored: {}, processed: {}, total: {}", 
 			time, ignoredItems, processedItems, totalItems
 		);
-		
 	}
 	
 	protected class DSLHeaderInjector implements DataInjector {

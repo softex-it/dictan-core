@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,6 +19,18 @@
 
 package info.softex.dictionary.core.formats.dsl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+
 import info.softex.dictionary.core.annotations.BaseFormat;
 import info.softex.dictionary.core.attributes.AbbreviationInfo;
 import info.softex.dictionary.core.attributes.ArticleInfo;
@@ -33,26 +45,14 @@ import info.softex.dictionary.core.formats.source.SourceBaseReader;
 import info.softex.dictionary.core.formats.source.SourceFileNames;
 import info.softex.dictionary.core.utils.StringUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /**
  * The DSL Base Reader enables reading the DSL (Dictionary Specification Language)
  * format developed by ABBYY and mainly used at Lingvo application.
  * 
- * @since version 4.6,		01/26/2015
+ * @since		version 4.6, 01/26/2015
  * 
- * @modified version 4.7,	03/23/2015
- * @modified version 4.9,   12/08/2015
+ * @modified	version 4.7, 03/23/2015
+ * @modified	version 4.9, 12/08/2015
  * 
  * @author Dmitry Viktorov
  * 
@@ -64,9 +64,9 @@ public class DSLBaseReader extends SourceBaseReader {
 	
 	private final static Logger log = LoggerFactory.getLogger(DSLBaseReader.class);
 
-	protected final List<String> headers = new ArrayList<String>();
+	protected final List<String> headers = new ArrayList<>();
 	
-	protected final TreeMap<Integer, String> adaptedWordsMappings = new TreeMap<Integer, String>();
+	protected final TreeMap<Integer, String> adaptedWordsMappings = new TreeMap<>();
 	
 	protected DSLBaseReadUnit dslArticleReader;
 	protected DSLBaseReadUnit dslAbbrevReader;
@@ -117,8 +117,7 @@ public class DSLBaseReader extends SourceBaseReader {
 	
 	@Override
 	protected Set<String> loadAbbreviations() throws IOException, BaseFormatException {
-		Set<String> abbKeys = new LinkedHashSet<String>();
-		
+		Set<String> abbKeys = new LinkedHashSet<>();
 		File abbrevFile = new File(sourceDirectory.getAbsolutePath() + File.separator + 
 			SourceFileNames.FILE_DSL_ABBREVIATIONS_NO_EXT + SourceFileNames.FILE_DSL_EXT_MAIN);
 		
@@ -159,9 +158,7 @@ public class DSLBaseReader extends SourceBaseReader {
 			if (StringUtils.isNotBlank(wordMapping)) {
 				wordInfo.setWordMapping(wordMapping);
 			}
-			
-			articleInfo.setBaseInfo(getBasePropertiesInfo());
-			
+			articleInfo.setBaseInfo(getBaseInfo());
 			return articleInfo;
 		}
 		return null;
@@ -186,12 +183,10 @@ public class DSLBaseReader extends SourceBaseReader {
 	
 	@Override
 	public BaseResourceInfo getBaseResourceInfo(String resourceKey) throws BaseFormatException {
-		
 		BaseResourceKey brk = BaseResourceKey.resolveKey(resourceKey);
 		if (brk == null) {
 			return null;
 		}
-		
 		BaseResourceInfo resInfo = null;
 		
 		switch (brk) {
@@ -200,7 +195,7 @@ public class DSLBaseReader extends SourceBaseReader {
 					resInfo = dslArticleReader.getDSLMetaBaseResourceInfo(brk.getKey());
 				} catch (IOException e) {
 					log.error("Error", e);
-					throw new BaseFormatException("Couldn'r read base resource: " + brk);
+					throw new BaseFormatException("Couldn't read base resource: " + brk);
 				}
 			break;
 
@@ -210,7 +205,7 @@ public class DSLBaseReader extends SourceBaseReader {
 						resInfo = dslAbbrevReader.getDSLMetaBaseResourceInfo(brk.getKey());
 					} catch (IOException e) {
 						log.error("Error", e);
-						throw new BaseFormatException("Couldn'r read base resource: " + brk);
+						throw new BaseFormatException("Couldn't read base resource: " + brk);
 					}
 				}
 			break;
@@ -218,9 +213,7 @@ public class DSLBaseReader extends SourceBaseReader {
 			default:
 				return null;
 		}
-		
 		return resInfo;
-
 	}
 	
 	@Override
@@ -235,8 +228,8 @@ public class DSLBaseReader extends SourceBaseReader {
 	}
 	
 	@Override
-	public BasePropertiesInfo loadBasePropertiesInfo() throws IOException, BaseFormatException {
-		super.loadBasePropertiesInfo();
+	public BasePropertiesInfo loadBaseInfo() throws IOException, BaseFormatException {
+		super.loadBaseInfo();
 		baseInfo.setArticlesActualNumber(words.size() - getWordsRedirects().size());
 		baseInfo.setWordsMappingsNumber(getWordsMappings().size());
 		baseInfo.setWordsRelationsNumber(getWordsRedirects().size());

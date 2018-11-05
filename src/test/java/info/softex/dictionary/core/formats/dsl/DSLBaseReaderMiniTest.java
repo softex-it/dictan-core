@@ -86,7 +86,7 @@ public class DSLBaseReaderMiniTest {
 		// Check articles match the expected articles
 		int wordsCount = 0;
 		for (String wordExpected : DSLBaseMiniContent.WORDS_ARTICLES.keySet()) {
-			ArticleInfo articleInfoRead = reader.getRawArticleInfo(new WordInfo(wordsCount));
+			ArticleInfo articleInfoRead = reader.getRawArticleInfo(new WordInfo(null, wordsCount));
 			String articleExpected = DSLBaseMiniContent.WORDS_ARTICLES.get(wordExpected);
 			
 			assertNotNull(articleInfoRead.getWordInfo().getWord());

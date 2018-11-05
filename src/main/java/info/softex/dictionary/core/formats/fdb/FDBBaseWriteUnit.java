@@ -1,7 +1,7 @@
 /*
  *  Dictan Open Dictionary Java Library presents the core interface and functionality for dictionaries. 
  *	
- *  Copyright (C) 2010 - 2015  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
+ *  Copyright (C) 2010 - 2018  Dmitry Viktorov <dmitry.viktorov@softex.info> <http://www.softex.info>
  *	
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License (LGPL) as 
@@ -19,13 +19,8 @@
 
 package info.softex.dictionary.core.formats.fdb;
 
-import info.softex.dictionary.core.attributes.AbbreviationInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo;
-import info.softex.dictionary.core.attributes.BasePropertiesInfo.PrimaryKey;
-import info.softex.dictionary.core.attributes.BaseResourceInfo;
-import info.softex.dictionary.core.attributes.FormatInfo;
-import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
-import info.softex.dictionary.core.attributes.LanguageDirectionsInfo.CollationProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -48,30 +43,39 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import java.util.zip.DeflaterOutputStream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import info.softex.dictionary.core.attributes.AbbreviationInfo;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo;
+import info.softex.dictionary.core.attributes.BasePropertiesInfo.PrimaryKey;
+import info.softex.dictionary.core.attributes.BaseResourceInfo;
+import info.softex.dictionary.core.attributes.FormatInfo;
+import info.softex.dictionary.core.attributes.LanguageDirectionsInfo;
+import info.softex.dictionary.core.attributes.LanguageDirectionsInfo.CollationProperties;
 
 /**
  * 
- * @since version 2.9, 		11/19/2011
+ * @since       version 2.9, 11/19/2011
  * 
- * @modified version 3.5,	08/07/2012
- * @modified version 3.9,	01/29/2014
- * @modified version 4.0,	02/02/2014
- * @modified version 4.5,	03/29/2014
- * @modified version 4.6,	01/28/2015
- * @modified version 4.7,	03/26/2015
- * 
+ * @modified    version 3.5, 08/07/2012
+ * @modified    version 3.9, 01/29/2014
+ * @modified    version 4.0, 02/02/2014
+ * @modified    version 4.5, 03/29/2014
+ * @modified    version 4.6, 01/28/2015
+ * @modified    version 4.7, 03/26/2015
+ * @modified    version 5.2, 10/21/2018
+ *
  * @author Dmitry Viktorov
  * 
  */
 public class FDBBaseWriteUnit {
-	
-	private final static Logger log = LoggerFactory.getLogger(FDBBaseWriteUnit.class);
-	
-	protected final static String UTF8 = "UTF-8";
+
+    private static final Logger log = LoggerFactory.getLogger(FDBBaseWriteUnit.class);
+
+	protected static final String UTF8 = "UTF-8";
+
+    protected UUID baseUid = UUID.randomUUID();
 
 	protected BasePropertiesInfo baseInfo = null;
 	protected LanguageDirectionsInfo langDirections = null;
@@ -80,7 +84,6 @@ public class FDBBaseWriteUnit {
 	protected final int baseIndex;
 	
 	protected final Connection connection;
-	
 	protected final int maxBatchSize = 1000;
 	
 	protected int curWordsBatchSize = 0;
@@ -128,7 +131,6 @@ public class FDBBaseWriteUnit {
 	}
 
 	public void createBase(String... params) throws SQLException, NoSuchAlgorithmException {
-		
 		Statement st = connection.createStatement();
 		FDBTables[] tables = FDBTables.values();
 		for (int i = 0; i < tables.length; i++) {
@@ -172,11 +174,8 @@ public class FDBBaseWriteUnit {
 			insBasePropertySt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_BASE_PROPERTY);
 			insBaseResourceSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_BASE_RESOURCE);
 			updBasePropertySt = connection.prepareStatement(FDBSQLWriteStatements.UDATE_BASE_PROPERTY);
-			
 			selAllBaseInfoSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_ALL_BASE_PROPERTIES);
-		
 		} else {
-			
 			log.info("A new db has been created. Initializing.");
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_ARTICLE_BLOCKS);
 			st.executeUpdate(FDBSQLWriteStatements.CREATE_TABLE_MEDIA_RESOURCE_BLOCKS);
@@ -188,16 +187,13 @@ public class FDBBaseWriteUnit {
 			insArticleSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_ARTICLE);
 			insMediaResourceSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_MEDIA_RESOURCE);
 			
-			selAllBaseInfoSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_ALL_BASE_PROPERTIES);		
-
+			selAllBaseInfoSt = connection.prepareStatement(FDBSQLReadStatements.SELECT_ALL_BASE_PROPERTIES);
 		}
 	}
 	
 	
 	public BasePropertiesInfo saveBasePropertiesInfo(BasePropertiesInfo inBaseInfo, FormatInfo inFormatInfo) throws SQLException, NoSuchAlgorithmException {
-		
 		if (baseIndex == 1) {
-			
 			this.baseInfo = inBaseInfo;
 			
 			inBaseInfo.setFormatName(inFormatInfo.getName());
@@ -249,11 +245,12 @@ public class FDBBaseWriteUnit {
 			inBaseInfo.getPrimaryParameters().put(PrimaryKey.ARTICLES_BLOCKS_SIZE_UNCOMPRESSED_MIN.getKey(), this.minArticleBlockMemSize);
 			inBaseInfo.getPrimaryParameters().put(PrimaryKey.MEDIA_RESOURCES_BLOCKS_SIZE_UNCOMPRESSED_MIN.getKey(), this.minMediaResourceBlockMemSize);
 			
-			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_SECURITY_PROPERTIES_MD5.getKey(), "");
+			insertBaseProperty(PrimaryKey.BASE_SECURITY_PROPERTIES_MD5.getKey(), "");
+			insertBaseProperty(PrimaryKey.BASE_UID.getKey(), baseUid.toString());
 			
 			Map<String, Object> params = new HashMap<String, Object>(inBaseInfo.getPrimaryParameters());
 			LinkedHashMap<String, Object> orderedParams = new LinkedHashMap<String, Object>();
-			BasePropertiesInfo.PrimaryKey[] pkArr = BasePropertiesInfo.PrimaryKey.values();
+			PrimaryKey[] pkArr = PrimaryKey.values();
 			for (int i = 0; i < pkArr.length; i++) {
 				orderedParams.put(pkArr[i].getKey(), params.remove(pkArr[i]));
 			}
@@ -265,28 +262,23 @@ public class FDBBaseWriteUnit {
 					insertBaseProperty(entry.getKey(), entry.getValue().toString());
 				}
 			}
-		
-		
 		} else { // Dependent bases
-			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_SECURITY_PROPERTIES_MD5.getKey(), "");
-			insertBaseProperty(BasePropertiesInfo.PrimaryKey.FORMAT_NAME.getKey(), inBaseInfo.getFormatName());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKey.FORMAT_VERSION.getKey(), Integer.toString(inBaseInfo.getFormatVersion()));
-			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_VERSION.getKey(), inBaseInfo.getBaseVersion());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_TYPE.getKey(), inBaseInfo.getBaseType());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_DATE.getKey(), inBaseInfo.getBaseDate());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_NAME_SHORT.getKey(), inBaseInfo.getBaseShortName());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_NAME_FULL.getKey(), inBaseInfo.getBaseFullName());
-			insertBaseProperty(BasePropertiesInfo.PrimaryKey.BASE_PARTS_CURRENT_NUMBER.getKey(), Integer.toString(baseIndex));
+			insertBaseProperty(PrimaryKey.BASE_SECURITY_PROPERTIES_MD5.getKey(), "");
+            insertBaseProperty(PrimaryKey.BASE_UID.getKey(), baseUid.toString());
+			insertBaseProperty(PrimaryKey.FORMAT_NAME.getKey(), inBaseInfo.getFormatName());
+			insertBaseProperty(PrimaryKey.FORMAT_VERSION.getKey(), Integer.toString(inBaseInfo.getFormatVersion()));
+			insertBaseProperty(PrimaryKey.BASE_VERSION.getKey(), inBaseInfo.getBaseVersion());
+			insertBaseProperty(PrimaryKey.BASE_TYPE.getKey(), inBaseInfo.getBaseType());
+			insertBaseProperty(PrimaryKey.BASE_DATE.getKey(), inBaseInfo.getBaseDate());
+			insertBaseProperty(PrimaryKey.BASE_NAME_SHORT.getKey(), inBaseInfo.getBaseShortName());
+			insertBaseProperty(PrimaryKey.BASE_NAME_FULL.getKey(), inBaseInfo.getBaseFullName());
+			insertBaseProperty(PrimaryKey.BASE_PARTS_CURRENT_NUMBER.getKey(), Integer.toString(baseIndex));
 		}
-		
 		return this.baseInfo;
-		
 	}
 	
 	public LanguageDirectionsInfo saveLanguageDirectionsInfo(LanguageDirectionsInfo languageDirectionsInfo) throws Exception {
-
 		this.langDirections = languageDirectionsInfo;
-		
 		PreparedStatement insDirectionSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_LANGUAGE_DIRECTION);
 		PreparedStatement insBaseResourceSt = connection.prepareStatement(FDBSQLWriteStatements.INSERT_BASE_RESOURCE);		
 
@@ -309,7 +301,6 @@ public class FDBBaseWriteUnit {
 		int i = 0;
 		for (Map.Entry<Locale, List<CollationProperties>> direction : directions.entrySet()) {
 			String fromLanguage = localeToLanguageString(direction.getKey());
-			
 			List<CollationProperties> propsSet = direction.getValue();
 			
 			for (CollationProperties langProps : propsSet) {
@@ -333,12 +324,9 @@ public class FDBBaseWriteUnit {
 				insBaseResourceSt.addBatch();
 			}
 		}
-
 		insDirectionSt.executeBatch();
 		insBaseResourceSt.executeBatch();
-		
 		return languageDirectionsInfo;
-		
 	}
 	
 	/**
@@ -399,62 +387,51 @@ public class FDBBaseWriteUnit {
 	public boolean saveMediaResource(byte[] resourceData, int mediaResourcesNumber) throws Exception {
 		mediaResourcesBuffer.add(resourceData);
 		curMediaResourceBlockMemSize += resourceData.length;
-		
 		if (curMediaResourceBlockMemSize >= minMediaResourceBlockMemSize) {
 			return true;
 		}
-		
 		return false;
 	}
 	
 	
 	public void saveWord(String word, int wordsNumber) throws Exception {
-		
 		// Insert word
 		insWordSt.setInt(1, wordsNumber);
 		insWordSt.setString(2, word);
 		insWordSt.addBatch();
-		
 		curWordsBatchSize++;
 		if (curWordsBatchSize == maxBatchSize) {
 			insWordSt.executeBatch();
 			insWordSt.clearBatch();
 			curWordsBatchSize = 0;
 		}
-
 	}
 	
 	public void saveRelation(int relationNumber, int wordNumber, int redirectToWordId, int relation) throws Exception {
-		
 		insWordRelationSt.setInt(1, relationNumber);
 		insWordRelationSt.setInt(2, wordNumber);
 		insWordRelationSt.setInt(3, redirectToWordId);
 		insWordRelationSt.setInt(4, relation);
 		insWordRelationSt.addBatch();
-		
 		curWordsRelationsBatchSize++;
 		if (curWordsRelationsBatchSize == maxBatchSize) {
 			insWordRelationSt.executeBatch();
 			insWordRelationSt.clearBatch();
 			curWordsRelationsBatchSize = 0;
 		}
-
 	}
 	
 	public void saveWordMapping(int wordNumber, String mapping1, String mapping2) throws Exception {
-		
 		insWordMappingSt.setInt(1, wordNumber);
 		insWordMappingSt.setString(2, mapping1);
 		insWordMappingSt.setString(3, mapping2);
 		insWordMappingSt.addBatch();
-		
 		curWordsMappingsBatchSize++;
 		if (curWordsMappingsBatchSize == maxBatchSize) {
 			insWordMappingSt.executeBatch();
 			insWordMappingSt.clearBatch();
 			curWordsMappingsBatchSize = 0;
 		}
-
 	}
 	
 	public boolean saveArticle(String article, int articleNumber) throws Exception {
@@ -480,7 +457,6 @@ public class FDBBaseWriteUnit {
 	}
 
 	public void flushArticles(int curArticlesNumber) throws SQLException, UnsupportedEncodingException, IOException {
-
 		// Flush words
 		if (curWordsBatchSize != 0) {
 			insWordSt.executeBatch();
@@ -498,15 +474,12 @@ public class FDBBaseWriteUnit {
 			insWordRelationSt.executeBatch();
 			insWordRelationSt.clearBatch();
 		}
-		
 		insertBlockBatch(insArticleSt, articlesBuffer, curArticlesNumber, curArticleBlockMemSize);
 		articlesBuffer = new LinkedList<byte[]>();
 		curArticleBlockMemSize = 0;
-		
 	}
 	
 	public void flushMediaResources(int curMediaResourcesNumber) throws SQLException, UnsupportedEncodingException, IOException {
-		
 		long startTime = System.currentTimeMillis();
 		if (curMediaResourcesBatchSize != 0) {
 			insMediaResourceKeySt.executeBatch();
@@ -515,9 +488,7 @@ public class FDBBaseWriteUnit {
 		insertBlockBatch(insMediaResourceSt, mediaResourcesBuffer, curMediaResourcesNumber, curMediaResourceBlockMemSize);
 		mediaResourcesBuffer = new LinkedList<byte[]>();
 		curMediaResourceBlockMemSize = 0;
-		
 		log.debug("Media resources flushed, total time: {}", System.currentTimeMillis() - startTime);
-		
 	}
 	
 	//----------------------------------------------------
@@ -527,7 +498,6 @@ public class FDBBaseWriteUnit {
 		insBasePropertySt.setString(2, key);
 		insBasePropertySt.setString(3, value);
 		insBasePropertySt.executeUpdate();
-		
 		if (key.equalsIgnoreCase(BasePropertiesInfo.PrimaryKey.BASE_SECURITY_PROPERTIES_MD5.getKey())) {
 			return;
 		}
@@ -541,34 +511,25 @@ public class FDBBaseWriteUnit {
 				sb.append(property);
 			} 
 		}
-		
 		String secCode = getMD5(sb.toString());
-
 		log.debug("MD5 String: {}, {}, {}", new Object[] {sb, sb.length(), secCode});
-		
 		updateBaseProperty(
 				BasePropertiesInfo.PrimaryKey.BASE_SECURITY_PROPERTIES_MD5.getKey(), 
 				secCode
 			);
-		
 	}
 	
 	protected static PreparedStatement insertBlockBatch(
-			PreparedStatement insBlockSt, List<byte[]> block, int id, int curBlockMemSize) throws UnsupportedEncodingException, IOException, SQLException {
-		
+			PreparedStatement insBlockSt, List<byte[]> block, int id, int curBlockMemSize) throws IOException, SQLException {
 		if (block.size() == 0) {
 			log.debug("Block size is 0 for id {} and mem size is {}. Skipping insert.", id, curBlockMemSize);
 			return insBlockSt;
 		}
 
 		long startTime = System.currentTimeMillis();
-		
 		int blockSize = block.size(); // Only for logging
-		
 		int blockMemSize = curBlockMemSize + 4 * block.size() + 8;
-		
 		ByteBuffer buffer = ByteBuffer.allocate(blockMemSize);
-		
 		buffer.putInt(block.size());
 		
 		for (byte[] ba : block) {
@@ -582,17 +543,13 @@ public class FDBBaseWriteUnit {
 		block = null; 
 				
 		byte[] uncompData = buffer.array();
-		
 		ByteArrayOutputStream compBaos = new ByteArrayOutputStream(uncompData.length);
 		DeflaterOutputStream dos = new DeflaterOutputStream(compBaos);
 		dos.write(uncompData);
 		dos.close();
-		
 		byte[] compData = compBaos.toByteArray();
-		
-		
+
 		// BlockId is the same as the wordId of the first article in the block
-		
 		insBlockSt.setInt(1, id);
 		insBlockSt.setBytes(2, compData);
 		insBlockSt.execute();
@@ -601,7 +558,6 @@ public class FDBBaseWriteUnit {
 			"Block flushed, elements: {}, uncomp size: {}, comp size: {}, time: {}", 
 			new Object[] {blockSize, curBlockMemSize, compData.length, System.currentTimeMillis() - startTime}
 		);
-
 		return insBlockSt;
 	}
 	
@@ -624,5 +580,4 @@ public class FDBBaseWriteUnit {
 	public int getBaseIndex() {
 		return baseIndex;
 	}
-
 }

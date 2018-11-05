@@ -49,7 +49,7 @@ public class FDBBaseReaderWrapper extends FDBBaseReader {
 
 	public void verifyBaseIntegrity() throws SQLException {
 		
-		BasePropertiesInfo baseInfo = getBasePropertiesInfo();
+		BasePropertiesInfo baseInfo = getBaseInfo();
 		assertNotNull(baseInfo);
 		assertTrue(baseInfo.getWordsNumber() > 0);
 		assertTrue(baseInfo.getWordsRelationsNumber() > 0);

@@ -192,7 +192,7 @@ public class DSLBaseLayoutsContent {
 		DSLBaseAssertUtils.assertMainDSLBaseReaderParametersEqualByProperties(PROPS_LAYOUTS_ORIG, reader, true, true);
 		BaseReaderAssertUtils.assertWordsRedirectsEqual(REDIRECTS_ORIG, reader.getWordsRedirects());
 		
-		ArticleInfo artInfo = reader.getRawArticleInfo(new WordInfo(1));
+		ArticleInfo artInfo = reader.getRawArticleInfo(new WordInfo(null, 1));
 		assertEquals(WORDS_ARTICLES_ORIG_SELECTIVE.values().iterator().next(), artInfo.getArticle());
 	}
 	
@@ -200,7 +200,7 @@ public class DSLBaseLayoutsContent {
 		DSLBaseAssertUtils.assertMainDSLBaseReaderParametersEqualByProperties(PROPS_LAYOUTS_UNIQUE, reader, true, true);
 		BaseReaderAssertUtils.assertWordsRedirectsEqual(REDIRECTS_UNIQUE_DSL_2_FDB, reader.getWordsRedirects());
 
-		WordInfo wordInfo = new WordInfo(WORDS_ARTICLES_ADAPTED_SELECTIVE.keySet().iterator().next());
+		WordInfo wordInfo = new WordInfo(null, WORDS_ARTICLES_ADAPTED_SELECTIVE.keySet().iterator().next());
 		ArticleInfo artInfo = reader.getRawArticleInfo(wordInfo);
 		
 		//System.out.println("AAAART " + wordInfo + " R " + reader);
